@@ -1,0 +1,33 @@
+# Local setup downloads, browser artifacts, diagnostics and router backups.
+/.work/
+/result.json
+
+# Local secrets and environment files; sanitized examples may be tracked.
+.env
+.env.*
+!.env.example
+credentials/
+secrets/
+*.key
+*.pem
+*.p12
+*.pfx
+*.nmconnection
+
+# Machine backups and diagnostic output.
+backups/
+*.bak
+*.log
+*.pcap
+*.pcapng
+
+# Generated print jobs (keep source models outside these patterns).
+*.gcode
+*.gcode.3mf
+
+# Editor and OS temporary files.
+*~
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

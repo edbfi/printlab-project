@@ -2,6 +2,12 @@
 
 Only validated successful changes belong here. Pending work belongs in STATE.md; failed attempts in ISSUES.md.
 
+## 2026-09-22 — Local version control
+
+Initialized local Git on `main` with categorized Conventional Commits for project foundation/license, system inventory, networking, printing/kiosk and operations/handoff. These are present-state snapshots, not reconstructed historical changes. Downloaded the unmodified GNU AGPL version 3 text to LICENSE and declared AGPL-3.0-only in README. Added `.gitignore` for setup artifacts, credentials, machine backups, logs and generated print jobs. No remote configured; local author `<workstation-user> <<workstation-user>@localhost>`.
+
+Validation: reviewed tracked file list, confirmed `.work/` and result.json remain ignored, and checked documentation against locally stored credential values and private-key markers without printing secrets; no matches. Five initial commits completed and working tree was clean before this record. Existing live services/configuration were not modified. Recovery: Git restores tracked project versions only; system rollback material remains in its documented locations.
+
 ## 2026-09-22 — Documentation workspace
 
 Created `/home/<workstation-user>/kiosk-mode` with overview, system, network, printing, kiosk, operations and worklog documentation. Moved `~/Downloads/d67m.md` to `documentation/overview/SETUP-BRIEF.md` and updated its machine details, network recommendation and recordkeeping/cleanup requirements. Added root README.md and AGENTS.md for navigation and future agent continuity.

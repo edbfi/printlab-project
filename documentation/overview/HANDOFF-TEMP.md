@@ -1,6 +1,6 @@
 # Continue the Lubuntu printing station setup
 
-The project is now a local Git repository on `main`, with categorized Conventional Commits and no remote. Check `git status` before editing; commit future logical changes using Conventional Commits. Identity is repository-local `<workstation-user> <<workstation-user>@localhost>`. Project license is AGPL-3.0-only. `.work/`, credentials, backups and generated outputs are ignored; never force-add them. Git captures documentation, not the live configuration under `/etc` or secret-bearing rollback material.
+The project is now a local Git repository on `main`, with categorized Conventional Commits and no remote. Check `git status` before editing; commit future logical changes using Conventional Commits. Identity is repository-local `edbfi <326875205+edbfi@users.noreply.github.com>`. Project license is AGPL-3.0-only. `.work/`, credentials, backups and generated outputs are ignored; never force-add them. Git captures documentation, not the live configuration under `/etc` or secret-bearing rollback material.
 
 Continue the existing project in `/home/<workstation-user>/kiosk-mode` on this actual Lubuntu machine. This request resumes work after the successful network reboot checkpoint on 2026-09-22. The previous “stop for today” instruction was the end-of-day boundary, not abandonment of the project.
 

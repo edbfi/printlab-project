@@ -4,7 +4,7 @@ Only validated successful changes belong here. Pending work belongs in STATE.md;
 
 ## 2026-09-22 — Local version control
 
-Initialized local Git on `main` with categorized Conventional Commits for project foundation/license, system inventory, networking, printing/kiosk and operations/handoff. These are present-state snapshots, not reconstructed historical changes. Downloaded the unmodified GNU AGPL version 3 text to LICENSE and declared AGPL-3.0-only in README. Added `.gitignore` for setup artifacts, credentials, machine backups, logs and generated print jobs. No remote configured; local author `<workstation-user> <<workstation-user>@localhost>`.
+Initialized local Git on `main` with categorized Conventional Commits for project foundation/license, system inventory, networking, printing/kiosk and operations/handoff. These are present-state snapshots, not reconstructed historical changes. Downloaded the unmodified GNU AGPL version 3 text to LICENSE and declared AGPL-3.0-only in README. Added `.gitignore` for setup artifacts, credentials, machine backups, logs and generated print jobs. No remote configured; local author `edbfi <326875205+edbfi@users.noreply.github.com>`.
 
 Validation: reviewed tracked file list, confirmed `.work/` and result.json remain ignored, and checked documentation against locally stored credential values and private-key markers without printing secrets; no matches. Five initial commits completed and working tree was clean before this record. Existing live services/configuration were not modified. Recovery: Git restores tracked project versions only; system rollback material remains in its documented locations.
 

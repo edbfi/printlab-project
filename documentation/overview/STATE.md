@@ -1,6 +1,6 @@
 # Current state
 
-Repository checkpoint: local Git repository on `main`, initialized after setup on 2026-09-22 with categorized Conventional Commits. No remote. Author identity is repository-local `<workstation-user> <<workstation-user>@localhost>`. AGPL-3.0-only license and `.gitignore` added; secrets, `.work/` and live-system backups remain outside Git. This records current project files, not historical system changes. Network setup remains at the verified reboot checkpoint below.
+Repository checkpoint: local Git repository on `main`, initialized after setup on 2026-09-22 with categorized Conventional Commits. No remote. Author identity is repository-local `edbfi <326875205+edbfi@users.noreply.github.com>`. AGPL-3.0-only license and `.gitignore` added; secrets, `.work/` and live-system backups remain outside Git. This records current project files, not historical system changes. Network setup remains at the verified reboot checkpoint below.
 
 Updated 2026-09-22 16:22 CEST, after operator-approved reboot. **Partially complete.** Actual Lubuntu machine; no OS/boot firmware work.
 

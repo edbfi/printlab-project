@@ -2,6 +2,8 @@
 
 ## 2026-09-24 — Inconclusive downstream IPv6 check
 
+Follow-up identifies the successful request as IPv4: explicit system curl reports IPv4-mapped local `.181` and remote `173.231.16.77`, HTTP 200. The client-side reason for mapped-address selection is not diagnosed; a native-address-pinned probe is pending. This observation is not an IPv6 leak and requires no gateway change.
+
 Mac has no reported IPv6 default route, yet the supplied curl IPv6-only request returns the current IPv4 VPN exit. Cause unknown; host IPv6-disable/forwarding settings remain as designed and IPv6 drop counter is zero. No evidence yet that packets bypassed the gateway. Next diagnostic: explicit `/usr/bin/curl -q`, proxy bypass and local/remote socket-address output. No configuration changed or recovery side effects.
 
 ## Open prerequisites

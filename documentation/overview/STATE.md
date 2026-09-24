@@ -18,6 +18,8 @@ Targeted private-school check: operator reports Mac ping to known school gateway
 
 Next: downstream IPv6 route/egress inspection, then VPN process recovery and DNS failure checks with independent recovery. Cold-start late uplink and actual administrator login/exposure also remain pending.
 
+IPv6 inspection unresolved at 12:32: Mac reports no IPv6 default route, but supplied `curl --noproxy '*' -6 ... https://api64.ipify.org` output is IPv4 `79.142.77.70`. Do not classify as a leak or a passed IPv6 block without connection-level evidence. Host recheck: printer interface IPv6 disabled, no IPv6 address, accept_ra=0, global IPv6 forwarding=0; own IPv6 drop counter remains 0. DNS proxy returns two genuine AAAA answers for api64.ipify.org. Next request uses explicit macOS `/usr/bin/curl`, disables default curl config/proxy, and prints local/remote addresses to identify the actual connection. No configuration changes proposed.
+
 Current operator request resumes setup; the September 22 stop-for-today instruction below is historical. Targeted checks passed on boot `56a11b6f-9190-46e5-9ea7-74926d46c8c4` (boot services started around 11:23:55). No live configuration changed or interruption performed.
 
 - `sudo -n true` succeeds now despite the previously recorded expiry; current authorization duration is unknown. AC mains online; active local X11 session reports Remote=no. Operator presence and usable local-terminal recovery still await explicit confirmation.

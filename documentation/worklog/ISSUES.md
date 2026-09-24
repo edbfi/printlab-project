@@ -1,5 +1,9 @@
 # Issues and failed attempts
 
+## 2026-09-24 — Inconclusive downstream IPv6 check
+
+Mac has no reported IPv6 default route, yet the supplied curl IPv6-only request returns the current IPv4 VPN exit. Cause unknown; host IPv6-disable/forwarding settings remain as designed and IPv6 drop counter is zero. No evidence yet that packets bypassed the gateway. Next diagnostic: explicit `/usr/bin/curl -q`, proxy bypass and local/remote socket-address output. No configuration changed or recovery side effects.
+
 ## Open prerequisites
 
 - Ethernet has link but no IPv4 lease. Router currently in Share ETH per operator; inspect AP-mode setup before assigning a cause. No settings changed.

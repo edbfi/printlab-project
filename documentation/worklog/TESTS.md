@@ -1,5 +1,9 @@
 # Validation
 
+## 2026-09-24 — IPv6 inspection (unresolved)
+
+Mac `route -n get -inet6 default` reports not in table, but operator's `curl --noproxy '*' -6 --connect-timeout 5 --max-time 10 https://api64.ipify.org` returned `79.142.77.70`. Returned body alone does not establish socket address family or path. At 12:32 host printer-interface IPv6 disabled/no address, accept_ra=0, global IPv6 forwarding=0, IPv6 forwarding-drop counter 0. DNS via `.1` returns AAAA records for the endpoint. Need explicit system curl with config/proxy bypass and socket local/remote address output; do not mark IPv6 fail-closed accepted or diagnose a leak from this result.
+
 ## 2026-09-24 — Targeted private-school destination probe
 
 Mac operator reports `ping -c 3 10.113.128.1` times out, quoting timeout for sequence 0. Own private-destination drop counter increased from 1 packet/73 bytes (12:23) to 7/577 (12:25:37): six packets/504 bytes dropped. Route lookup for source `.181` arriving on printer Ethernet selects school Wi-Fi; the existing private-destination rule drops before forwarding accept. This corroborates private-address blocking during the test, but the aggregate counter cannot assign all six packets to a three-ping request; no packet capture or complete ping summary supplied. Do not label all private-school access or reverse-direction isolation proven. No infrastructure scanning or configuration change.

@@ -1,5 +1,10 @@
 # Issues and failed attempts
 
+## 2026-09-24 — Firmware code 301 recovered
+
+Operator restart/retry resolved first printer update failure. Studio independently confirms 01.08.01.00 and Updating successful / 100%; printer reachable at reserved .115 with fresh DHCP ACK. Original download-failure cause remains unknown; no infrastructure changes required. Earlier unresolved entry below is historical.
+
+
 ## 2026-09-24 — First printer firmware download failed, code 301
 
 Operator-initiated update on 3DP-030-366 stalled at reported 32% downloading, then displayed “update failed 301 please restart and re-update”. Cause unresolved. Local ping, host tunnel HTTPS and station DNS work; passive printer TCP/8883 traffic receives remote acknowledgements. Firmware download endpoint not verified. Follow device's explicit restart/retry instruction with operator; do not claim upgrade success or change baseline firmware until verified. Network configuration preserved, DHCP reservation renewal still pending.

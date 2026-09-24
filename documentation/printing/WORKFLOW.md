@@ -1,5 +1,10 @@
 # Printing workflow
 
+## First printer recovery verified — 2026-09-24
+
+After operator-initiated update initially failed at 32% with code 301, operator restart/retry succeeded. Studio reports first printer 3DP-030-366 Idle, **01.08.01.00**, Updating successful / 100%. Operator confirms .115; fresh DHCP ACKs at 15:37:42 and 15:41:14 verify loaded reservation for ac:a7:04:12:be:58/a1mini-366, ping 2/2. Second association/binding and both printing workflows remain pending. Historical initial-association notes below are superseded by this checkpoint.
+
+
 ## Association checkpoint — 2026-09-24 15:19
 
 Follow-up: operator confirms `.115`, LAN Only Off and account binding for 366. Studio directly recognizes device/status and read-only details confirm A1 mini, matching private serial and firmware 01.03.30.01. No second binding performed; no firmware update selected. UI external-spool setting is PLA, not a physical filament confirmation. Reservation `.115`/MAC above loaded with hostname a1mini-366/12h lease; fresh reconnect/ACK pending. Backup in rollback/20260924/printer-reservations. No control/transfer/printing tested.
@@ -10,7 +15,7 @@ Operator reports first printer **3DP-030-366** joined 3D-Printere. A new client 
 
 | Printer / device name | Firmware | Printing time | AMS Lite | Existing LAN Only mode |
 |---|---|---|---|---|
-| First: 3DP-030-366 | 01.03.30.01 (Studio confirmed) | 33 hours | None | Off (operator confirmed) |
+| First: 3DP-030-366 | 01.08.01.00 (Studio confirmed after update) | 33 hours | None | Off (operator confirmed) |
 | Second: 3DP-030-581 | 01.08.01.00 | 44 hours | None | On |
 
 At initial inventory both A1 minis were on the operator's testing Wi-Fi; first-printer association progress is recorded above. Both have **stainless-steel 0.4 mm nozzles** and **Bambu Textured PEI Plates**, confirmed by operator. Loaded filament remains unknown. These are operator observations, not station-discovered identities. Do not assume the two firmware versions have identical Studio/LAN requirements.

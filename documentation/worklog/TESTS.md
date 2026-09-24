@@ -1,5 +1,10 @@
 # Validation
 
+## 2026-09-24 — Firmware retry and reservation pass
+
+First printer 366: operator reports update works and .115. Studio Update page independently shows matching identity, Idle, 01.08.01.00, Updating successful / 100%. DHCP journal shows fresh .115 ACKs for confirmed MAC at 15:37:42 and 15:41:14 after 15:22:13 reservation load; ping 2/2. No forced Wi-Fi reconnect needed. Firmware update recovery verified for this attempt only; second printer and print workflow pending.
+
+
 ## 2026-09-24 — First printer identity, binding and Studio recognition
 
 Operator confirms physical `.115`, LAN Only Off and dedicated-account binding. Studio Device page directly displays 3DP-030-366/status/temperature telemetry; read-only details show A1 mini, matching private serial and 01.03.30.01 firmware. No second bind needed. Update offer not selected; no movement/heating/print/transfer tested. UI external spool configured PLA, actual material still unconfirmed.

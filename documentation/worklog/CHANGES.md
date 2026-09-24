@@ -1,5 +1,10 @@
 # Verified changes
 
+## 2026-09-24 — First printer firmware and stable address verified
+
+Operator completed first-printer firmware retry; Studio directly verifies 3DP-030-366 firmware 01.08.01.00, successful 100% update and Idle. Reservation .115 for ac:a7:04:12:be:58/a1mini-366 verified by fresh post-load DHCP ACKs at 15:37:42 and 15:41:14, operator display confirmation and ping 2/2. Root-only pre-reservation dnsmasq backup retained under rollback/20260924/printer-reservations. No print/transfer tested.
+
+
 Only validated successful changes belong here. Pending work belongs in STATE.md; failed attempts in ISSUES.md.
 
 ## 2026-09-24 — Prevent host system-resolver DNS fallback

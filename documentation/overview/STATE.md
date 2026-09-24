@@ -1,5 +1,10 @@
 # Current state
 
+## First printer update and reservation verified — 2026-09-24
+
+Operator reports recovery and IP 192.168.77.115. Studio directly confirms 3DP-030-366 Idle, firmware **01.08.01.00**, “Updating successful” / 100%. Fresh DHCP ACKs at 15:37:42 and 15:41:14 map ac:a7:04:12:be:58 to reserved .115/a1mini-366 after reservation load; ping 2/2. Earlier code-301 failure recovered after operator restart/retry. No additional reconnect needed. Next physical checkpoint: connect second printer 3DP-030-581 to 3D-Printere and confirm displayed IP, LAN Only Off and dedicated-account binding for agreed cloud baseline. No print, motion, heating or transfer tested. Preserve reservation rollback backup.
+
+
 ## First printer firmware update failed — 2026-09-24 15:38
 
 Operator initiated firmware update on 3DP-030-366, then reported download stuck at 32% followed by “update failed 301 please restart and re-update”. Installed version remains unverified after this attempt; retain last observed 01.03.30.01. Next physical checkpoint: operator follows printer's explicit restart/retry instruction on this printer only, reports outcome. No factory reset or network changes. Reservation fresh ACK and second-printer association remain pending. Avoid network interruptions during retry.

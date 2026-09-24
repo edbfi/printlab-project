@@ -1,5 +1,9 @@
 # Validation
 
+## 2026-09-24 — Administrator paths across both networks
+
+Operator supplied successful authenticated SSH sessions on TCP 2222: printer-side Mac to `.1`, to host-owned school address `10.113.130.33`, and to `<workstation-host>.local` resolving to `.1`; school-side Mac to `10.113.130.33` (subsequent banner reports source `10.113.129.72`). Correct ED25519 fingerprint confirmed. School-side `.1` connection was canceled without login; `.local` reported timeout with and without Mac VPN. Do not infer broad school port restrictions or a specific multicast-filter cause from these observations. Same-host school address reached from printer LAN is local delivery, not evidence of private-school forwarding. SSH operation accepted on both networks; one common working name is not established. No static school IP or SSH configuration changes.
+
 ## 2026-09-24 — Actual administrator SSH login
 
 Passed from printer LAN: operator confirms `ssh -p 2222 <workstation-user>@192.168.77.1` login with correct ED25519 host fingerprint. Server journal confirms accepted public key for <workstation-user> from `.181` at 12:42:03. Effective password/keyboard-interactive/root login disabled; public-key auth enabled. All-interface listeners and Windscribe private-source input accepts remain; school-side exposure not tested. Operator choice requested before narrowing exposure. No authentication/configuration changes.

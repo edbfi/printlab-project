@@ -2,6 +2,8 @@
 
 ## Administration decision — 2026-09-24
 
+Subsequent actual tests verify SSH TCP 2222 from both networks: printer-side Mac to `.1`, host school `.33`, and `.local`→`.1`; school-side Mac to `.33`. School `.local` timed out with/without Mac VPN; cause not isolated. School-to-printer `.1` attempt did not connect before cancellation. Preserve DHCP/current SSH. Common name across networks remains unverified; a school reservation/managed DNS requires its administrator. Reaching the host's own school IP from printer LAN exercises INPUT, not private-destination FORWARD rules.
+
 Operator wants SSH from both printer LAN and school network. Printer-LAN key login `.1:2222` verified; school-side login not yet tested. School interface remains DHCP, currently `10.113.130.33/20`, MAC preserve; no arbitrary static address assignment authorized. Stable school address/DNS requires school network administration. Hostname `<workstation-host>`, Avahi active; `.local` resolution across the two individual links is a candidate convenience, not verified. School multicast/client isolation policy unknown; no school infrastructure changes requested.
 
 ## Current read-only observation — 2026-09-24

@@ -1,5 +1,14 @@
 # Operations and recovery
 
+## Verified administrator access — 2026-09-24
+
+- On **3D-Printere**: `ssh -p 2222 <workstation-user>@192.168.77.1` or `ssh -p 2222 <workstation-user>@<workstation-host>.local`; both verified by actual key login.
+- On **Ishoj Kommune**: `ssh -p 2222 <workstation-user>@10.113.130.33` verified from school client, without requiring Mac VPN. This is a DHCP address and may change; locally inspect `nmcli -f IP4.ADDRESS device show wlp0s20f3` when needed.
+- `.local` access timed out on school Wi-Fi with and without Mac VPN; use current numeric school address. A persistent school hostname/address needs school-managed DNS/DHCP reservation. Do not assign an arbitrary static school address.
+- Printer `.1` was not reachable in the school-side attempt, as no route to the dedicated segment is established. Both host IPs are reachable from printer LAN; access to host-owned school IP is local delivery, not access through it to school devices.
+
+Preserve public-key-only TCP 2222 service and local-terminal recovery. Host fingerprint remains the previously verified ED25519 value below. No school routing, DNS or firewall changes performed.
+
 ## Resumption checkpoint — 2026-09-24
 
 Administrator SSH now verified from Mac on printer LAN: `ssh -p 2222 <workstation-user>@192.168.77.1`, public-key login as <workstation-user>. ED25519 host fingerprint `SHA256:5bUw2EUigkD1ebMQOUMeQ6U3dFRhY5pzg47unG5wdyM` verified by operator and server acceptance logged. Password, keyboard-interactive and root login disabled. SSH still listens on all addresses; desired school-side exposure decision pending, no restriction applied yet.

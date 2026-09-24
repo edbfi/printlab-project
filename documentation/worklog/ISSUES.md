@@ -1,5 +1,9 @@
 # Issues and failed attempts
 
+## 2026-09-24 — First printer firmware download failed, code 301
+
+Operator-initiated update on 3DP-030-366 stalled at reported 32% downloading, then displayed “update failed 301 please restart and re-update”. Cause unresolved. Local ping, host tunnel HTTPS and station DNS work; passive printer TCP/8883 traffic receives remote acknowledgements. Firmware download endpoint not verified. Follow device's explicit restart/retry instruction with operator; do not claim upgrade success or change baseline firmware until verified. Network configuration preserved, DHCP reservation renewal still pending.
+
 ## 2026-09-24 — Host school-DNS fallback resolved
 
 Process-specific connection trace identifies systemd-resolved using school DNS without tunnel. Added own output guard for that UID's UDP/TCP port-53 queries outside lo/tun0, preserving Windscribe bootstrap. Controlled retest: host lookup times out, guard drops exercised, zero school-resolver DNS packets captured, reconnect and host/printer DNS/AP/HTTPS restored. No rollback/recovery timers remain. Full reboot with the new rule not yet tested; per-app custom DNS beyond system-resolver scope not newly restricted. Previous unresolved-attribution notes below are historical.

@@ -1,5 +1,11 @@
 # Current state
 
+## First printer firmware update failed — 2026-09-24 15:38
+
+Operator initiated firmware update on 3DP-030-366, then reported download stuck at 32% followed by “update failed 301 please restart and re-update”. Installed version remains unverified after this attempt; retain last observed 01.03.30.01. Next physical checkpoint: operator follows printer's explicit restart/retry instruction on this printer only, reports outcome. No factory reset or network changes. Reservation fresh ACK and second-printer association remain pending. Avoid network interruptions during retry.
+
+Read-only checks during investigation: printer ping 3/3, gateway/DHCP active, station DNS and tunnel HTTPS succeed, VPN exit 68.67.118.173. An 18-second targeted Ethernet header capture shows printer TCP/8883 outbound packets and remote acknowledgements, no bulk download observed in that window. This does not establish firmware-server reachability or explain error 301. No printer controls or infrastructure configuration changed.
+
 ## First printer confirmed and visible in Studio — 2026-09-24 15:24
 
 Operator confirms **3DP-030-366** displays `.115`, LAN Only Off and dedicated-account binding successful. Native Studio Device page directly shows 3DP-030-366/status/temperature telemetry; no second binding action required. Read-only device details match private inventory serial, A1 mini and firmware **01.03.30.01**. Thus original version report confirmed despite absent exact public release-history entry. Firmware update offered but NOT selected. External spool configured PLA in UI; physical filament details still need operator confirmation before slicing/print readiness.

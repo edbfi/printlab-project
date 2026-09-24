@@ -8,6 +8,8 @@
 !.env.example
 credentials/
 secrets/
+# Local hardware identifiers; keep sanitized printer inventory in WORKFLOW.md.
+/documentation/printing/PRINTERS.private.md
 *.key
 *.pem
 *.p12

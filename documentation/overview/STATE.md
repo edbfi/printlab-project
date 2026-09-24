@@ -14,7 +14,9 @@ Ethernet checkpoint completed: operator confirms AP page, public HTTPS and DNS a
 
 AP power-restart checkpoint completed: operator confirms all three Mac checks (AP page, ipify, DNS) recovered. NetworkManager records carrier loss 12:20:19 and automatic profile activation 12:20:25, with further link events through 12:20:57; this does not measure Wi-Fi readiness time. At 12:23 host AP ping/HTTP, DNS, tunnel HTTPS `.70`, DHCP/gateway active, Mac lease `.181` and increased forwarding counters corroborate operation. No configuration changes or manual repair; printers untouched.
 
-Next check: targeted downstream private-school isolation. Before Mac probe, private-destination drop counter is 1 packet/73 bytes at 12:23; request only three pings to the already known school gateway `10.113.128.1`, then compare that specific counter. No infrastructure scan. Timeout alone is insufficient proof without gateway drop evidence. VPN process recovery, IPv6/DNS failure checks, cold-start late uplink and actual administrator login/exposure remain pending.
+Targeted private-school check: operator reports Mac ping to known school gateway `10.113.128.1` times out (supplied first timeout line). Private-destination drop counter increased from 1 packet/73 bytes at 12:23 to 7/577 at 12:25:37. Route lookup for forwarded Mac traffic would select school Wi-Fi; private-address rule drops before tun0 accept. This corroborates blocked private-destination traffic during probe, but aggregate delta of six packets cannot be attributed exactly to the requested three pings without capture. No scan or rule change performed; broader school isolation remains scoped/unproven.
+
+Next: downstream IPv6 route/egress inspection, then VPN process recovery and DNS failure checks with independent recovery. Cold-start late uplink and actual administrator login/exposure also remain pending.
 
 Current operator request resumes setup; the September 22 stop-for-today instruction below is historical. Targeted checks passed on boot `56a11b6f-9190-46e5-9ea7-74926d46c8c4` (boot services started around 11:23:55). No live configuration changed or interruption performed.
 

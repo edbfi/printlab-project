@@ -1,5 +1,9 @@
 # Validation
 
+## 2026-09-24 — Targeted private-school destination probe
+
+Mac operator reports `ping -c 3 10.113.128.1` times out, quoting timeout for sequence 0. Own private-destination drop counter increased from 1 packet/73 bytes (12:23) to 7/577 (12:25:37): six packets/504 bytes dropped. Route lookup for source `.181` arriving on printer Ethernet selects school Wi-Fi; the existing private-destination rule drops before forwarding accept. This corroborates private-address blocking during the test, but the aggregate counter cannot assign all six packets to a three-ping request; no packet capture or complete ping summary supplied. Do not label all private-school access or reverse-direction isolation proven. No infrastructure scanning or configuration change.
+
 ## 2026-09-24 — AP power restart
 
 Passed observed case. Operator confirms AP page, ipify and DNS recovered after the requested AP-only power interruption. NetworkManager logged carrier loss 12:20:19, automatic Printer LAN activation 12:20:25 and additional link-connected events through 12:20:57; exact wireless readiness/recovery duration not measured. At 12:23 Ethernet `.1`, AP `.2` ping 2/2 and HTTP 200, DNS NOERROR and tunnel-bound HTTPS `.70` passed. Gateway/DHCP active, Windscribe active with NRestarts=0, Mac lease `.181` present and forward/return counters 47306/84473. No manual repair or configuration change performed. This covers AP restart, not a USB adapter removal or whole-station power failure.

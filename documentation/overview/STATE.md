@@ -1,5 +1,7 @@
 # Current state
 
+Handoff refreshed 2026-09-24 in `HANDOFF-TEMP.md`; documentation-only work, no new operational validation. The recorded temporary sudo expiry is past; next agent must check availability rather than assume renewal. The September 22 stop-for-today boundary below records that session; resume setup when the operator invokes the handoff.
+
 Repository checkpoint: local Git repository on `main`, initialized after setup on 2026-09-22 with categorized Conventional Commits. No remote. Author identity is repository-local `edbfi <326875205+edbfi@users.noreply.github.com>`. AGPL-3.0-only license and `.gitignore` added; secrets, `.work/` and live-system backups remain outside Git. This records current project files, not historical system changes. Network setup remains at the verified reboot checkpoint below.
 
 Updated 2026-09-22 16:22 CEST, after operator-approved reboot. **Partially complete.** Actual Lubuntu machine; no OS/boot firmware work.

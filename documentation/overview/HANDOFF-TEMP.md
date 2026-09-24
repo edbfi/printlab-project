@@ -1,5 +1,7 @@
 # Continue the Lubuntu printing station setup
 
+Handoff refreshed **2026-09-24**. Operational evidence below is from **2026-09-22**, not a fresh health check. Start with a short read-only health check and local recovery confirmation. The next milestone is completing network outage/isolation acceptance before moving either printer. Check that the operator and a downstream test client are available before scheduling disruptive tests.
+
 The project is now a local Git repository on `main`, with categorized Conventional Commits and no remote. Check `git status` before editing; commit future logical changes using Conventional Commits. Identity is repository-local `edbfi <326875205+edbfi@users.noreply.github.com>`. Project license is AGPL-3.0-only. `.work/`, credentials, backups and generated outputs are ignored; never force-add them. Git captures documentation, not the live configuration under `/etc` or secret-bearing rollback material.
 
 Continue the existing project in `/home/<workstation-user>/kiosk-mode` on this actual Lubuntu machine. This request resumes work after the successful network reboot checkpoint on 2026-09-22. The previous “stop for today” instruction was the end-of-day boundary, not abandonment of the project.
@@ -70,7 +72,7 @@ Inspected Chromebook audio repair restored ALSA HiFi and speaker/headphone/micro
 
 ## Access, secrets and recovery
 
-- Use `sudo -n`. Operator-created temporary passwordless access expires **2026-09-23 15:29 CEST**. If expired, request local renewal/authentication through their existing process; do not weaken sudo policy or collect passwords in chat.
+- Use `sudo -n`. The recorded expiry of operator-created temporary passwordless access, **2026-09-23 15:29 CEST**, is now in the past; renewal has not been verified. Check `sudo -n true`. If unavailable, request local renewal/authentication through the operator's existing process; continue independent unprivileged checks while waiting. Do not weaken sudo policy or collect passwords in chat.
 - Credentials are restricted local files under `~/.config/printing-station/credentials/`: `router-admin.txt`, `printer-wifi.txt`. Do not print values into tool output, screenshots, documentation or chat. Router security pages expose plaintext keys in snapshots; redact textboxes before returning output.
 - Use the installed agent-browser skill and `agent-browser skills get core`, with a dedicated named session for router administration. Exact-binary AppArmor allowance already enables sandboxed automation Chrome. TP-Link's V4.40 support page links the applicable PDF internally labeled V4.0; see TOPOLOGY.md.
 - Root-only recovery material: `/var/lib/printing-station/rollback/20260922/`. Read OPERATIONS.md before invoking scripts. `windscribe/restore-gui.sh` was actually tested and restores old GUI 2.24.12/config; do not run it while headless VPN is healthy. LAN/gateway rollback scripts are prepared but not tested end-to-end.

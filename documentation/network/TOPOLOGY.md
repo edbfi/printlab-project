@@ -1,5 +1,9 @@
 # Network topology
 
+## Administration decision — 2026-09-24
+
+Operator wants SSH from both printer LAN and school network. Printer-LAN key login `.1:2222` verified; school-side login not yet tested. School interface remains DHCP, currently `10.113.130.33/20`, MAC preserve; no arbitrary static address assignment authorized. Stable school address/DNS requires school network administration. Hostname `<workstation-host>`, Avahi active; `.local` resolution across the two individual links is a candidate convenience, not verified. School multicast/client isolation policy unknown; no school infrastructure changes requested.
+
 ## Current read-only observation — 2026-09-24
 
 Later same day: Mac `.181` baseline confirmed by operator with forwarding counters, then school-uplink outage test passed AP availability/internet loss and automatic HTTPS recovery. Current exit `79.142.77.70`, tun0 `10.130.12.40/22`; school/Printer LAN addresses unchanged. See TESTS.md for scope and outstanding checks.

@@ -1,5 +1,10 @@
 # Validation
 
+## Second printer confirmed; reservation loaded — 2026-09-24 15:57
+
+Operator confirms 3DP-030-581 at 192.168.77.145, LAN Only Off and new-account binding successful. Studio lists both under My Device; selected second printer details match private serial, A1 mini and firmware 01.08.01.00. DHCP ACK 15:54:11 maps e0:72:a1:a4:e4:6c to .145; ping passes. Reservation `e0:72:a1:a4:e4:6c,192.168.77.145,a1mini-581,12h` syntax-checked and loaded by printing-dhcp restart at 15:57. Gateway/DHCP active, DNS via .1 and second-printer ping pass after load. Fresh post-load DHCP ACK still pending: operator to reconnect only 581 Wi-Fi, no reset or print. Backup `/var/lib/printing-station/rollback/20260924/printer-reservations/dnsmasq.before-581.conf` retained. No firmware changes, motion, heating or transfer performed on second printer. Physical filament details and Studio slicing/transfer still pending for both.
+
+
 ## 2026-09-24 — Firmware retry and reservation pass
 
 First printer 366: operator reports update works and .115. Studio Update page independently shows matching identity, Idle, 01.08.01.00, Updating successful / 100%. DHCP journal shows fresh .115 ACKs for confirmed MAC at 15:37:42 and 15:41:14 after 15:22:13 reservation load; ping 2/2. No forced Wi-Fi reconnect needed. Firmware update recovery verified for this attempt only; second printer and print workflow pending.

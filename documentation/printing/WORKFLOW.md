@@ -1,5 +1,10 @@
 # Printing workflow
 
+## Second printer confirmed; reservation loaded — 2026-09-24 15:57
+
+Operator confirms 3DP-030-581 at 192.168.77.145, LAN Only Off and new-account binding successful. Studio lists both under My Device; selected second printer details match private serial, A1 mini and firmware 01.08.01.00. DHCP ACK 15:54:11 maps e0:72:a1:a4:e4:6c to .145; ping passes. Reservation `e0:72:a1:a4:e4:6c,192.168.77.145,a1mini-581,12h` syntax-checked and loaded by printing-dhcp restart at 15:57. Gateway/DHCP active, DNS via .1 and second-printer ping pass after load. Fresh post-load DHCP ACK still pending: operator to reconnect only 581 Wi-Fi, no reset or print. Backup `/var/lib/printing-station/rollback/20260924/printer-reservations/dnsmasq.before-581.conf` retained. No firmware changes, motion, heating or transfer performed on second printer. Physical filament details and Studio slicing/transfer still pending for both.
+
+
 ## First printer recovery verified — 2026-09-24
 
 After operator-initiated update initially failed at 32% with code 301, operator restart/retry succeeded. Studio reports first printer 3DP-030-366 Idle, **01.08.01.00**, Updating successful / 100%. Operator confirms .115; fresh DHCP ACKs at 15:37:42 and 15:41:14 verify loaded reservation for ac:a7:04:12:be:58/a1mini-366, ping 2/2. Second association/binding and both printing workflows remain pending. Historical initial-association notes below are superseded by this checkpoint.
@@ -16,7 +21,7 @@ Operator reports first printer **3DP-030-366** joined 3D-Printere. A new client 
 | Printer / device name | Firmware | Printing time | AMS Lite | Existing LAN Only mode |
 |---|---|---|---|---|
 | First: 3DP-030-366 | 01.08.01.00 (Studio confirmed after update) | 33 hours | None | Off (operator confirmed) |
-| Second: 3DP-030-581 | 01.08.01.00 | 44 hours | None | On |
+| Second: 3DP-030-581 | 01.08.01.00 (Studio confirmed) | 44 hours | None | Off (operator confirmed) |
 
 At initial inventory both A1 minis were on the operator's testing Wi-Fi; first-printer association progress is recorded above. Both have **stainless-steel 0.4 mm nozzles** and **Bambu Textured PEI Plates**, confirmed by operator. Loaded filament remains unknown. These are operator observations, not station-discovered identities. Do not assume the two firmware versions have identical Studio/LAN requirements.
 

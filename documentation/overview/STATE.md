@@ -1,5 +1,14 @@
 # Current state
 
+## Second printer confirmed; reservation loaded — 2026-09-24 15:57
+
+Operator confirms 3DP-030-581 at 192.168.77.145, LAN Only Off and new-account binding successful. Studio lists both under My Device; selected second printer details match private serial, A1 mini and firmware 01.08.01.00. DHCP ACK 15:54:11 maps e0:72:a1:a4:e4:6c to .145; ping passes. Reservation `e0:72:a1:a4:e4:6c,192.168.77.145,a1mini-581,12h` syntax-checked and loaded by printing-dhcp restart at 15:57. Gateway/DHCP active, DNS via .1 and second-printer ping pass after load. Fresh post-load DHCP ACK still pending: operator to reconnect only 581 Wi-Fi, no reset or print. Backup `/var/lib/printing-station/rollback/20260924/printer-reservations/dnsmasq.before-581.conf` retained. No firmware changes, motion, heating or transfer performed on second printer. Physical filament details and Studio slicing/transfer still pending for both.
+
+
+## Second printer association — 2026-09-24
+
+Operator reports second printer connected at 192.168.77.145. DHCP ACK at 15:54:11 maps e0:72:a1:a4:e4:6c to .145; ping 2/2. Studio lists both printers under My Device, selected 3DP-030-581 details confirm A1 mini, private inventory serial and firmware 01.08.01.00. Physical LAN Only/account confirmation requested; no motion or printing. Stage reservation for existing .145/a1mini-581, preserving current configuration at `/var/lib/printing-station/rollback/20260924/printer-reservations/dnsmasq.before-581.conf`. Restore backup and restart printing-dhcp to undo. Syntax check and load next; fresh DHCP renewal still required for behavioral verification.
+
 ## First printer update and reservation verified — 2026-09-24
 
 Operator reports recovery and IP 192.168.77.115. Studio directly confirms 3DP-030-366 Idle, firmware **01.08.01.00**, “Updating successful” / 100%. Fresh DHCP ACKs at 15:37:42 and 15:41:14 map ac:a7:04:12:be:58 to reserved .115/a1mini-366 after reservation load; ping 2/2. Earlier code-301 failure recovered after operator restart/retry. No additional reconnect needed. Next physical checkpoint: connect second printer 3DP-030-581 to 3D-Printere and confirm displayed IP, LAN Only Off and dedicated-account binding for agreed cloud baseline. No print, motion, heating or transfer tested. Preserve reservation rollback backup.

@@ -1,5 +1,11 @@
 # Validation
 
+## 2026-09-24 — First printer identity, binding and Studio recognition
+
+Operator confirms physical `.115`, LAN Only Off and dedicated-account binding. Studio Device page directly displays 3DP-030-366/status/temperature telemetry; read-only details show A1 mini, matching private serial and 01.03.30.01 firmware. No second bind needed. Update offer not selected; no movement/heating/print/transfer tested. UI external spool configured PLA, actual material still unconfirmed.
+
+Reservation staged/loaded: syntax check passed, printing-dhcp restarted 15:22:13, host DNS via `.1` NOERROR and printer ping 2/2. Lease hostname changed to a1mini-366 but ACK/expiry still pre-change; waiting for requested physical Wi-Fi reconnect to validate fresh DHCP. Backup recorded in STATE; do not promote reservation to fully verified until new ACK.
+
 ## 2026-09-24 — First printer arrival
 
 Operator reports 366 joined printer Wi-Fi. DHCP log ACKs MAC `ac:a7:04:12:be:58` at `.115` at 15:17:45, alongside existing Mac `.181`. At 15:19 host ping 3/3 (1.2–2.3 ms), neighbor mapping and direct Ethernet route pass. Physical displayed-IP match requested before reservation; actual mode/account binding remains unverified. Lease/ping alone do not prove cloud control or Studio transfer. No printer commands or configuration changes.

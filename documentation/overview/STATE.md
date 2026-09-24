@@ -1,6 +1,14 @@
 # Current state
 
+## First printer confirmed and visible in Studio — 2026-09-24 15:24
+
+Operator confirms **3DP-030-366** displays `.115`, LAN Only Off and dedicated-account binding successful. Native Studio Device page directly shows 3DP-030-366/status/temperature telemetry; no second binding action required. Read-only device details match private inventory serial, A1 mini and firmware **01.03.30.01**. Thus original version report confirmed despite absent exact public release-history entry. Firmware update offered but NOT selected. External spool configured PLA in UI; physical filament details still need operator confirmation before slicing/print readiness.
+
+DHCP reservation loaded at 15:22:13: `ac:a7:04:12:be:58,192.168.77.115,a1mini-366,12h`. Syntax test passed, printing-dhcp restarted, host printer-DNS NOERROR and printer ping passed. Lease file now carries a1mini-366, but expiry/ACK still pre-change at inspection: actual fresh renewal remains pending. Operator asked to disconnect/reconnect only first printer Wi-Fi; wait for new ACK before marking reservation behavior verified. Backup `/var/lib/printing-station/rollback/20260924/printer-reservations/dnsmasq.before-366.conf`. Restore file and restart printing-dhcp to undo. Screenshot/staging artifacts removed after findings recorded; live Studio left on Status. No motion/heating/print/firmware update. Second printer association next after first reservation checkpoint.
+
 ## First printer association — 2026-09-24 15:19
+
+Operator subsequently confirms displayed IP `.115`, LAN Only Off and successful new-account binding for **3DP-030-366**; Studio open and logged in per operator. Stage reservation for confirmed MAC `ac:a7:04:12:be:58`, retaining existing `.115`, hostname a1mini-366/12h lease. Backup `/var/lib/printing-station/rollback/20260924/printer-reservations/dnsmasq.before-366.conf`; restore that file and restart printing-dhcp to undo. Syntax-check first, then brief DHCP/DNS service restart to load reservation (SIGHUP does not reload main dnsmasq config). Existing lease remains; fresh printer renewal/ACK must verify applied reservation separately. Studio device availability still unverified; no motion/print.
 
 Operator reports **3DP-030-366** connected. New DHCP ACK at 15:17:45 for `ac:a7:04:12:be:58` → `192.168.77.115`; local ping 3/3, neighbor and direct Ethernet route verified. Asked operator to match displayed IP and confirm actual LAN Only Off/account binding; replies pending. Reserve existing `.115` for that MAC once identity confirmed to avoid needless renumbering, then verify reservation behavior. No DHCP config changed yet. Do not move second printer or infer cloud control from lease/ping. No motion/heating/print.
 

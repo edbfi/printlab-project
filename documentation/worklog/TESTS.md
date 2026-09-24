@@ -1,5 +1,21 @@
 # Validation
 
+## 2026-09-24 — School uplink loss and automatic recovery
+
+Passed for the observed running-system IPv4 case. Wi-Fi radio disabled at 11:37:55 and restored at 11:38:39 CEST. At 11:38:06 school interface DOWN without addresses; Ethernet retained `.1`, AP ping 2/2 and HTTP 200. tun0 still existed in this early outage sample: outbound tunnel accepts increased while return counter stayed 3867. This is not a claim that the tunnel disappeared throughout the outage or that all accepted forwarding stopped.
+
+At 11:38:44 tun0 absent; at 11:38:49 tunnel-bound HTTPS recovered automatically to `79.142.77.70`, about 10 seconds after radio restoration. Host DNS through `.1` returned NOERROR, AP ping 2/2; automatic recovery needed no explicit NetworkManager connection activation or Windscribe connect. Operator's Mac confirms AP UI accessible during outage, fresh ipify request unavailable, then recovered HTTPS with matching `.70` exit. Explicit downstream post-outage DNS output not yet supplied. Forwarding/return counters increased after recovery.
+
+Separate timed fallback armed before interruption and canceled on local success; journal shows primary test 11:37:55–11:38:50, no fallback execution, no test timers remain listed. Root-only scripts/log at `/var/lib/printing-station/tests/uplink-{test,recover}-20260924.*`. Current services, HTTPS/DNS/AP verified after test. Agent connectivity returned minutes after local recovery; do not interpret that delay as VPN recovery time. Cold-start late uplink, process crash, physical Ethernet/AP restart and targeted isolation/DNS leakage tests remain separate pending cases.
+
+## 2026-09-24 — Targeted resumption health check
+
+Passed host-only checks at 11:29–11:31 CEST: current sudo availability, AC mains online, active local X11 session (Remote=no), gateway/DHCP/SSH/user Windscribe services, linger, tun0-bound HTTPS matching VPN exit `79.142.77.69`, DNS NOERROR via `.1`, AP ping 2/2 and HTTP 200. School certificate-validation settings retained; DNS listeners bound to `.1`, DHCP whitelist Ethernet-only, gateway table present, IPv4 forwarding enabled and IPv6 forwarding disabled. No configuration changed.
+
+Boot ID `56a11b6f-9190-46e5-9ea7-74926d46c8c4` differs from September 22; service start observed around 11:23:55. No measured startup-readiness timing or downstream confirmation, so this is not full reboot acceptance. Empty DHCP leases and zero gateway forwarding counters provide no fresh downstream evidence. Windscribe NRestarts=0 does not prove crash recovery.
+
+Recovery scripts stat successfully under root-only rollback directory (0700); AP backup remains 0600. No rollback/reboot timers listed. Restore contents and recovery execution not retested. Operator presence, usable local recovery terminal, test client and no affected active prints await confirmation before disruptive acceptance. Remaining outage/isolation checks stay pending.
+
 | Check | Status | Evidence / remaining work |
 |---|---|---|
 | Machine resources | passed (discovery only) | lscpu, free, df, lsblk; see inventory |

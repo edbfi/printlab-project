@@ -1,5 +1,11 @@
 # Operations and recovery
 
+## Resumption checkpoint — 2026-09-24
+
+Setup resumed at operator request. Current `sudo -n` succeeds, despite old expiry below; new expiry unknown. Known-good rollback material remains unchanged. School-uplink loss tested for 44 seconds: local AP web access remained available to Mac, internet failed, and school/VPN automatically recovered after radio restoration. Host tunnel HTTPS observed about 10 seconds later; Mac confirms matching exit `79.142.77.70`. Detailed evidence/limits in TESTS.md; this does not establish cold boot with unavailable uplink.
+
+Temporary uplink test and fallback timers no longer listed; fallback did not run. Root-only scripts/log retained under `/var/lib/printing-station/tests/`; duplicate workspace script copies removed after byte comparison. No live configuration changed. Ethernet disconnect/reconnect physical checkpoint requested next; printers remain untouched by this session.
+
 Updated 2026-09-22 after successful reboot network verification. **Partial station; stopped for today by operator request.** Printers remain on their old Wi-Fi. Printing/kiosk workflow is not ready.
 
 ## Working network

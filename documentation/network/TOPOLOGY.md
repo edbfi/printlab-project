@@ -1,5 +1,13 @@
 # Network topology
 
+## Current read-only observation — 2026-09-24
+
+Later same day: Mac `.181` baseline confirmed by operator with forwarding counters, then school-uplink outage test passed AP availability/internet loss and automatic HTTPS recovery. Current exit `79.142.77.70`, tun0 `10.130.12.40/22`; school/Printer LAN addresses unchanged. See TESTS.md for scope and outstanding checks.
+
+School uplink `10.113.130.33/20`, printer gateway `192.168.77.1/24`, tun0 `10.130.12.19/22`. Stealth/443 VPN reports exit `79.142.77.69`, matching HTTPS explicitly bound to tun0. Host query through `.1` returns DNS NOERROR; AP `.2` responds to ping (2/2) and HTTP (200). DHCP/gateway services active after this boot; Ethernet-only DHCP configuration and `.1` TCP/UDP DNS listeners preserved. DHCP's wildcard socket is accompanied by the configured Ethernet interface whitelist.
+
+Own nftables table still has default-drop forwarding, private-destination and IPv6 drops, tun0-only acceptance/NAT and DNS fallback guard. IPv4 forwarding=1, IPv6 forwarding=0. These are configuration observations, not fresh isolation tests. Lease file empty and forwarding counters zero at observation; downstream client availability and acceptance pending. SSH TCP 2222 continues listening on all IPv4/IPv6 addresses; actual access and intended exposure remain unverified.
+
 ## Intended design — not yet configured
 
 ```text

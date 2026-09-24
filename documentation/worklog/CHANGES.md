@@ -2,6 +2,12 @@
 
 Only validated successful changes belong here. Pending work belongs in STATE.md; failed attempts in ISSUES.md.
 
+## 2026-09-24 — Uplink-loss validation
+
+Temporarily disabled Wi-Fi for 44 seconds with independent timed recovery prearmed; restored radio and observed automatic school/VPN recovery without configuration changes. Tunnel HTTPS passed about 10 seconds after restoration; host DNS/AP checks passed. Mac operator confirms AP web access during outage, unavailable internet during outage, then HTTPS through matching VPN exit `79.142.77.70`. Scope: running-system uplink loss, not cold-start late uplink or full isolation acceptance.
+
+Fallback canceled after local recovery, never executed; no printing-uplink timers remain listed. Retained root-only test scripts/log under `/var/lib/printing-station/tests/`; existing rollback material preserved. Host services/HTTPS/DNS and downstream forwarding verified afterward. See TESTS.md for timing and downstream DNS limitation.
+
 ## 2026-09-22 — Local version control
 
 Initialized local Git on `main` with categorized Conventional Commits for project foundation/license, system inventory, networking, printing/kiosk and operations/handoff. These are present-state snapshots, not reconstructed historical changes. Downloaded the unmodified GNU AGPL version 3 text to LICENSE and declared AGPL-3.0-only in README. Added `.gitignore` for setup artifacts, credentials, machine backups, logs and generated print jobs. No remote configured; local author `edbfi <326875205+edbfi@users.noreply.github.com>`.

@@ -1,5 +1,27 @@
 # Current state
 
+## Resumed read-only checkpoint — 2026-09-24 11:29–11:31 CEST
+
+### Uplink-loss test completed; Ethernet checkpoint pending — 2026-09-24
+
+Operator confirms ready with local terminal, downstream Mac and no affected active prints; subsequently confirms AP page, expected VPN exit and DNS baseline all work. Mac lease `.181` observed, gateway counters advanced (2502 outbound / 2311 return at snapshot). Checkpoint satisfied.
+
+Test completed: radio off 11:37:55, on 11:38:39, automatic tunnel HTTPS recovery observed 11:38:49 (about 10 seconds after radio restoration). No explicit connection command or fallback needed. Host DNS and AP ping passed; Mac operator confirms AP UI reachable while public HTTPS failed, then HTTPS recovered at matching exit `79.142.77.70`. tun0 now `10.130.12.40/22`. Explicit downstream post-recovery DNS response still pending; this does not prove cold boot with initially absent uplink or DNS/IPv6 leak isolation.
+
+Root-only diagnostic script copies/log retained under `/var/lib/printing-station/tests/uplink-{test,recover}-20260924.*`. Independent fallback timer was verified armed, then canceled by the primary test after recovery; fallback service did not execute. No printing-uplink timers remain listed. Profiles/firewall unchanged. Agent resumed several minutes after actual local recovery, consistent with earlier transport delays.
+
+Next physical checkpoint requested: unplug only AP Ethernet cable for 15 seconds and reconnect, leaving USB adapter/AP power intact; Mac stays on 3D-Printere and checks AP/HTTPS/DNS afterward. Link monitor running; do not infer operator completion. Recovery is reconnecting the same cable; no configuration change intended. No printer actions requested.
+
+Current operator request resumes setup; the September 22 stop-for-today instruction below is historical. Targeted checks passed on boot `56a11b6f-9190-46e5-9ea7-74926d46c8c4` (boot services started around 11:23:55). No live configuration changed or interruption performed.
+
+- `sudo -n true` succeeds now despite the previously recorded expiry; current authorization duration is unknown. AC mains online; active local X11 session reports Remote=no. Operator presence and usable local-terminal recovery still await explicit confirmation.
+- School Wi-Fi now `10.113.130.33/20`; printer Ethernet `.1/24`; tun0 `10.130.12.19/22`. Gateway/DHCP/SSH and user Windscribe active, linger=yes, Windscribe restart count 0. Stealth/443 and Always On reported. Tunnel-bound HTTPS matches reported exit `79.142.77.69`.
+- Host DNS through `.1` returns NOERROR; AP `.2` ping 2/2 and HTTP 200. Own gateway rules present, IPv4 forwarding on, IPv6 forwarding off; DNS listener restricted to `.1`, Ethernet DHCP whitelist retained. School PEAP CA/server-name validation preserved.
+- DHCP lease file currently empty and gateway forwarding counters zero: **no fresh downstream proof**. This observed boot is not another complete reboot acceptance test.
+- Recovery scripts and AP backup exist with expected restrictive permissions; contents/restoration not retested. No rollback/reboot timers listed. Backups preserved.
+
+Next concrete step: obtain operator confirmation of local terminal, available downstream client and no affected active prints; establish its DHCP/DNS/AP/HTTPS baseline, then stage school-uplink interruption/recovery with independent timed recovery and local instructions before disconnecting anything. Continue remaining network acceptance before printer association. Pending checkpoint was requested in the resumed session. SSH still listens on all addresses at TCP 2222; intended exposure and actual remote login remain unverified.
+
 Handoff refreshed 2026-09-24 in `HANDOFF-TEMP.md`; documentation-only work, no new operational validation. The recorded temporary sudo expiry is past; next agent must check availability rather than assume renewal. The September 22 stop-for-today boundary below records that session; resume setup when the operator invokes the handoff.
 
 Repository checkpoint: local Git repository on `main`, initialized after setup on 2026-09-22 with categorized Conventional Commits. No remote. Author identity is repository-local `edbfi <326875205+edbfi@users.noreply.github.com>`. AGPL-3.0-only license and `.gitignore` added; secrets, `.work/` and live-system backups remain outside Git. This records current project files, not historical system changes. Network setup remains at the verified reboot checkpoint below.

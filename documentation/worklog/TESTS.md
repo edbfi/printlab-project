@@ -1,5 +1,9 @@
 # Validation
 
+## 2026-09-24 — AP power restart
+
+Passed observed case. Operator confirms AP page, ipify and DNS recovered after the requested AP-only power interruption. NetworkManager logged carrier loss 12:20:19, automatic Printer LAN activation 12:20:25 and additional link-connected events through 12:20:57; exact wireless readiness/recovery duration not measured. At 12:23 Ethernet `.1`, AP `.2` ping 2/2 and HTTP 200, DNS NOERROR and tunnel-bound HTTPS `.70` passed. Gateway/DHCP active, Windscribe active with NRestarts=0, Mac lease `.181` present and forward/return counters 47306/84473. No manual repair or configuration change performed. This covers AP restart, not a USB adapter removal or whole-station power failure.
+
 ## 2026-09-24 — Physical Ethernet disconnect/reconnect
 
 Passed observed case. Operator performed requested cable disconnect/reconnect and confirms AP page, ipify and DNS query through `.1` all work afterward. NetworkManager records carrier loss at 11:51:56, return at 11:52:15 and automatic Printer LAN activation the same second. Bounded live monitor expired before action; journal supplies link evidence. At 11:58 Ethernet `.1/24`, gateway/DHCP services active, AP ping 2/2, host DNS NOERROR; Windscribe still reports `.70` exit. Mac lease `.181` retained and forwarding/return counters advance (14138/19850 at snapshot). No manual service restart or configuration repair performed. This also supplies downstream DNS recovery evidence following the earlier uplink test, but not its exact recovery timing.

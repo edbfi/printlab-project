@@ -2,6 +2,10 @@
 
 Only validated successful changes belong here. Pending work belongs in STATE.md; failed attempts in ISSUES.md.
 
+## 2026-09-24 — AP restart validation
+
+Operator power-cycled only the AP and confirmed recovered Mac AP/HTTPS/DNS access. Host link logs show automatic Printer LAN reactivation; AP HTTP/ping, DNS, tunnel HTTPS and actual downstream forwarding corroborate recovery. No configuration changes or manual repair required; known-good backups preserved. Remaining isolation and failure cases are tracked in STATE/TESTS.
+
 ## 2026-09-24 — Ethernet recovery validation
 
 Operator disconnected/reconnected AP Ethernet cable; NetworkManager recorded carrier loss/return and automatically reactivated Printer LAN. Mac confirms AP administration, HTTPS and DNS work afterward; host services/address/AP/DNS and downstream forwarding counters corroborate recovery. No configuration changes or manual repairs needed; existing backups preserved. AP power restart is a separate pending check.

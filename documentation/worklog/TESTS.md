@@ -1,5 +1,9 @@
 # Validation
 
+## 2026-09-24 — First printer arrival
+
+Operator reports 366 joined printer Wi-Fi. DHCP log ACKs MAC `ac:a7:04:12:be:58` at `.115` at 15:17:45, alongside existing Mac `.181`. At 15:19 host ping 3/3 (1.2–2.3 ms), neighbor mapping and direct Ethernet route pass. Physical displayed-IP match requested before reservation; actual mode/account binding remains unverified. Lease/ping alone do not prove cloud control or Studio transfer. No printer commands or configuration changes.
+
 ## 2026-09-24 — Bambu login checkpoint (operator report)
 
 Operator reports new dedicated account created and logins completed, including LibreWolf and Bambu Studio on this machine. No token/password inspection or export. Printer binding remains unverified; latest DHCP lease inspection shows only Mac `.181`. Application restart, current-user logout/login, reboot and future kiosk-user authentication persistence are pending, explicitly required for daily usability. Deferred account design and acceptance recorded in kiosk/CONFIGURATION.md; current username verified `<workstation-user>`, hostname `<workstation-host>`.

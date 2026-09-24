@@ -1,5 +1,9 @@
 # Current state
 
+## First printer association — 2026-09-24 15:19
+
+Operator reports **3DP-030-366** connected. New DHCP ACK at 15:17:45 for `ac:a7:04:12:be:58` → `192.168.77.115`; local ping 3/3, neighbor and direct Ethernet route verified. Asked operator to match displayed IP and confirm actual LAN Only Off/account binding; replies pending. Reserve existing `.115` for that MAC once identity confirmed to avoid needless renumbering, then verify reservation behavior. No DHCP config changed yet. Do not move second printer or infer cloud control from lease/ping. No motion/heating/print.
+
 ## Next printer checkpoint and deferred login design — 2026-09-24
 
 Operator created the dedicated Bambu account and reports local LibreWolf/Studio logins complete. Both printers previously showed Account Disabled. Proceed with first **3DP-030-366** on **3D-Printere**, normal cloud-enabled baseline (LAN Only Off) and binding to the new account through official UI; verify lease/physical identity before second printer. No printer has yet been observed on this LAN (latest leases only Mac `.181`). Preserve firmware; no Developer Mode, heating, movement or print. Both reported stainless 0.4 mm/Textured PEI/no AMS; filament unknown and first firmware string still needs recheck.

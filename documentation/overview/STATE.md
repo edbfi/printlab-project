@@ -2,7 +2,7 @@
 
 ## Resumed read-only checkpoint — 2026-09-24 11:29–11:31 CEST
 
-### Uplink-loss test completed; Ethernet checkpoint pending — 2026-09-24
+### Uplink-loss and Ethernet recovery passed; AP checkpoint next — 2026-09-24
 
 Operator confirms ready with local terminal, downstream Mac and no affected active prints; subsequently confirms AP page, expected VPN exit and DNS baseline all work. Mac lease `.181` observed, gateway counters advanced (2502 outbound / 2311 return at snapshot). Checkpoint satisfied.
 
@@ -10,7 +10,9 @@ Test completed: radio off 11:37:55, on 11:38:39, automatic tunnel HTTPS recovery
 
 Root-only diagnostic script copies/log retained under `/var/lib/printing-station/tests/uplink-{test,recover}-20260924.*`. Independent fallback timer was verified armed, then canceled by the primary test after recovery; fallback service did not execute. No printing-uplink timers remain listed. Profiles/firewall unchanged. Agent resumed several minutes after actual local recovery, consistent with earlier transport delays.
 
-Next physical checkpoint requested: unplug only AP Ethernet cable for 15 seconds and reconnect, leaving USB adapter/AP power intact; Mac stays on 3D-Printere and checks AP/HTTPS/DNS afterward. Link monitor running; do not infer operator completion. Recovery is reconnecting the same cable; no configuration change intended. No printer actions requested.
+Ethernet checkpoint completed: operator confirms AP page, public HTTPS and DNS all work after cable reconnection. NetworkManager records carrier loss 11:51:56 and return/automatic Printer LAN activation 11:52:15. At 11:58 host `.1`, DHCP/gateway services, AP ping, DNS and VPN `.70` healthy; downstream counters advance. Bounded link monitor had expired before the physical action; journal provides the link evidence. No settings changed.
+
+Next physical checkpoint: restart only TL-WR902AC AP by briefly removing/replacing its power, preserving Ethernet, USB adapter and host power. Await operator action; verify AP return and Mac reassociation/DHCP/DNS/HTTPS afterward. Recovery is restoring same AP power connection; no factory reset, switch action or configuration change intended. Printers untouched. AP restart acceptance remains pending.
 
 Current operator request resumes setup; the September 22 stop-for-today instruction below is historical. Targeted checks passed on boot `56a11b6f-9190-46e5-9ea7-74926d46c8c4` (boot services started around 11:23:55). No live configuration changed or interruption performed.
 

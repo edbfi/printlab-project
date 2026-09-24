@@ -1,5 +1,9 @@
 # Validation
 
+## 2026-09-24 — Physical Ethernet disconnect/reconnect
+
+Passed observed case. Operator performed requested cable disconnect/reconnect and confirms AP page, ipify and DNS query through `.1` all work afterward. NetworkManager records carrier loss at 11:51:56, return at 11:52:15 and automatic Printer LAN activation the same second. Bounded live monitor expired before action; journal supplies link evidence. At 11:58 Ethernet `.1/24`, gateway/DHCP services active, AP ping 2/2, host DNS NOERROR; Windscribe still reports `.70` exit. Mac lease `.181` retained and forwarding/return counters advance (14138/19850 at snapshot). No manual service restart or configuration repair performed. This also supplies downstream DNS recovery evidence following the earlier uplink test, but not its exact recovery timing.
+
 ## 2026-09-24 — School uplink loss and automatic recovery
 
 Passed for the observed running-system IPv4 case. Wi-Fi radio disabled at 11:37:55 and restored at 11:38:39 CEST. At 11:38:06 school interface DOWN without addresses; Ethernet retained `.1`, AP ping 2/2 and HTTP 200. tun0 still existed in this early outage sample: outbound tunnel accepts increased while return counter stayed 3867. This is not a claim that the tunnel disappeared throughout the outage or that all accepted forwarding stopped.

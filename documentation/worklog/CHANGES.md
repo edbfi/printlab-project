@@ -2,6 +2,10 @@
 
 Only validated successful changes belong here. Pending work belongs in STATE.md; failed attempts in ISSUES.md.
 
+## 2026-09-24 — Ethernet recovery validation
+
+Operator disconnected/reconnected AP Ethernet cable; NetworkManager recorded carrier loss/return and automatically reactivated Printer LAN. Mac confirms AP administration, HTTPS and DNS work afterward; host services/address/AP/DNS and downstream forwarding counters corroborate recovery. No configuration changes or manual repairs needed; existing backups preserved. AP power restart is a separate pending check.
+
 ## 2026-09-24 — Uplink-loss validation
 
 Temporarily disabled Wi-Fi for 44 seconds with independent timed recovery prearmed; restored radio and observed automatic school/VPN recovery without configuration changes. Tunnel HTTPS passed about 10 seconds after restoration; host DNS/AP checks passed. Mac operator confirms AP web access during outage, unavailable internet during outage, then HTTPS through matching VPN exit `79.142.77.70`. Scope: running-system uplink loss, not cold-start late uplink or full isolation acceptance.

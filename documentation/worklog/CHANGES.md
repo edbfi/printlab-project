@@ -2,6 +2,10 @@
 
 Only validated successful changes belong here. Pending work belongs in STATE.md; failed attempts in ISSUES.md.
 
+## 2026-09-24 — Downstream DNS outage validation
+
+Controlled Mac query loop captured before/during/after explicit VPN loss: 18 fresh queries refused while tun0 absent, replies automatically resumed after reconnect. Host tunnel HTTPS/DNS recovered, exit `68.67.118.166`. No persistent configuration change; fallback canceled, diagnostic copies retained restricted. Public bootstrap DNS attributed to Windscribe process; separate host-school-DNS egress remains open in ISSUES and is not covered by this successful downstream result.
+
 ## 2026-09-24 — Windscribe main-process restart validation
 
 Subsequent Mac confirmation passed AP, HTTPS and DNS with matching `.67` exit. Observer/fallback remain stopped; duplicate workspace scripts removed after matching retained root-only copies. Host tunnel HTTPS/gateway/DHCP rechecked after cleanup.

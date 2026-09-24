@@ -2,6 +2,8 @@
 
 ## 2026-09-24 — DNS-loss acceptance incomplete; host DNS egress observed
 
+Follow-up resolves downstream timing: actual Mac loop captured 18 REFUSED responses during tunnel absence and successful replies afterward. Public DNS packets now attributed individually by source ports to Windscribe PID 9399 (17 matches). Six packets to school resolver in retry remain unattributed; 250 ms socket sampler missed them. Keep host DNS egress issue open; downstream proxy UDP failure/recovery now accepted. No network configuration changed; recovery timers canceled, restricted diagnostic logs retained.
+
 Timed proxy query failed closed (REFUSED/network error) with tun0 absent, but school-interface header capture recorded 19 UDP DNS packets from host school address, including public app-DNS endpoints and school resolver. Windscribe logs select the public endpoints at matching time; bootstrap origin likely but not per-packet attributed. Two school-resolver requests remain unexplained. Do not claim no DNS leakage or silently equate these with downstream proxy fallback. Mac manual probes were late and only verify recovery. Next: pre-running Mac query loop, correlate controlled marker traffic, identify host DNS process/path before considering restrictions that might break bootstrap/reconnection. All test timers canceled, VPN/DNS restored, logs root-only; no configuration modifications or permanent side effects.
 
 ## 2026-09-24 — Process-test observer PATH dependency

@@ -1,5 +1,13 @@
 # Validation
 
+## 2026-09-24 — Actual downstream DNS-loss loop and attribution
+
+Passed observed downstream UDP DNS failure/recovery: verified active stationprobe traffic at 13:01:27 before test. Dedicated marker-only capture records 32 Mac `.181` request/reply pairs: normal negative answers before disconnect, 18 REFUSED replies 13:02:31–13:03:06, normal negative responses again from 13:03:08. tun0 absent at 13:02:41. Reconnect requested 13:03:06; tunnel HTTPS and host example.com DNS passed by 13:03:14, exit `68.67.118.166`. No manual recovery needed. DNS guard counter remains zero; this does not exercise that fallback-drop rule.
+
+School-interface capture records 23 outbound UDP DNS packets with zero kernel drops. All 17 packets to `76.76.2.22`/`76.76.10.0` match captured socket source ports owned by Windscribe PID 9399. Six packets to `10.82.97.10` too brief for 250 ms socket sampler; process attribution unresolved. Mac test query/reply UDP lengths 64/70/126 differ from captured school packets 39/50/54/59. Distinguish successful downstream failure behavior from outstanding host-school-DNS egress; do not claim all host DNS remains in tunnel.
+
+Restricted logs/script `/var/lib/printing-station/tests/dns-loop-*-20260924.*`. Printer capture includes only controlled stationprobe DNS metadata; school capture headers only. No permanent changes. Independent fallback canceled on recovery, no printing timers remain. Diagnostic copies retained, duplicate workspace script removed after comparison; services and tunnel HTTPS rechecked.
+
 ## 2026-09-24 — DNS behavior during explicit tunnel loss
 
 Partial: primary test started 12:52:38; VPN disconnected, tun0 absent at 12:52:51. Fresh host query through `.1` returned REFUSED/EDE 23 Network Error with zero answers; AP ping 2/2. DNS guard counter stayed zero, consistent with no observed fallback attempt to `10.255.255.1` on another interface, but not proof of guard-rule exercise. Reconnect requested 12:53:17; tunnel HTTPS `.75` and fresh proxy query NOERROR/zero answers/SOA response by 12:53:24. Fallback canceled and never ran; no printing timers remain. Mac supplied successful queries at 12:55:36/59, after recovery, so downstream outage DNS result remains pending.

@@ -2,6 +2,8 @@
 
 ## DNS-loss caveat — 2026-09-24
 
+Later retry verifies actual Mac UDP DNS refusal/recovery (18 REFUSED during loss, normal answers after). All 17 public-resolver packets correlate by port with Windscribe PID 9399 sockets. Six school-resolver packets remain unattributed. Current VPN exit `68.67.118.166`. No downstream DNS fallback observed; blanket host DNS protection remains unverified. See latest TESTS entry.
+
 Fresh host query through printer DNS proxy refused with tun0 absent; fresh query worked after reconnect. During same outage school-interface capture observed plaintext DNS from host address to app-internal public DNS endpoints and school resolver; source attribution incomplete. This does not establish downstream-proxy leakage, but blanket host DNS no-egress is not accepted. Mac outage query was late; only post-recovery downstream DNS confirmed. See TESTS/ISSUES; no firewall changes made.
 
 ## Administration decision — 2026-09-24

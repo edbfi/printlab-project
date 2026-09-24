@@ -1,6 +1,12 @@
 # Current state
 
-## Reboot armed checkpoint — 2026-09-24 13:20
+## Latest result — 2026-09-24 13:27
+
+Late-uplink reboot passed on new boot `0ffa9988-d0d2-499b-a0f5-ca88d24b9389`. Wi-Fi observed disabled/interface down at uptime 12–89 seconds; Ethernet `.1`, DHCP/gateway active, AP ping passed during unavailable uplink. Fresh proxy DNS REFUSED with network error during that interval. Restore timer enabled radio at boot+90s (13:25:30); automatic school/VPN recovery produced tunnel HTTPS, DNS and AP success by boot+100s (13:25:40), exit `68.67.118.168`, tun0 `10.145.156.218/22`. No explicit connection repair or four-minute fallback ran. Mac confirms AP, matching HTTPS and DNS NOERROR at 13:26:40. This is one cold-start delayed-radio case, not every enterprise-authentication failure mode.
+
+Temporary lateboot units disabled/removed after retaining root-only copies/logs; marker cleared by observer, duplicate workspace copies removed after comparison. No printing test/recovery timers remain. Wi-Fi on; host services, tunnel HTTPS, DNS and AP reverified after cleanup. Existing configuration/backups preserved. Remaining network issue: unexplained host school-resolver DNS packets during tunnel absence; downstream proxy failure behavior already verified. Printers still untouched. Continue that targeted investigation before printer association; printer identity/hardware facts can be collected independently.
+
+## Reboot preparation checkpoint (completed) — 2026-09-24 13:20
 
 Operator explicitly confirms work saved and ready to reboot for initially unavailable uplink test. Preboot ID `56a11b6f-9190-46e5-9ea7-74926d46c8c4`; mains online, sudo available. Plan sets Wi-Fi radio off immediately before reboot (NetworkManager persists radio state), preserving profiles/firewall. Temporary boot observer starts after NetworkManager; restore timer enables radio at boot+90s, then automatic Wi-Fi/VPN recovery observed. Independent fallback at boot+240s explicitly activates school profile and starts/connects Windscribe if needed. Separate current-boot transient failsafe reenables radio if reboot fails. Mac remains printer-side; local terminal recovery commands supplied. Do not assume outage actually persisted into boot—verify observer radio/interface timestamps.
 

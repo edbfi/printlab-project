@@ -1,5 +1,13 @@
 # Validation
 
+## 2026-09-24 — Cold boot with initially unavailable uplink
+
+Passed observed delayed-radio case, including actual downstream recovery. New boot `0ffa9988-d0d2-499b-a0f5-ca88d24b9389`. Observer logs radio disabled/school interface down from uptime 12.39 through 89.19 seconds; Ethernet `.1/24` retained. At ~22 seconds gateway/DHCP active, AP ping 2/2, fresh proxy DNS REFUSED/EDE 23. Restore timer runs 13:25:30 (~boot+90s); school `.33/20` back by uptime 94.24, tun0/HTTPS `.168`/DNS NOERROR/AP ping pass by ~100 seconds (13:25:40). Windscribe active, NRestarts=0; fallback never ran. Normal automatic connection logic recovered once radio became available.
+
+Mac operator confirms AP page, HTTPS `68.67.118.168` and example.com DNS NOERROR from `.1` at 13:26:40. Mac AP availability before internet restoration not reported; host AP reachability verified during unavailable uplink. Scope does not cover all enterprise authentication failures or VPN helper crashes.
+
+Cleanup: saved unit copies under root-only `/var/lib/printing-station/tests/`, disabled/removed temporary observe/restore/fallback system units and timers, reloaded systemd. Condition marker already removed on success; duplicate workspace sources removed after byte comparison. No printing timers listed afterward; Wi-Fi enabled and gateway/DHCP/SSH, tunnel HTTPS, DNS and AP ping rechecked. Logs/scripts retained for diagnosis; original backups unchanged.
+
 ## 2026-09-24 — Actual downstream DNS-loss loop and attribution
 
 Passed observed downstream UDP DNS failure/recovery: verified active stationprobe traffic at 13:01:27 before test. Dedicated marker-only capture records 32 Mac `.181` request/reply pairs: normal negative answers before disconnect, 18 REFUSED replies 13:02:31–13:03:06, normal negative responses again from 13:03:08. tun0 absent at 13:02:41. Reconnect requested 13:03:06; tunnel HTTPS and host example.com DNS passed by 13:03:14, exit `68.67.118.166`. No manual recovery needed. DNS guard counter remains zero; this does not exercise that fallback-drop rule.

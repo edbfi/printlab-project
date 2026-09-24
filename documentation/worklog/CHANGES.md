@@ -2,6 +2,12 @@
 
 Only validated successful changes belong here. Pending work belongs in STATE.md; failed attempts in ISSUES.md.
 
+## 2026-09-24 — Late-uplink boot validation and cleanup
+
+Operator-approved reboot began with Wi-Fi radio off, retained through boot second 89. Scheduled radio restoration at second 90 led to automatic school/VPN recovery; host HTTPS/DNS/AP passed by about second 100, no fallback/manual repair. Mac AP, DNS and matching VPN exit `68.67.118.168` confirmed. Host AP/DHCP/gateway available while school uplink absent. This validates the observed delayed-radio boot case.
+
+Removed temporary boot-test units/timers and duplicate workspace copies after retaining restricted logs/scripts/unit copies under `/var/lib/printing-station/tests/`. No active test timers or armed marker remain. Wi-Fi enabled and networking rechecked after cleanup. No permanent profile/firewall changes; known-good backups retained. Open host-DNS issue remains documented separately.
+
 ## 2026-09-24 — Downstream DNS outage validation
 
 Controlled Mac query loop captured before/during/after explicit VPN loss: 18 fresh queries refused while tun0 absent, replies automatically resumed after reconnect. Host tunnel HTTPS/DNS recovered, exit `68.67.118.166`. No persistent configuration change; fallback canceled, diagnostic copies retained restricted. Public bootstrap DNS attributed to Windscribe process; separate host-school-DNS egress remains open in ISSUES and is not covered by this successful downstream result.

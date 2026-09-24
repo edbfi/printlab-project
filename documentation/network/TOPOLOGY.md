@@ -1,5 +1,7 @@
 # Network topology
 
+Latest boot 2026-09-24: automatic recovery after intentionally unavailable Wi-Fi for first 90 boot seconds passed host and Mac checks. Current school `10.113.130.33/20`, printer `.1/24`, tun0 `10.145.156.218/22`, public exit `68.67.118.168`; mutable values, not reservations. Temporary boot-test configuration removed; existing topology unchanged. See TESTS for timings and remaining host-DNS caveat.
+
 ## DNS-loss caveat — 2026-09-24
 
 Later retry verifies actual Mac UDP DNS refusal/recovery (18 REFUSED during loss, normal answers after). All 17 public-resolver packets correlate by port with Windscribe PID 9399 sockets. Six school-resolver packets remain unattributed. Current VPN exit `68.67.118.166`. No downstream DNS fallback observed; blanket host DNS protection remains unverified. See latest TESTS entry.

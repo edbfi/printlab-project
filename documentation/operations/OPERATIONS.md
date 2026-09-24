@@ -1,5 +1,7 @@
 # Operations and recovery
 
+Latest boot acceptance 2026-09-24: cold boot with Wi-Fi disabled for first 90 seconds recovered automatically when radio was enabled. Host ready by about second 100; Mac confirmed AP/DNS/HTTPS with exit `68.67.118.168`. Test units/timers removed, diagnostic copies retained restricted; no test timers remain armed and Wi-Fi is enabled. School DHCP address remains `.33`; retain numeric school SSH access and printer `.1`/`.local` access as documented below. Host plaintext school-DNS issue remains open; do not present complete station acceptance.
+
 ## Verified administrator access — 2026-09-24
 
 - On **3D-Printere**: `ssh -p 2222 <workstation-user>@192.168.77.1` or `ssh -p 2222 <workstation-user>@<workstation-host>.local`; both verified by actual key login.

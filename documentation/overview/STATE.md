@@ -1,5 +1,12 @@
 # Current state
 
+## Both reservations verified; A1 mini profile selected — 2026-09-24
+
+Operator confirms second printer remains .145 after Wi-Fi reconnect. Fresh DHCPREQUEST/ACK at 15:58:48 verifies e0:72:a1:a4:e4:6c → 192.168.77.145/a1mini-581 after reservation load; ping 2/2. Both printers now have verified reservations (.115/366, .145/581), confirmed identities and Studio visibility. Preserve both pre-reservation backups.
+
+Studio Prepare had default X1 Carbon. Added official A1 mini system preset without removing existing X1 preset; current UI confirms Bambu Lab A1 mini, 0.4 mm nozzle, Standard flow, Textured PEI Plate and 0.20mm Standard @BBL A1M. Plate empty. Current PLA Basic selection is provisional; asked operator for physically loaded material/brand/colour on each printer before filament-specific slicing. No transfer, motion, heating or print. Profile restart persistence not yet tested.
+
+
 ## Second printer confirmed; reservation loaded — 2026-09-24 15:57
 
 Operator confirms 3DP-030-581 at 192.168.77.145, LAN Only Off and new-account binding successful. Studio lists both under My Device; selected second printer details match private serial, A1 mini and firmware 01.08.01.00. DHCP ACK 15:54:11 maps e0:72:a1:a4:e4:6c to .145; ping passes. Reservation `e0:72:a1:a4:e4:6c,192.168.77.145,a1mini-581,12h` syntax-checked and loaded by printing-dhcp restart at 15:57. Gateway/DHCP active, DNS via .1 and second-printer ping pass after load. Fresh post-load DHCP ACK still pending: operator to reconnect only 581 Wi-Fi, no reset or print. Backup `/var/lib/printing-station/rollback/20260924/printer-reservations/dnsmasq.before-581.conf` retained. No firmware changes, motion, heating or transfer performed on second printer. Physical filament details and Studio slicing/transfer still pending for both.

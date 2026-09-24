@@ -1,5 +1,12 @@
 # Verified changes
 
+## Both reservations verified; A1 mini profile selected — 2026-09-24
+
+Operator confirms second printer remains .145 after Wi-Fi reconnect. Fresh DHCPREQUEST/ACK at 15:58:48 verifies e0:72:a1:a4:e4:6c → 192.168.77.145/a1mini-581 after reservation load; ping 2/2. Both printers now have verified reservations (.115/366, .145/581), confirmed identities and Studio visibility. Preserve both pre-reservation backups.
+
+Studio Prepare had default X1 Carbon. Added official A1 mini system preset without removing existing X1 preset; current UI confirms Bambu Lab A1 mini, 0.4 mm nozzle, Standard flow, Textured PEI Plate and 0.20mm Standard @BBL A1M. Plate empty. Current PLA Basic selection is provisional; asked operator for physically loaded material/brand/colour on each printer before filament-specific slicing. No transfer, motion, heating or print. Profile restart persistence not yet tested.
+
+
 ## 2026-09-24 — First printer firmware and stable address verified
 
 Operator completed first-printer firmware retry; Studio directly verifies 3DP-030-366 firmware 01.08.01.00, successful 100% update and Idle. Reservation .115 for ac:a7:04:12:be:58/a1mini-366 verified by fresh post-load DHCP ACKs at 15:37:42 and 15:41:14, operator display confirmation and ping 2/2. Root-only pre-reservation dnsmasq backup retained under rollback/20260924/printer-reservations. No print/transfer tested.

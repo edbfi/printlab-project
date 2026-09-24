@@ -2,6 +2,8 @@
 
 ## Resumption checkpoint — 2026-09-24
 
+Administrator SSH now verified from Mac on printer LAN: `ssh -p 2222 <workstation-user>@192.168.77.1`, public-key login as <workstation-user>. ED25519 host fingerprint `SHA256:5bUw2EUigkD1ebMQOUMeQ6U3dFRhY5pzg47unG5wdyM` verified by operator and server acceptance logged. Password, keyboard-interactive and root login disabled. SSH still listens on all addresses; desired school-side exposure decision pending, no restriction applied yet.
+
 Latest accepted case: Windscribe main user-process SIGKILL recovered automatically via systemd after five seconds; host and Mac AP/HTTPS/DNS passed with matching exit `79.142.77.67`. Helper-process crash was not tested. Normal-client native IPv6 attempt pinned to a real AAAA failed; prior apparent IPv6 success was IPv4-mapped. See TESTS/ISSUES for exact scope and temporary observer PATH fault. No active test/recovery timers remain; diagnostic scripts/logs retained, duplicate workspace scripts removed.
 
 Setup resumed at operator request. Current `sudo -n` succeeds, despite old expiry below; new expiry unknown. Known-good rollback material remains unchanged. School-uplink loss tested for 44 seconds: local AP web access remained available to Mac, internet failed, and school/VPN automatically recovered after radio restoration. Host tunnel HTTPS observed about 10 seconds later; Mac confirms matching exit `79.142.77.70`. Detailed evidence/limits in TESTS.md; this does not establish cold boot with unavailable uplink.

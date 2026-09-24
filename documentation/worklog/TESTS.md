@@ -1,5 +1,9 @@
 # Validation
 
+## 2026-09-24 — Actual administrator SSH login
+
+Passed from printer LAN: operator confirms `ssh -p 2222 <workstation-user>@192.168.77.1` login with correct ED25519 host fingerprint. Server journal confirms accepted public key for <workstation-user> from `.181` at 12:42:03. Effective password/keyboard-interactive/root login disabled; public-key auth enabled. All-interface listeners and Windscribe private-source input accepts remain; school-side exposure not tested. Operator choice requested before narrowing exposure. No authentication/configuration changes.
+
 ## 2026-09-24 — Windscribe main-process crash recovery
 
 Final downstream confirmation: operator reports Mac AP page, ipify and DNS all work, with public exit exactly `79.142.77.67` matching host. Observed main-process recovery now accepted end-to-end; helper crash remains a separate untested case.

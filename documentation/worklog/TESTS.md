@@ -1,5 +1,13 @@
 # Validation
 
+## 2026-09-24 — Host DNS fallback identification and guard
+
+Identified systemd-resolved fallback: process-specific connect trace at 13:30:35/41 matches three outbound school-resolver packets. Normal controlled host lookup without interface override used `10.82.97.10` while tun0 absent. Printer proxy had already passed refusal/recovery; public bootstrap traffic separately attributed to Windscribe.
+
+Added narrowly scoped rule in own dns_guard chain: systemd-resolve UID 989 UDP/TCP destination 53 may leave only lo/tun0. Syntax check/reload passed; original gateway file backed up first and independent rollback armed. Connected host stub DNS/printer DNS/AP/HTTPS passed. During 13:38 test, tun0 absent, normal host lookup timed out (timeout exit 124); new rule counted 23 drops/1669 bytes at snapshot. Targeted school-resolver capture recorded 0 packets received/captured and 0 kernel drops. Following reconnect, fresh host stub query returned NOERROR with authority, printer DNS NOERROR, AP ping 2/2 and bound tunnel HTTPS `68.67.118.173`. Automated verification canceled rollback and reconnect timer; neither fallback executed. No test timers remain.
+
+Cleanup retained root-only diagnostic files and before/verified gateway copies, removed matching workspace duplicates, rechecked host/printer DNS, services and HTTPS. Full reboot with newly added rule still untested; earlier delayed-uplink boot preceded it. Scope is system-resolver port 53, not arbitrary app DNS; Windscribe bootstrap deliberately retained.
+
 ## 2026-09-24 — Cold boot with initially unavailable uplink
 
 Passed observed delayed-radio case, including actual downstream recovery. New boot `0ffa9988-d0d2-499b-a0f5-ca88d24b9389`. Observer logs radio disabled/school interface down from uptime 12.39 through 89.19 seconds; Ethernet `.1/24` retained. At ~22 seconds gateway/DHCP active, AP ping 2/2, fresh proxy DNS REFUSED/EDE 23. Restore timer runs 13:25:30 (~boot+90s); school `.33/20` back by uptime 94.24, tun0/HTTPS `.168`/DNS NOERROR/AP ping pass by ~100 seconds (13:25:40). Windscribe active, NRestarts=0; fallback never ran. Normal automatic connection logic recovered once radio became available.

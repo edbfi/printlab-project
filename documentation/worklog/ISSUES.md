@@ -1,5 +1,9 @@
 # Issues and failed attempts
 
+## 2026-09-24 — Host school-DNS fallback resolved
+
+Process-specific connection trace identifies systemd-resolved using school DNS without tunnel. Added own output guard for that UID's UDP/TCP port-53 queries outside lo/tun0, preserving Windscribe bootstrap. Controlled retest: host lookup times out, guard drops exercised, zero school-resolver DNS packets captured, reconnect and host/printer DNS/AP/HTTPS restored. No rollback/recovery timers remain. Full reboot with the new rule not yet tested; per-app custom DNS beyond system-resolver scope not newly restricted. Previous unresolved-attribution notes below are historical.
+
 ## 2026-09-24 — DNS-loss acceptance incomplete; host DNS egress observed
 
 Follow-up resolves downstream timing: actual Mac loop captured 18 REFUSED responses during tunnel absence and successful replies afterward. Public DNS packets now attributed individually by source ports to Windscribe PID 9399 (17 matches). Six packets to school resolver in retry remain unattributed; 250 ms socket sampler missed them. Keep host DNS egress issue open; downstream proxy UDP failure/recovery now accepted. No network configuration changed; recovery timers canceled, restricted diagnostic logs retained.

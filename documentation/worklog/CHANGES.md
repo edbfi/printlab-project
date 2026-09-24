@@ -2,6 +2,12 @@
 
 Only validated successful changes belong here. Pending work belongs in STATE.md; failed attempts in ISSUES.md.
 
+## 2026-09-24 — Prevent host system-resolver DNS fallback
+
+Added one rule to `/etc/printing-station/gateway.nft` own output chain: systemd-resolve-owned UDP/TCP queries to port 53 blocked unless leaving lo/tun0. This closes observed school-resolver fallback without changing Windscribe rules or blocking its separately attributed bootstrap DNS. Syntax checked and loaded through printing-gateway reload.
+
+Validation: connected host/printer DNS/AP/HTTPS pass; controlled tunnel loss caused host lookup timeout, 23 guard drops and zero captured school-resolver DNS packets; reconnect restored fresh host DNS, printer DNS/AP and VPN HTTPS `68.67.118.173`. Timed rollback canceled after independent local verification, no fallback ran. Before/verified gateway copies and executable rollback retained under `/var/lib/printing-station/rollback/20260924/host-dns/`; rollback restores only own gateway file/table. Logs retained restricted; matching workspace duplicates removed and operation rechecked. Full reboot with this rule remains untested.
+
 ## 2026-09-24 — Late-uplink boot validation and cleanup
 
 Operator-approved reboot began with Wi-Fi radio off, retained through boot second 89. Scheduled radio restoration at second 90 led to automatic school/VPN recovery; host HTTPS/DNS/AP passed by about second 100, no fallback/manual repair. Mac AP, DNS and matching VPN exit `68.67.118.168` confirmed. Host AP/DHCP/gateway available while school uplink absent. This validates the observed delayed-radio boot case.

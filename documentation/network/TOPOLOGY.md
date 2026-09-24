@@ -1,5 +1,9 @@
 # Network topology
 
+## Host DNS guard — verified 2026-09-24
+
+Systemd-resolved fallback to school DNS while disconnected was identified by process trace. Own dns_guard output chain now drops systemd-resolve UID UDP/TCP destination 53 outside lo/tun0. Retest exercised drops and captured zero school-resolver DNS packets, then verified normal DNS/VPN recovery. Windscribe app-bootstrap DNS remains intentionally available; this is not a universal custom-resolver ban. Existing printer proxy tunnel binding/guard unchanged. Rule persists in gateway.nft and reload verified; full reboot with new rule still pending. Current exit `68.67.118.173`; see TESTS and rollback location in OPERATIONS.
+
 Latest boot 2026-09-24: automatic recovery after intentionally unavailable Wi-Fi for first 90 boot seconds passed host and Mac checks. Current school `10.113.130.33/20`, printer `.1/24`, tun0 `10.145.156.218/22`, public exit `68.67.118.168`; mutable values, not reservations. Temporary boot-test configuration removed; existing topology unchanged. See TESTS for timings and remaining host-DNS caveat.
 
 ## DNS-loss caveat — 2026-09-24

@@ -1,5 +1,7 @@
 # Operations and recovery
 
+Latest fix 2026-09-24: host systemd-resolved DNS now blocked outside lo/tun0 by own gateway output rule. Controlled tunnel-loss test confirms blocked fallback to school DNS and working reconnection/host+printer DNS afterward. Windscribe's bootstrap DNS remains available. Current observed exit `68.67.118.173`; full reboot with this added rule not yet tested. Recovery for this change alone: `sudo -n /var/lib/printing-station/rollback/20260924/host-dns/host-dns-rollback-20260924.sh` restores previous own gateway config/table. Before/verified copies retained there; do not execute rollback while working normally. No test timers armed.
+
 Latest boot acceptance 2026-09-24: cold boot with Wi-Fi disabled for first 90 seconds recovered automatically when radio was enabled. Host ready by about second 100; Mac confirmed AP/DNS/HTTPS with exit `68.67.118.168`. Test units/timers removed, diagnostic copies retained restricted; no test timers remain armed and Wi-Fi is enabled. School DHCP address remains `.33`; retain numeric school SSH access and printer `.1`/`.local` access as documented below. Host plaintext school-DNS issue remains open; do not present complete station acceptance.
 
 ## Verified administrator access — 2026-09-24

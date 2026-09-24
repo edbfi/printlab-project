@@ -2,6 +2,10 @@
 
 Only validated successful changes belong here. Pending work belongs in STATE.md; failed attempts in ISSUES.md.
 
+## 2026-09-24 — Windscribe main-process restart validation
+
+Deliberately killed main user-service process; systemd automatically restarted it after five seconds (new PID, NRestarts=1). Direct host tunnel HTTPS, DNS and AP checks pass without manual connection repair, exit `79.142.77.67`. Scope is main-process recovery only; downstream confirmation pending. Temporary observer had a PATH dependency failure, separately recorded in ISSUES; unused fallback canceled and observer stopped after direct verification. No persistent configuration edits; known-good rollback retained.
+
 ## 2026-09-24 — AP restart validation
 
 Operator power-cycled only the AP and confirmed recovered Mac AP/HTTPS/DNS access. Host link logs show automatic Printer LAN reactivation; AP HTTP/ping, DNS, tunnel HTTPS and actual downstream forwarding corroborate recovery. No configuration changes or manual repair required; known-good backups preserved. Remaining isolation and failure cases are tracked in STATE/TESTS.

@@ -1,6 +1,12 @@
 # Issues and failed attempts
 
+## 2026-09-24 — Process-test observer PATH dependency
+
+Temporary VPN process-test script called `rg`, which is available in agent shell but absent from system-service PATH. Actual Windscribe main-process restart succeeded; observer repeatedly failed its status matcher and could not cancel fallback. Agent directly verified changed PID/active service, connected state, tunnel HTTPS/DNS/AP, then stopped observer and canceled fallback before execution. No persistent configuration changed, no network repair or remaining timers. Failed script/log retained root-only for diagnosis; replace matcher with an available absolute-path command or shell built-in before reuse. Do not repeat the disruptive kill just to reproduce a passing service restart.
+
 ## 2026-09-24 — Inconclusive downstream IPv6 check
+
+Resolved for normal-client acceptance: pinned native AAAA request failed immediately on both supplied attempts (curl 7, HTTP 000, no connected socket addresses), consistent with absent IPv6 route. Earlier successful request was IPv4-mapped, not demonstrated IPv6 leakage. Client mapped-address selection cause not investigated further; no station changes needed.
 
 Follow-up identifies the successful request as IPv4: explicit system curl reports IPv4-mapped local `.181` and remote `173.231.16.77`, HTTP 200. The client-side reason for mapped-address selection is not diagnosed; a native-address-pinned probe is pending. This observation is not an IPv6 leak and requires no gateway change.
 

@@ -1,5 +1,15 @@
 # Validation
 
+## 2026-09-24 — Windscribe main-process crash recovery
+
+Host recovery passed; downstream confirmation pending. User-service journal records explicit SIGKILL of PID 1099 at 12:37:56, then automatic restart at 12:38:01 (Restart=on-failure/5s), new PID 9399, NRestarts=1. Direct checks after restart: connected Stealth/443/Always On, tunnel-bound HTTPS `79.142.77.67`, DNS via `.1` NOERROR and AP ping 2/2. No manual service repair/connect was performed.
+
+Observer script's `rg` status matcher was unavailable under system-service PATH, so it failed to recognize restored connectivity. Agent directly verified recovery and stopped observer/canceled independent fallback before its 12:40:26 deadline; fallback never ran. No remaining printing-vpn-process timers. Test logs/scripts retained root-only under `/var/lib/printing-station/tests/`; failed matcher must be corrected before reuse. This establishes main user-process restart, not VPN helper/tunnel-process crash recovery or exact tunnel readiness timing.
+
+## 2026-09-24 — Native IPv6 destination pinned
+
+Passed scoped normal-client check: Mac explicitly pinned api64.ipify.org to verified native AAAA `2607:f2d8:1:3c::3`; both operator-supplied attempts failed immediately with curl error 7, HTTP 000 and empty local/remote address fields. Along with no Mac IPv6 default route and host IPv6 disabled on printer Ethernet/forwarding off, this establishes no successful native IPv6 connection in the observed configuration. Earlier HTTP 200 used IPv4-mapped addresses. No claim of packet-level IPv6-drop exercise or protection against deliberately reconfigured clients; those were not tested.
+
 ## 2026-09-24 — IPv6 inspection (unresolved)
 
 Follow-up: operator's explicit `/usr/bin/curl -q` with proxies disabled reports `local=::ffff:192.168.77.181 remote=::ffff:173.231.16.77 HTTP=200` and `.70` body. These are IPv4-mapped addresses, establishing that this request used IPv4. It is not proof of native IPv6 forwarding or leakage. At 12:34 native endpoint AAAA `2607:f2d8:1:3c::3` reconfirmed through `.1`; next probe pins it with `--resolve`. Host IPv6 forwarding remains 0 and printer interface disable_ipv6=1; IPv6 drop counter still 0.

@@ -1,5 +1,11 @@
 # Current state
 
+## Reboot armed checkpoint — 2026-09-24 13:20
+
+Operator explicitly confirms work saved and ready to reboot for initially unavailable uplink test. Preboot ID `56a11b6f-9190-46e5-9ea7-74926d46c8c4`; mains online, sudo available. Plan sets Wi-Fi radio off immediately before reboot (NetworkManager persists radio state), preserving profiles/firewall. Temporary boot observer starts after NetworkManager; restore timer enables radio at boot+90s, then automatic Wi-Fi/VPN recovery observed. Independent fallback at boot+240s explicitly activates school profile and starts/connects Windscribe if needed. Separate current-boot transient failsafe reenables radio if reboot fails. Mac remains printer-side; local terminal recovery commands supplied. Do not assume outage actually persisted into boot—verify observer radio/interface timestamps.
+
+New temporary units named `printing-lateboot-{observe,restore,fallback}-20260924`, scripts/logs under root-only `/var/lib/printing-station/tests/`, condition marker `lateboot-20260924.armed`. Enable for next boot only, not start timers now. Observer cancels timers/removes marker only after host tunnel HTTPS, DNS and AP verification; downstream confirmation remains separate. Retain unit/script copies then disable/remove active test units and verify networking after cleanup. Current configs/backups remain unchanged apart from deliberate runtime/persisted radio-off test state, automatically restored by timers. GUI rollback remains available; no firmware or printer action.
+
 ## Latest checkpoint — 2026-09-24 13:08 CEST
 
 Networking still partially complete; printers untouched. Verified today: host health; school-uplink loss/recovery; Ethernet reconnection; AP power restart; normal-client native IPv6 unavailability; Windscribe main-process restart; SSH from printer and school networks; actual Mac DNS refusal during tunnel loss and restoration afterward. Scoped private-school probe/drop evidence recorded. Current VPN exit `68.67.118.166` (Stockholm Fika); school DHCP `.33`, printer gateway `.1`, Mac `.181`. No active test/recovery timers; no persistent live configuration changes this session. Diagnostic scripts/logs retained restricted, backups unchanged.

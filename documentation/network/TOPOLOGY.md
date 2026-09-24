@@ -1,5 +1,9 @@
 # Network topology
 
+## DNS-loss caveat — 2026-09-24
+
+Fresh host query through printer DNS proxy refused with tun0 absent; fresh query worked after reconnect. During same outage school-interface capture observed plaintext DNS from host address to app-internal public DNS endpoints and school resolver; source attribution incomplete. This does not establish downstream-proxy leakage, but blanket host DNS no-egress is not accepted. Mac outage query was late; only post-recovery downstream DNS confirmed. See TESTS/ISSUES; no firewall changes made.
+
 ## Administration decision — 2026-09-24
 
 Subsequent actual tests verify SSH TCP 2222 from both networks: printer-side Mac to `.1`, host school `.33`, and `.local`→`.1`; school-side Mac to `.33`. School `.local` timed out with/without Mac VPN; cause not isolated. School-to-printer `.1` attempt did not connect before cancellation. Preserve DHCP/current SSH. Common name across networks remains unverified; a school reservation/managed DNS requires its administrator. Reaching the host's own school IP from printer LAN exercises INPUT, not private-destination FORWARD rules.

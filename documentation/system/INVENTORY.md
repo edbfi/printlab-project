@@ -1,5 +1,7 @@
 # System inventory
 
+2026-09-24 resumption: running kernel now `7.0.0-34-generic` (local uname verified); September 22 kernel below is historical. No kernel installation performed by this resumed task.
+
 Observed 2026-09-22 through local read-only commands.
 
 | Item | Observation |

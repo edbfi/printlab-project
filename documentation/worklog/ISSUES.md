@@ -1,5 +1,9 @@
 # Issues and failed attempts
 
+## 2026-09-24 — DNS-loss acceptance incomplete; host DNS egress observed
+
+Timed proxy query failed closed (REFUSED/network error) with tun0 absent, but school-interface header capture recorded 19 UDP DNS packets from host school address, including public app-DNS endpoints and school resolver. Windscribe logs select the public endpoints at matching time; bootstrap origin likely but not per-packet attributed. Two school-resolver requests remain unexplained. Do not claim no DNS leakage or silently equate these with downstream proxy fallback. Mac manual probes were late and only verify recovery. Next: pre-running Mac query loop, correlate controlled marker traffic, identify host DNS process/path before considering restrictions that might break bootstrap/reconnection. All test timers canceled, VPN/DNS restored, logs root-only; no configuration modifications or permanent side effects.
+
 ## 2026-09-24 — Process-test observer PATH dependency
 
 Temporary VPN process-test script called `rg`, which is available in agent shell but absent from system-service PATH. Actual Windscribe main-process restart succeeded; observer repeatedly failed its status matcher and could not cancel fallback. Agent directly verified changed PID/active service, connected state, tunnel HTTPS/DNS/AP, then stopped observer and canceled fallback before execution. No persistent configuration changed, no network repair or remaining timers. Failed script/log retained root-only for diagnosis; replace matcher with an available absolute-path command or shell built-in before reuse. Do not repeat the disruptive kill just to reproduce a passing service restart.

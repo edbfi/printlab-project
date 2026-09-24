@@ -2,6 +2,8 @@
 
 ## Resumption checkpoint — 2026-09-24
 
+Latest accepted case: Windscribe main user-process SIGKILL recovered automatically via systemd after five seconds; host and Mac AP/HTTPS/DNS passed with matching exit `79.142.77.67`. Helper-process crash was not tested. Normal-client native IPv6 attempt pinned to a real AAAA failed; prior apparent IPv6 success was IPv4-mapped. See TESTS/ISSUES for exact scope and temporary observer PATH fault. No active test/recovery timers remain; diagnostic scripts/logs retained, duplicate workspace scripts removed.
+
 Setup resumed at operator request. Current `sudo -n` succeeds, despite old expiry below; new expiry unknown. Known-good rollback material remains unchanged. School-uplink loss tested for 44 seconds: local AP web access remained available to Mac, internet failed, and school/VPN automatically recovered after radio restoration. Host tunnel HTTPS observed about 10 seconds later; Mac confirms matching exit `79.142.77.70`. Detailed evidence/limits in TESTS.md; this does not establish cold boot with unavailable uplink.
 
 Temporary uplink test and fallback timers no longer listed; fallback did not run. Root-only scripts/log retained under `/var/lib/printing-station/tests/`; duplicate workspace script copies removed after byte comparison. No live configuration changed. Separate Ethernet cable disconnect/reconnect and AP-only power restart subsequently passed: automatic Printer LAN reactivation and operator-confirmed downstream AP/HTTPS/DNS recovery, corroborated by host checks. Printers remain untouched by this session; isolation/process-recovery checks remain pending.

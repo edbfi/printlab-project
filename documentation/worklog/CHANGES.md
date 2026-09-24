@@ -4,6 +4,8 @@ Only validated successful changes belong here. Pending work belongs in STATE.md;
 
 ## 2026-09-24 — Windscribe main-process restart validation
 
+Subsequent Mac confirmation passed AP, HTTPS and DNS with matching `.67` exit. Observer/fallback remain stopped; duplicate workspace scripts removed after matching retained root-only copies. Host tunnel HTTPS/gateway/DHCP rechecked after cleanup.
+
 Deliberately killed main user-service process; systemd automatically restarted it after five seconds (new PID, NRestarts=1). Direct host tunnel HTTPS, DNS and AP checks pass without manual connection repair, exit `79.142.77.67`. Scope is main-process recovery only; downstream confirmation pending. Temporary observer had a PATH dependency failure, separately recorded in ISSUES; unused fallback canceled and observer stopped after direct verification. No persistent configuration edits; known-good rollback retained.
 
 ## 2026-09-24 — AP restart validation

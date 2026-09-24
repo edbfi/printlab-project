@@ -2,6 +2,8 @@
 
 ## 2026-09-24 — Windscribe main-process crash recovery
 
+Final downstream confirmation: operator reports Mac AP page, ipify and DNS all work, with public exit exactly `79.142.77.67` matching host. Observed main-process recovery now accepted end-to-end; helper crash remains a separate untested case.
+
 Host recovery passed; downstream confirmation pending. User-service journal records explicit SIGKILL of PID 1099 at 12:37:56, then automatic restart at 12:38:01 (Restart=on-failure/5s), new PID 9399, NRestarts=1. Direct checks after restart: connected Stealth/443/Always On, tunnel-bound HTTPS `79.142.77.67`, DNS via `.1` NOERROR and AP ping 2/2. No manual service repair/connect was performed.
 
 Observer script's `rg` status matcher was unavailable under system-service PATH, so it failed to recognize restored connectivity. Agent directly verified recovery and stopped observer/canceled independent fallback before its 12:40:26 deadline; fallback never ran. No remaining printing-vpn-process timers. Test logs/scripts retained root-only under `/var/lib/printing-station/tests/`; failed matcher must be corrected before reuse. This establishes main user-process restart, not VPN helper/tunnel-process crash recovery or exact tunnel readiness timing.

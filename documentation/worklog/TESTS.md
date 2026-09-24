@@ -1,5 +1,9 @@
 # Validation
 
+## 2026-09-24 — Bambu login checkpoint (operator report)
+
+Operator reports new dedicated account created and logins completed, including LibreWolf and Bambu Studio on this machine. No token/password inspection or export. Printer binding remains unverified; latest DHCP lease inspection shows only Mac `.181`. Application restart, current-user logout/login, reboot and future kiosk-user authentication persistence are pending, explicitly required for daily usability. Deferred account design and acceptance recorded in kiosk/CONFIGURATION.md; current username verified `<workstation-user>`, hostname `<workstation-host>`.
+
 ## 2026-09-24 — Host DNS fallback identification and guard
 
 Identified systemd-resolved fallback: process-specific connect trace at 13:30:35/41 matches three outbound school-resolver packets. Normal controlled host lookup without interface override used `10.82.97.10` while tun0 absent. Printer proxy had already passed refusal/recovery; public bootstrap traffic separately attributed to Windscribe.

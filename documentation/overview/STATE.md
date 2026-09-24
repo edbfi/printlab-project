@@ -1,5 +1,11 @@
 # Current state
 
+## Next printer checkpoint and deferred login design — 2026-09-24
+
+Operator created the dedicated Bambu account and reports local LibreWolf/Studio logins complete. Both printers previously showed Account Disabled. Proceed with first **3DP-030-366** on **3D-Printere**, normal cloud-enabled baseline (LAN Only Off) and binding to the new account through official UI; verify lease/physical identity before second printer. No printer has yet been observed on this LAN (latest leases only Mac `.181`). Preserve firmware; no Developer Mode, heating, movement or print. Both reported stainless 0.4 mm/Textured PEI/no AMS; filament unknown and first firmware string still needs recheck.
+
+Current Linux username **<workstation-user>**, hostname **<workstation-host>**. Operator's tentative later design: existing user as admin, separate non-admin kiosk user; authentication should work seamlessly on routine restart/reboot. Restricted plaintext acceptable if necessary, age mentioned as optional; neither is a current implementation request. No new credential copy/tooling/user creation. Canonical deferred design/acceptance in kiosk/CONFIGURATION.md; private account identifier only in ignored printing/PRINTERS.private.md. Preserve native app sessions; actual restart/reboot/kiosk-user authentication remains unverified. Complete printer/Studio work first.
+
 ## Current checkpoint — 2026-09-24 13:44
 
 Latest printer clarification: both stainless-steel 0.4 mm nozzles and Bambu Textured PEI Plates. Loaded filament still unknown. Operator does not require LAN Only and prefers considering cloud-enabled operation initially; current mode remains On until actual change. The earlier preserve-mode wording is a temporary holding state, not chosen final workflow. Review actual-firmware implications and explain account/cloud/Handy behavior before settling mode; no firmware update/Developer Mode requested. Tracked and private inventories updated.

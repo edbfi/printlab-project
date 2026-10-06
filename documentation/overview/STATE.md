@@ -12,6 +12,12 @@ USB activation passed: `.77.1` exists only on `enx00e04c5a5518`; built-in `enp1s
 
 Operator confirms macOS on 3D-Printere returns `146.70.242.142`, matching Radxa; real downstream HTTPS egress passed. Chromebook remains on its own school Wi-Fi/VPN pending protected client transition. Physical rollback means returning the **USB adapter with AP cable** to the Chromebook; its original gateway profile/services are retained. Never put two active `.77.1` gateways on the same segment.
 
+## Chromebook transition recovery checkpoint
+
+Prepared ordinary `3D-Printere client` NetworkManager profile (DHCP, IPv6 disabled; PSK read directly from existing restricted file, never logged). Activation is next, not yet verified. Root backup `chromebook-client-20261006/` under the source migration backup contains current configuration archive, original Windscribe preferences, `apply-client.sh` and `restore-client.sh` (0700). Apply runs as a bounded system service and a separate five-minute timer restores school Wi-Fi and original VPN/gateway if not canceled. Scripts passed shell syntax checks; rollback behavior has not been exercised end-to-end.
+
+If the agent disappears, allow five minutes for `chromebook-client-rollback.timer`; inspect its service journal locally. Manual recovery: `sudo /var/lib/printing-station/rollback/20261005/radxa-migration/chromebook-client-20261006/restore-client.sh`. This restores Chromebook school access, not physical printer gateway ownership. Keep the AP adapter on Radxa unless separately reverting that handoff. Cancel the timer only after actual Chromebook DHCP, DNS, Radxa-matching HTTPS and SSH work with no local tun0.
+
 ## Intended division of roles
 
 Operator reconfirmed October 6: Radxa takes over `Ishoj Kommune` school Wi-Fi, Windscribe, DHCP/DNS and printer routing; the Chromebook is the Studio/touch kiosk. Printer networking must work with the Chromebook disconnected/off. Latest operator direction: the Chromebook should ultimately retire its own VPN functionality and use Radxa-provided VPN/DNS through 3D-Printere; keep its current VPN until verified cutover. Existing Docker remains on Radxa, which may also serve future personal development workloads. That future use does not yet specify additional services, public exposure or virtualization work.

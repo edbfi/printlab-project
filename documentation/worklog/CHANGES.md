@@ -4,7 +4,7 @@ Only verified successful changes belong here. Read-only findings live in subject
 
 ## Current configuration checkpoints
 
-- **2026-10-06:** Radxa printer networking and the Chromebook client configuration have successful client-connectivity, outage/recovery and reboot evidence. Current-user Studio login and both online device/status views persist through restart and reboot. See the scoped evidence in TESTS and the current configuration owners in operations.
+- **2026-10-06:** Current built-in Ethernet client connectivity is verified below. Policy/recovery checks retain their scope in TESTS; current-user Studio login and both online device/status views persist through application restart and Chromebook reboot. Configuration owners and recovery material are in operations.
 - **2026-09-22 / 2026-09-24:** Studio AppImage/runtime installation and A1 mini profile availability have verified launch/render/UI evidence. The operator's current confirmation establishes the working slicing/transfer workflow; it is not recast as an agent-performed print test.
 
 ## 2026-10-06: current operational documentation
@@ -19,12 +19,8 @@ Removed exactly three Chromebook files: project `.work/setup/windscribe-cli.deb`
 
 This verifies the scoped file removal; connectivity recovery has separate evidence below. Retained installers provide package recovery; the disposable manual has no local replacement copy.
 
-## 2026-10-06: scoped USB Ethernet recovery
+## 2026-10-06: built-in Ethernet printer LAN
 
-With operator authorization, detached and reattached only Radxa's `r8152` USB interface `3-1:1.0` in a bounded transient systemd unit. The driver query, AP HTTP and both printer pings recover; the Chromebook's actual Wi-Fi client check obtains a DHCP ACK and passes AP/printer access, UDP/TCP/system DNS and HTTPS matching Radxa's VPN. The initial client check returns to school Wi-Fi automatically; its unused fallback timer is stopped. Gateway/DHCP/Windscribe/Docker services remain active. No persistent network file, package, firmware or printer setting changes.
+With operator authorization and cable movement, assigned `192.168.77.1/24` to `enp1s0` and updated the networkd, dnsmasq, printer-firewall and Docker-helper interface references. USB Ethernet has no IPv4/DHCP role; its readable reserved-interface file prevents generic DHCP fallback. School Wi-Fi, VPN/DNS policy, AP settings and printer addresses remain unchanged; Docker remains active.
 
-A subsequent automatic USB reset still produces xHCI warnings. Long-term reliability is not accepted; current evidence and remaining risk are tracked in ISSUES/TESTS. Existing restricted configuration snapshots remain the recovery reference.
-
-## 2026-10-06: verified USB 2.0 operation
-
-After the operator moves the adapter to USB 2.0, its existing interface/address recover automatically. Seventeen AP/printer/DNS/HTTPS samples over eight minutes pass, with no subsequent USB resets in the observation window; client egress matches Radxa's VPN. The Chromebook remains on the printer WLAN. Temporary recovery/check units, timers and tracing are removed, and service/client checks pass afterward. Topology, inventory and recovery instructions describe this connection. Persistent configuration and retained backups are unchanged. Long-term reliability remains an explicit limit in TESTS/ISSUES.
+Verified actual Chromebook DHCP on `enp1s0`, AP/gateway/both printer access, UDP/TCP/system DNS, p2 filtering and HTTPS matching the VPN. Both administration paths work. Retained a restricted snapshot matching 11 current configuration files and scoped pre-change recovery material. Canceled the unused rollback and removed temporary units, timers and staging; nine post-cleanup device/client/service samples over two minutes pass. Long-term, reboot and VPN-loss evidence limits remain in TESTS; no new print test is claimed.

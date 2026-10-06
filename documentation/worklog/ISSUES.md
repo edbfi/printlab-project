@@ -1,12 +1,10 @@
 # Current issues and limitations
 
-## Monitor: USB Ethernet reliability
+## Unused USB Ethernet adapter: reliability unconfirmed
 
-Printer-LAN access works with the adapter connected to Radxa's USB 2.0 port. Seventeen checks over eight minutes pass, with no further reset warnings after attachment in the observed period. Long-term reliability and the underlying adapter/controller/driver/power/cabling cause remain unconfirmed. Keep this connection and retain school-side SSH for recovery. The established printing workflow remains operator-confirmed.
+The printer LAN uses built-in Ethernet and does not depend on the USB adapter. Reuse of that adapter for a future school uplink needs a separate decision and reliability evaluation. No wired school uplink is configured.
 
-The diagnosed failure leaves USB Ethernet reporting carrier and its LAN address while AP/printer access fails. RX advances without TX, and `ethtool -i` reports “No such device”. Radxa's school uplink, VPN, DNS and services continue working. A scoped driver reattach restores client access, but xHCI “Set TR Deq Ptr” warnings and USB resets recur on the SuperSpeed connection. A bounded trace identifies a reset initiated by kernel `hub_event`; it does not identify a defective component.
-
-The first recorded warnings precede the approved download cleanup, which changes no networking files or services. USB autosuspend is already off, EEE inactive, and the SuperSpeed controller's active device tree disables USB U1/U2 entry. These findings do not justify speculative settings changes. [TESTS](TESTS.md) records the recovery and observation limits; [operations](../operations/OPERATIONS.md) provides the scoped recovery procedure.
+Existing evidence includes a transmit stall despite carrier, xHCI dequeue warnings, and repeated SuperSpeed USB resets initiated through kernel `hub_event`. Driver reattachment restores traffic in the observed case. USB 2.0 passes a bounded eight-minute client check without further resets after attachment; that does not establish long-term reliability or identify the defective component. The adapter/controller/driver/power/cabling cause remains unconfirmed. Keep the current built-in LAN connection; no speculative USB settings changes are required for everyday printing.
 
 ## Other limitations
 
@@ -16,4 +14,4 @@ The first recorded warnings precede the approved download cleanup, which changes
 | Physical usability and power | Touch/scaling, lid/idle and power-loss behavior need evaluation for the chosen kiosk setup. Device enumeration and masked sleep targets do not establish physical behavior |
 | Kiosk mode | Planned for later. Account, interface, startup, lockdown and authentication choices remain open in [kiosk configuration](../kiosk/CONFIGURATION.md); current-user Studio persistence does not establish a kiosk session |
 
-Network test coverage and administration/recovery evidence limits belong in [TESTS](TESTS.md). [Operations](../operations/OPERATIONS.md) provides supported access and diagnostic paths. Live configuration, sessions and retained recovery snapshots are preserved; the current connectivity incident is described above. Resolved failures and superseded setup instructions remain in Git history.
+Network test coverage and administration/recovery evidence limits belong in [TESTS](TESTS.md). [Operations](../operations/OPERATIONS.md) provides supported access and diagnostic paths. Application sessions and retained recovery material are preserved. Built-in Ethernet client checks pass; their scope is recorded in TESTS. Resolved failures and superseded setup instructions remain in Git history.

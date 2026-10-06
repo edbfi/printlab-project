@@ -1,4 +1,4 @@
-> Recovered historical plan from Codex session history on 2026-10-06. The plan body below is unchanged from the approved October 5 message; it describes intended work, not completed results. Use [RADXA-MIGRATION](RADXA-MIGRATION.md) and [STATE](../overview/STATE.md) for current progress, clock-recovery corrections and today's recap-only scope. Do not repeat the original clock correction or alter current sudo deadlines.
+> Recovered historical plan from Codex session history on 2026-10-06. The plan body below is unchanged from the approved October 5 message; it describes intended work, not completed results. Use [RADXA-MIGRATION](RADXA-MIGRATION.md) and [STATE](../overview/STATE.md) for current progress, clock-recovery corrections and today's recap-only scope. Do not repeat the original clock correction or alter current sudo deadlines. **Later operator amendment (October 6): retire the Chromebook's own VPN after verified cutover; original step 5 retaining its personal VPN is superseded.** See the updated migration checkpoint; the historical plan body remains unchanged.
 
 # Migrate the printer gateway to the Radxa
 

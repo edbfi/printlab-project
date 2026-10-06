@@ -4,7 +4,7 @@ Updated 2026-10-06 after documentation/history review and non-disruptive checks.
 
 ## Intended division of roles
 
-Operator reconfirmed October 6: Radxa takes over `Ishoj Kommune` school Wi-Fi, Windscribe, DHCP/DNS and printer routing; the Chromebook is the Studio/touch kiosk. Printer networking must work with the Chromebook disconnected/off. Existing Docker remains on Radxa, which may also serve future personal development workloads. That future use does not yet specify additional services, public exposure or virtualization work.
+Operator reconfirmed October 6: Radxa takes over `Ishoj Kommune` school Wi-Fi, Windscribe, DHCP/DNS and printer routing; the Chromebook is the Studio/touch kiosk. Printer networking must work with the Chromebook disconnected/off. Latest operator direction: the Chromebook should ultimately retire its own VPN functionality and use Radxa-provided VPN/DNS through 3D-Printere; keep its current VPN until verified cutover. Existing Docker remains on Radxa, which may also serve future personal development workloads. That future use does not yet specify additional services, public exposure or virtualization work.
 
 ## Immediate checkpoint
 
@@ -40,7 +40,7 @@ Detailed dated evidence is in [TESTS](../worklog/TESTS.md), verified changes in 
 
 ## Recovered approved plan
 
-The full [October 5 Plan Mode plan](../network/RADXA-PLAN.md) was recovered from `~/.codex/sessions/`, along with the operator's “Implement the plan.” message and explicit optional-client/keep-Docker-active decisions. It adds detail omitted from the condensed checkpoint: bounded performance comparisons, school-uplink/process recovery, delayed-uplink target reboot, preserving PC personal VPN/applications, and joining 3D-Printere as an ordinary DHCP client after handoff. Current user request is plan retrieval before continuation; no activation performed.
+The full [October 5 Plan Mode plan](../network/RADXA-PLAN.md) was recovered from `~/.codex/sessions/`, along with the operator's “Implement the plan.” message and explicit optional-client/keep-Docker-active decisions. It adds detail omitted from the condensed checkpoint: bounded performance comparisons, school-uplink/process recovery, delayed-uplink target reboot, preserving PC applications (the original personal-VPN retention requirement is superseded by the latest retirement direction), and joining 3D-Printere as an ordinary DHCP client after handoff. Plan retrieval is complete; latest clarification updates the final Chromebook VPN role. No activation or VPN retirement performed.
 
 ## Next work after the recap
 
@@ -48,7 +48,7 @@ The full [October 5 Plan Mode plan](../network/RADXA-PLAN.md) was recovered from
 2. Review staged scripts, authenticate Radxa school Wi-Fi with independent timed rollback, and verify school-side key-only SSH before canceling rollback.
 3. Install/stage VPN/DNS/router using the tested temporary reverse-SOCKS bootstrap path. Wait for functional VPN/DNS readiness; saved-token portability and rollback behavior remain untested.
 4. Test real target DHCP/DNS/egress, VPN loss/recovery, isolation, Docker restart and reboot on the isolated direct cable. Preserve the working printer segment.
-5. Operator moves the AP cable only at handoff; verify real clients/printers and operation without the PC before retiring PC gateway configuration.
+5. Operator moves the AP cable only at handoff; verify real clients/printers and operation without the PC. Verify Chromebook client access through Radxa without a local tunnel, then retire PC gateway and local VPN functionality with rollback retained; recheck ordinary client DNS/reconnect/reboot and VPN-loss behavior.
 6. Return to Studio slicing/preview/transfer and explicit print readiness. Keep optional kiosk/account design deferred until its decision checkpoint.
 
 ## Recovery, Git and cleanup

@@ -3,7 +3,10 @@ import datetime as dt
 import importlib.util
 import fcntl
 import json
+import os
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -168,6 +171,42 @@ class PolicyTests(unittest.TestCase):
 
 
 class HostTests(unittest.TestCase):
+    def test_real_posix_package_lock_defers_refresh(self):
+        # Hold an unrelated temporary file lock, mapping only its metadata to a
+        # package lock path. This never opens or locks the machine's package DB.
+        with tempfile.TemporaryDirectory() as directory:
+            lock_path = Path(directory) / "package.lock"
+            child = subprocess.Popen([sys.executable, "-c",
+                "import fcntl,sys; f=open(sys.argv[1],'w'); fcntl.lockf(f,fcntl.LOCK_EX); print('locked',flush=True); sys.stdin.readline()",
+                str(lock_path)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+            try:
+                self.assertEqual(child.stdout.readline().strip(), "locked")
+                metadata = lock_path.stat()
+                original_read, original_exists, original_stat = Path.read_text, Path.exists, os.stat
+                def read(path, *args, **kwargs):
+                    return "4000 0" if str(path) == "/proc/uptime" else original_read(path, *args, **kwargs)
+                def exists(path):
+                    return False if str(path) in ("/run/reboot-required", "/run/systemd/shutdown/scheduled") else original_exists(path)
+                def stat(path, *args, **kwargs):
+                    if str(path) == "/var/lib/dpkg/lock":
+                        return metadata
+                    if str(path) in ("/var/lib/dpkg/lock-frontend", "/var/lib/apt/lists/lock", "/var/cache/apt/archives/lock"):
+                        raise FileNotFoundError(path)
+                    return original_stat(path, *args, **kwargs)
+                with patch.object(policy, "command", return_value=(0, "inactive")), \
+                     patch.object(Path, "read_text", read), patch.object(Path, "exists", exists), patch.object(policy.os, "stat", stat):
+                    self.assertTrue(policy.Host().maintenance_busy())
+                    child.stdin.close()
+                    child.wait(timeout=5)
+                    self.assertFalse(policy.Host().maintenance_busy())
+            finally:
+                if child.poll() is None:
+                    child.kill()
+                    child.wait(timeout=5)
+                child.stdout.close()
+                if not child.stdin.closed:
+                    child.stdin.close()
+
     def test_status_parser_fails_safely(self):
         self.assertEqual(policy.parse_status("unexpected output"), ("unknown", ""))
         base = "Login state: Logged in\nConnect state: "

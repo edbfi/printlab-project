@@ -12,11 +12,13 @@ USB activation passed: `.77.1` exists only on `enx00e04c5a5518`; built-in `enp1s
 
 Operator confirms macOS on 3D-Printere returns `146.70.242.142`, matching Radxa; real downstream HTTPS egress passed. Chromebook remains on its own school Wi-Fi/VPN pending protected client transition. Physical rollback means returning the **USB adapter with AP cable** to the Chromebook; its original gateway profile/services are retained. Never put two active `.77.1` gateways on the same segment.
 
-## Chromebook transition recovery checkpoint
+## Chromebook transition passed; final USB recovery tests
 
-Prepared ordinary `3D-Printere client` NetworkManager profile (DHCP, IPv6 disabled; PSK read directly from existing restricted file, never logged). Activation is next, not yet verified. Root backup `chromebook-client-20261006/` under the source migration backup contains current configuration archive, original Windscribe preferences, `apply-client.sh` and `restore-client.sh` (0700). Apply runs as a bounded system service and a separate five-minute timer restores school Wi-Fi and original VPN/gateway if not canceled. Scripts passed shell syntax checks; rollback behavior has not been exercised end-to-end.
+Chromebook now uses `3D-Printere client`, DHCP `192.168.77.179`, gateway/DNS `.1`, IPv6 disabled, no tun0. DNS identity/filtering, AP HTTP, both printer pings, Radxa key SSH and HTTPS matching target passed. Source Windscribe/helper/gateway/DHCP disabled and stopped, their nftables tables removed; both forwarding sysctls zero. Client autoconnect enabled; school and Printer LAN autoconnect disabled. `ssh radxa` now points to `.1` with original pinned key. Obsolete package/config archival remains next.
 
-If the agent disappears, allow five minutes for `chromebook-client-rollback.timer`; inspect its service journal locally. Manual recovery: `sudo /var/lib/printing-station/rollback/20261005/radxa-migration/chromebook-client-20261006/restore-client.sh`. This restores Chromebook school access, not physical printer gateway ownership. Keep the AP adapter on Radxa unless separately reverting that handoff. Cancel the timer only after actual Chromebook DHCP, DNS, Radxa-matching HTTPS and SSH work with no local tun0.
+Root source migration backup `chromebook-client-20261006/` has current/Netplan snapshots, installer, apply and restore scripts. First preference assertion failed without changing network; second attempt exposed effective Always On firewall refusal. Independent rollback restored school Wi-Fi/VPN successfully. Corrected transition stops VPN/helper and removes only their known table; functional success then canceled recovery.
+
+Final USB VPN-loss test passed from the actual Chromebook Wi-Fi client: local gateway/printer pings survived, pinned-IP HTTPS and fresh DNS timed out, own no-fallback drop counter rose. Radxa's scheduled reconnect restored client DNS/HTTPS; current observed exit `79.142.77.77` (may change). USB boot recovery is next. A separate Chromebook timed restore will recover school Wi-Fi/VPN if target boot does not recover. Manual fallback: `sudo /var/lib/printing-station/rollback/20261005/radxa-migration/chromebook-client-20261006/restore-client.sh`; this restores source access, not physical AP ownership.
 
 ## Intended division of roles
 

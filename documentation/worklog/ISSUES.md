@@ -2,6 +2,10 @@
 
 Reconciled 2026-10-06. Current unresolved items are separated from resolved historical failures; detailed evidence remains in [TESTS](TESTS.md) and Git history.
 
+## 2026-10-06 — Chromebook transition retry
+
+Initial preference assertion failed before network mutation (Autoconnect capitalization). Corrected. Next attempt associated to 3D-Printere, but Windscribe CLI refused firewall-off because Always On remained effective. Script stopped before retiring services/table, leaving internet blocked; independent timed rollback successfully restored school Wi-Fi/VPN and Codex connectivity. Next attempt continues through CLI refusal to retire the stopped client's known nftables table. Physical Radxa/Mac networking stayed active.
+
 ## 2026-10-06 — Target uplink test PATH failure, corrected
 
 Initial test service exited 127 before interruption because `rfkill` was unavailable in its explicit system-service PATH. Wi-Fi remained connected; successful client requests from that interval are not outage evidence. Same dependency removed from fallback immediately; corrected test stops/starts the installed wpa_supplicant service and explicitly changes link state. Corrected retry verified 25 seconds of actual WLAN downtime, preserved local SSH and automatic internet/DNS recovery; fallback canceled. No PC network changes or remaining radio block.

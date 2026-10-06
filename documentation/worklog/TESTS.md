@@ -2,6 +2,12 @@
 
 Dated historical evidence follows; later results supersede earlier pending observations. The current acceptance summary is in [STATE](../overview/STATE.md). Do not rerun completed tests solely because an older entry says pending.
 
+## 2026-10-06 — Physical USB handoff
+
+Operator moved the full original USB adapter/AP cable to Radxa, preserving MAC `00:e0:4c:5a:55:18`. RTL8153/r8152, 100 Mb/s full-duplex link. After configuration: `.77.1` only on USB; built-in enp1s0 link-local only/no carrier. AP `.2` MAC ec:b9:31:19:d2:7f HTTP 200 and ping 2/2; printer `.115` MAC ac:a7:04:12:be:58 and `.145` MAC e0:72:a1:a4:e4:6c each ping 2/2. DHCP socket explicitly USB-bound. Target DNS verify.controld.com →147.185.34.1, doubleclick.net→0.0.0.0; HTTPS exit146.70.242.142. Downstream accept/return/NAT counters 94/112/8 packets at sample. School SSH stayed usable; scoped rollback did not execute. This does not establish fresh Wi-Fi DHCP, printer cloud/control, USB boot or Chromebook retirement; those remain pending.
+
+Operator confirms macOS connected to 3D-Printere returns `146.70.242.142` from HTTPS ipify, matching Radxa after USB handoff.
+
 ## 2026-10-06 — Physical handoff preparation
 
 Operator confirms ready after idle/no-firmware checkpoint request. Both sudo paths, school SSH, Radxa gateway/DHCP/Docker and independent VPN rechecked. Current source config/firewall/service/active-profile snapshot and leases saved root-only in migration backup `handoff-20261006/`. Current source leases transferred over SSH and loaded into target dnsmasq, preserving its prior file and existing ownership/mode. `.115`/a1mini-366 and `.145`/a1mini-581 entries present, DHCP/gateway active and tunnel HTTPS passes. Fresh client DHCP/physical-printer behavior still requires cable handoff. No source service/VPN disabled and no cable movement observed yet.

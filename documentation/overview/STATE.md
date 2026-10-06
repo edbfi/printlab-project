@@ -1,18 +1,16 @@
 # Current state
 
-Updated 2026-10-06 after isolated Radxa implementation and recovery tests. **Radxa prepared and tested; physical migration is not complete.** PC still serves the AP/printers and the agent connection. Both cables remain unchanged.
+Updated 2026-10-06 during physical handoff. **Radxa is now serving the physical AP/printer LAN through USB. Client acceptance and Chromebook retirement remain in progress.** Chromebook remains on school Wi-Fi and its own VPN to preserve Codex connectivity.
 
-## Current checkpoint — awaiting physical handoff
+## Current checkpoint — USB printer LAN activation
 
-Radxa now independently authenticates to Ishoj Kommune (`10.113.130.35/20`), runs Windscribe CLI 2.24.13 Stealth/443, Control D p2 DNS, DHCP and printer firewall on enp1s0 `.77.1`. Docker active; no persistent workload added. RTC corrected and NTP synchronized. Latest verified target exit `146.70.242.142`; PC exit remains `.173`.
+Operator explicitly reserves Radxa built-in `enp1s0` for a possible future school Ethernet uplink. No wired school uplink is configured now. Printer LAN will use the moved USB adapter `enx00e04c5a5518` / `00:e0:4c:5a:55:18`; carrier and RTL8153/r8152 detected. The former direct administration cable is disconnected; use `ssh radxa-school` (`10.113.130.35`). The direct IPv6 `radxa` alias is currently unavailable.
 
-Actual isolated client passed DHCP/SSH/DNS/HTTPS, VPN-loss blocking/recovery, main-process recovery, school-uplink loss/recovery, Docker restart, scoped private/reverse/spoof/IPv6 isolation, and gateway stop/reload. Actual Radxa reboot with WLAN unavailable through boot+60s recovered automatically after restore at +61s; fresh client DHCP/DNS/HTTPS and both SSH paths passed. Fallback did not run. Limits/evidence in TESTS.
+Before this change Radxa independently passed school Wi-Fi, Windscribe, DNS/DHCP, isolated downstream traffic, failure/recovery and delayed-uplink reboot tests on its built-in Ethernet. Docker remains active. Those tests do not establish acceptance on the newly chosen USB port. Source leases were imported and restricted handoff snapshots saved on both hosts; actual AP/printer/client checks follow activation.
 
-Test namespace removed and spare adapter restored to `Radxa direct`. Target boot-test units/marker removed, temporary container/image and bootstrap proxies stopped/removed. No migration test/recovery timers remain; operator sudo expiry timers deliberately retained. Redundant secret/package staging moved to root-only recovery storage (not deleted); live credentials and verified snapshot preserved. Post-cleanup source and target service/DNS/HTTPS/SSH checks pass.
+USB activation passed: `.77.1` exists only on `enx00e04c5a5518`; built-in `enp1s0` has link-local IPv6 only and no DHCP. Both printer identities/pings and AP HTTP 200 pass. Gateway forward/return/NAT counters show downstream VPN traffic; target DNS identity/filtering and tunnel HTTPS pass. Scoped port rollback timer canceled without execution after school SSH and local checks. Target backup `usb-lan-20261006/before.tar` and `restore-port.sh` retained; restore script not behaviorally exercised.
 
-Operator confirmed readiness/idle-printer checkpoint. Refreshed source leases and root-only current source configuration/firewall/service/profile snapshot under migration backup `handoff-20261006/` (directory 0700, archive 0600). Imported current `.115/.145` leases into Radxa while retaining its pre-handoff lease file; target DHCP/gateway and tunnel HTTPS pass. Import is not fresh client DHCP acceptance.
-
-**Cable instructions issued next; physical movement not yet reported.** Disconnect the direct PC cable from Radxa, then move the AP cable's PC end into Radxa Ethernet, keeping AP power/configuration and Chromebook school Wi-Fi/VPN unchanged. Use `ssh radxa-school` after direct link disappears. Wait for reported cable movement, then announce `.1` and verify real AP/printers/clients. To undo, return the AP cable to its original PC adapter; original source gateway services remain active. The Chromebook's current VPN preserves Codex connectivity.
+Operator confirms macOS on 3D-Printere returns `146.70.242.142`, matching Radxa; real downstream HTTPS egress passed. Chromebook remains on its own school Wi-Fi/VPN pending protected client transition. Physical rollback means returning the **USB adapter with AP cable** to the Chromebook; its original gateway profile/services are retained. Never put two active `.77.1` gateways on the same segment.
 
 ## Intended division of roles
 
@@ -20,18 +18,16 @@ Operator reconfirmed October 6: Radxa takes over `Ishoj Kommune` school Wi-Fi, W
 
 ## Access and current authorization
 
-- `ssh radxa`: restored direct IPv6 link-local management. `ssh radxa-school`: verified school DHCP path `.35`, using the existing pinned host key. School DHCP can change.
+- `ssh radxa`: old direct alias currently disconnected. `ssh radxa-school`: verified school DHCP path `.35`, using the existing pinned host key. School DHCP can change.
 - Target sudo permission/removal timer expire **2026-10-06 16:21:33 CEST / 14:21:33 UTC**; source removal timer **16:38:02 CEST**. Both pass now; recheck before later work. Never alter deadlines.
 - RTC/NTP recovery is complete for observed system/reboot behavior. Do not rerun historical `clock-correct.py`.
 - Canonical handoff and recovery: [RADXA-MIGRATION](../network/RADXA-MIGRATION.md). Full original approved plan preserved separately with later VPN-retirement amendment.
 
 ## Working system
 
-School Wi-Fi → Chromebook Windscribe/gateway/DHCP/DNS → USB Ethernet → TL-WR902AC AP → **3D-Printere** → both A1 minis. The second USB Ethernet adapter connects only to Radxa for administration. Do not move the AP cable or retire the PC gateway before the physical handoff checkpoint.
+School Wi-Fi → Radxa Windscribe/gateway/DHCP/DNS → USB Ethernet `enx00e04c5a5518` → TL-WR902AC AP → **3D-Printere** → both A1 minis. Radxa built-in Ethernet is reserved for a possible future uplink, not configured as one. Chromebook separately uses school Wi-Fi/its own VPN until client transition.
 
-Current addresses: PC school DHCP `10.113.130.33/20`, printer gateway `192.168.77.1`, AP `.2`, printer 366 `.115`, printer 581 `.145`. School/VPN addresses are observations, not reservations. Windscribe CLI 2.24.13 uses Stealth/443, Always On firewall and a lingering user service. Host and printer DNS share encrypted Control D p2 through its loopback proxy. [Topology](../network/TOPOLOGY.md) holds interface/configuration details.
-
-Fresh host-side checks on October 6: gateway/DHCP/helper/user VPN services active; tunnel-bound HTTPS exits `68.67.118.173`; system and printer-proxy Control D identity answers pass; p2 blocking answer passes; AP HTTP 200 and AP/both printer pings 2/2. Direct Radxa login passes. These are not fresh downstream internet, Studio, print, reboot or outage tests.
+Radxa school DHCP `10.113.130.35/20`, gateway `192.168.77.1`, AP `.2`, printer 366 `.115`, printer 581 `.145`. Chromebook school DHCP `10.113.130.33/20`. DHCP/VPN observations may change. Physical AP/printer identities and reachability verified after USB activation; printer application/print behavior is not established by ping.
 
 ## Stage status and evidence
 
@@ -44,7 +40,7 @@ Fresh host-side checks on October 6: gateway/DHCP/helper/user VPN services activ
 | Both printers | Association passed | Confirmed identities, fresh DHCP reservation ACKs, LAN Only Off, dedicated-account binding and Studio visibility; no transfer/print proof |
 | Studio | In progress | 2.8.2.61 AppImage, GUI import/render and A1 mini 0.4 mm/Textured PEI profile; actual filament, slicing/preview/transfer and profile/session persistence pending |
 | Kiosk/optional interface | Deferred | Mixed prepared-job/new-model workflow; no kiosk users, custom UI, Bambuddy or Android stack created |
-| Radxa migration | Prepared and tested | Actual isolated-client, recovery, Docker/isolation and delayed-uplink reboot checks passed; physical AP/client/printer acceptance and PC retirement pending |
+| Radxa migration | Physical gateway active | USB AP/printer reachability passed; actual Wi-Fi client acceptance, Chromebook retirement and final recovery checks remain |
 | Complete station acceptance | Incomplete | Physical prints require explicit readiness; final cleanup follows verified completion |
 
 Detailed dated evidence is in [TESTS](../worklog/TESTS.md), verified changes in [CHANGES](../worklog/CHANGES.md), faults/remaining side effects in [ISSUES](../worklog/ISSUES.md). Historical entries describe their observation time; current subject documents supersede old pending instructions.
@@ -53,14 +49,12 @@ Detailed dated evidence is in [TESTS](../worklog/TESTS.md), verified changes in 
 
 The full [October 5 Plan Mode plan](../network/RADXA-PLAN.md) was recovered from `~/.codex/sessions/`, along with the operator's “Implement the plan.” message and explicit optional-client/keep-Docker-active decisions. It adds detail omitted from the condensed checkpoint: bounded performance comparisons, school-uplink/process recovery, delayed-uplink target reboot, preserving PC applications (the original personal-VPN retention requirement is superseded by the latest retirement direction), and joining 3D-Printere as an ordinary DHCP client after handoff. Isolated activation/testing is now complete; source VPN retirement remains pending verified handoff.
 
-## Next work — operator cable handoff
+## Next work — client transition
 
-1. Confirm both printers idle/no firmware update and operator ready. Refresh source DHCP lease snapshot and preserve source service/profile/VPN state before handoff.
-2. Operator removes the direct PC cable from Radxa enp1s0 and plugs the AP's Ethernet cable into that port instead, leaving AP power/settings unchanged. Use `radxa-school` during this change; preserve source school Wi-Fi/VPN.
-3. Announce `.77.1` on Radxa Ethernet, verify AP and both physical printer identities/addresses, fresh DHCP, actual-client DNS/VPN egress and SSH from both networks. Verify Studio visibility without printer controls.
-4. On failure, return AP cable to original PC adapter and restore saved PC gateway/profile state. Never join both active `.1` gateways to the same LAN.
-5. Only after successful handoff, retire source gateway/old address profiles; switch Chromebook to 3D-Printere as ordinary DHCP client and verify Radxa-provided access without its own tunnel. Retire redundant source VPN/DNS/firewall functionality in recoverable steps while accounting for Codex connectivity. Update `ssh radxa` to `.1`, preserve applications and rollback material, test client reconnect/reboot.
-6. Verify printer network with PC disconnected before claiming migration complete. Resume kiosk/Studio workflow afterward; no physical print without readiness confirmation.
+1. Verify real Wi-Fi client DHCP/DNS/VPN egress and printer application visibility after USB handoff.
+2. Prepare autonomous Chromebook rollback to school Wi-Fi/VPN, then retire its gateway services and join 3D-Printere as ordinary DHCP client. Verify DNS/HTTPS and Radxa egress without a local tunnel before canceling rollback.
+3. Retire redundant Chromebook VPN/DNS/firewall and obsolete profiles/configuration in recoverable steps; preserve applications and restricted rollback. Update `ssh radxa` to `.1` after client transition.
+4. Verify USB gateway/client reconnect and reboot behavior, plus printer networking with Chromebook disconnected. No physical print, firmware change or printer motion is authorized by network readiness.
 
 ## Recovery, Git and cleanup
 

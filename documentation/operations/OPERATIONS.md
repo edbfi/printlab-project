@@ -1,56 +1,33 @@
 # Operations and recovery
 
-Current procedures reconciled 2026-10-06. **PC remains gateway; migration and complete printing workflow are unfinished.** Start from [STATE](../overview/STATE.md). Verified isolated Radxa setup, remaining physical handoff and recovery are in [RADXA-MIGRATION](../network/RADXA-MIGRATION.md); do not run its clock-correction script again.
+Current procedures reconciled after USB handoff on 2026-10-06. **Radxa serves the physical printer LAN; Chromebook client transition is pending.** Start from [STATE](../overview/STATE.md). Canonical migration/recovery: [RADXA-MIGRATION](../network/RADXA-MIGRATION.md).
 
-## Radxa ready for handoff — 2026-10-06
+## Everyday network and access
 
-Radxa gateway is active on its currently isolated Ethernet port; AP/printers remain served by PC. Direct `ssh radxa` restored after tests. Added `ssh radxa-school` at DHCP `10.113.130.35`, using the same pinned host key; SSH config backup `~/.ssh/config.before-radxa-school-20261006` (0600). Address can change. Do not move cables before idle-printer/readiness confirmation.
+- Printer Wi-Fi **3D-Printere**, 2.4 GHz. Radxa gateway/DNS **192.168.77.1**, AP **http://192.168.77.2**, printers **.115** (366) and **.145** (581).
+- Keep Radxa and AP powered. USB `enx00e04c5a5518` connects Radxa to AP; built-in Ethernet remains unused for a possible future school uplink. No school wired connection is configured.
+- Use `ssh radxa-school` during transition: school DHCP `10.113.130.35`, user <gateway-user>, key-only TCP22 with pinned existing key. `ssh radxa` still points to the disconnected former direct cable; change to `.1` after client transition. Unlock the existing private key with `ssh-add ~/.ssh/id_ed25519` locally if needed.
+- Chromebook still uses school DHCP `10.113.130.33` and its own VPN pending transition; public-key-only SSH TCP2222 remains. Its old `.1:2222` address is obsolete because `.1` now belongs to Radxa. Verify new client address after transition. `.local` failed previously on school Wi-Fi; do not invent static school addresses.
+- Wi-Fi/AP credentials stay in mode0600 files under `~/.config/printing-station/credentials/` (0700). Never print them in logs/chat/docs.
+- Target sudo expiry is 16:21:33 CEST October 6; Chromebook timer is 16:38:02 CEST. Recheck before privileged work and never alter deadlines.
 
-On Radxa, check `systemctl is-active printing-gateway printing-dhcp docker`, `systemctl --user is-active windscribe`, CLI status, `curl --interface tun0 https://api.ipify.org`, and `timedatectl show -p NTPSynchronized`. Target RTC/NTP, actual client access, recovery and delayed-uplink reboot passed. Its gateway/DNS address duplicates PC `.1` only because the cables are separate; never join both active gateways on one LAN.
+## Diagnose Radxa
 
-Root target backup `/var/lib/printing-station/rollback/20261005/radxa-migration/verified-router-20261006.tar` contains verified configuration/credentials; original snapshot and scoped rollback remain alongside it. Secret/package staging retired to root-only backup storage; installers should not be rerun. No active temporary proxy/test namespace/boot units/timers remain. Operator sudo-expiry timers remain intentionally active. Detailed physical handoff and rollback: [RADXA-MIGRATION](../network/RADXA-MIGRATION.md).
+Run on Radxa: `systemctl status printing-gateway printing-dhcp windscribe-helper docker`, `systemctl --user status windscribe`, and `/opt/windscribe/windscribe-cli status`. Inspect leases with `sudo -n cat /var/lib/printing-station/dnsmasq.leases`. Compare client `https://api.ipify.org` to target `curl --interface tun0 https://api.ipify.org`. Mac client matched target `146.70.242.142` after physical USB handoff; this is a mutable observation.
 
-## Everyday network
+DNS: `dig @192.168.77.1 verify.controld.com +short` should include `147.185.34.1`; p2 blocked `doubleclick.net` returns `0.0.0.0`. Browser Secure/Private DNS can override system DHCP DNS. Radxa resolved and printer dnsmasq forward to Windscribe's loopback proxy, using encrypted Control D p2 through tun0; no school DNS fallback configured.
 
-- Printer Wi-Fi **3D-Printere**, 2.4 GHz; PC gateway/DNS **192.168.77.1**, AP administration **http://192.168.77.2**.
-- Printers 3DP-030-366 **.115**, 3DP-030-581 **.145**. Both reservations and Studio visibility verified September 24; physical printing remains untested.
-- Keep PC/AP powered and PC awake until verified Radxa cutover. PC off means no current gateway/DHCP/DNS. Tested VPN loss blocks internet while local administration remains available; offline printer workflow is untested.
-- Credentials live only in restricted mode-0600 files under `~/.config/printing-station/credentials/` (0700). Never copy values to documentation/logs/chat.
+Connect VPN with `/opt/windscribe/windscribe-cli connect Stockholm stealth:443`. Linger and user-service restart preserve headless recovery. `sudo systemctl stop printing-gateway` blocks printer internet while retaining local/DHCP and Docker; `sudo systemctl start printing-gateway` restores allowances. Do not flush all nftables/Windscribe/Docker rules.
 
-## SSH to the Radxa — verified 2026-10-05
+Target files: `/etc/systemd/network/05-printer-lan.network`, `05-school-wifi.network`, `05-reserved-ethernet.network`; `/etc/printing-station/{dnsmasq.conf,gateway.nft}`; `/usr/local/libexec/printing-station/`; printing-gateway/printing-dhcp units and Docker drop-in; restricted Windscribe preferences/user override. Built-in Ethernet's reserved profile disables DHCP, accepts only link-local IPv6 and does not advertise a router.
 
-From this PC, run `ssh radxa`. Alias in `~/.ssh/config` selects user <gateway-user>, port 22, id_ed25519 and the Radxa IPv6 link-local address scoped to `enx00e04c5835c8`. If the key is locked, run `ssh-add ~/.ssh/id_ed25519` and enter its passphrase locally. Both direct-address and alias logins passed. Renewed remote `sudo -n true` passes October 6; grant/removal timer expire 16:21:33 CEST that day. Recheck when needed. PC sudo now also passes (08:39 UTC October 6), with an active removal timer for 16:38:02 CEST. Recheck both grants before privileged work. This management link does not provide Radxa internet access.
+## Migration recovery
 
-Keep the Radxa on the second adapter. Rollback removes only the `Radxa direct` NetworkManager profile (`sudo nmcli connection delete 'Radxa direct'`) and its SSH Host block. Original SSH config backup: `~/.ssh/config.before-radxa-20261005`; restore only if no later edits would be lost. Original `Wired connection 2` remains intact. Profile autoconnect is configured; reboot/reconnect behavior has not been tested.
+Both hosts retain root-only `/var/lib/printing-station/rollback/20261005/radxa-migration/`. Target original and verified pre-USB snapshot `verified-router-20261006.tar`, package and scoped router/Wi-Fi restores remain. Target `usb-lan-20261006/before.tar` and `restore-port.sh` undo only the port change; script prepared, not exercised. Its timed rollback was canceled after successful checks. Never restore complete archives containing old sudo/system files blindly.
 
-## Current DNS and recovery — 2026-09-28
+Physical fallback returns the **USB adapter with AP cable** to Chromebook. Its original Printer LAN profile/gateway services remain available until protected client transition. Never connect two active `.1` gateways to one segment. Source `handoff-20261006/` holds fresh source configuration/profile/service/firewall/lease snapshots. Old September DNS/GUI-VPN rollback procedures below apply to the former Chromebook router, not Radxa; do not invoke them against the new topology without reviewing the affected host and role.
 
-Windscribe CLI manages encrypted Control D p2 via Custom / `https://freedns.controld.com/p2` in `~/.config/Windscribe/windscribe_cli.conf`. Its bundled proxy listens at `127.0.0.1:53`. The host resolver and printer-network dnsmasq share it; clients continue receiving `192.168.77.1` as DHCP DNS. Proxy availability follows VPN connection; controlled disconnect/reconnect has been verified. Browser Private/Secure DNS can override the DHCP/system choice.
-
-Check `dig verify.controld.com +short` and `dig @192.168.77.1 verify.controld.com +short`; observed expected address is `147.185.34.1`. Check a browser separately at [Control D status](https://controld.com/status). `resolvectl status` now shows global `127.0.0.1`/`~.`, rather than DNS on tun0 itself. Upstream traffic still travels through tun0. Full reboot after this change not tested.
-
-If recovery is required, run `sudo /var/lib/printing-station/rollback/20260928/controld-p2/rollback.sh` locally. It restores pre-change Windscribe/dnsmasq/gateway settings, reloads own rules, restarts DNS/DHCP and requests VPN connection. This restores Windscribe/ROBERT for host and printer DNS; it interrupts networking briefly. Automatic execution of this rollback succeeded during the first migration attempt. Original/verified files and diagnostic logs are retained there; no temporary test timers remain.
-
-Latest fix 2026-09-24: host systemd-resolved DNS now blocked outside lo/tun0 by own gateway output rule. Controlled tunnel-loss test confirms blocked fallback to school DNS and working reconnection/host+printer DNS afterward. Windscribe's bootstrap DNS remains available. Current observed exit `68.67.118.173`; full reboot with this added rule not yet tested. Recovery for this change alone: `sudo -n /var/lib/printing-station/rollback/20260924/host-dns/host-dns-rollback-20260924.sh` restores previous own gateway config/table. Before/verified copies retained there; do not execute rollback while working normally. No test timers armed.
-
-## Verified administrator access — 2026-09-24
-
-- On **3D-Printere**: `ssh -p 2222 <workstation-user>@192.168.77.1` or `ssh -p 2222 <workstation-user>@<workstation-host>.local`; both verified by actual key login.
-- On **Ishoj Kommune**: `ssh -p 2222 <workstation-user>@10.113.130.33` verified from school client, without requiring Mac VPN. This is a DHCP address and may change; locally inspect `nmcli -f IP4.ADDRESS device show wlp0s20f3` when needed.
-- `.local` access timed out on school Wi-Fi with and without Mac VPN; use current numeric school address. A persistent school hostname/address needs school-managed DNS/DHCP reservation. Do not assign an arbitrary static school address.
-- Printer `.1` was not reachable in the school-side attempt, as no route to the dedicated segment is established. Both host IPs are reachable from printer LAN; access to host-owned school IP is local delivery, not access through it to school devices.
-
-Preserve public-key-only TCP 2222 service and local-terminal recovery. Host fingerprint remains the previously verified ED25519 value below. No school routing, DNS or firewall changes performed.
-
-## Diagnose or recover
-
-Check `systemctl status printing-gateway printing-dhcp windscribe-helper`, `systemctl --user status windscribe`, and `/opt/windscribe/windscribe-cli status`. Inspect leases with `sudo -n cat /var/lib/printing-station/dnsmasq.leases`. Test DNS with `dig @192.168.77.1 example.com` and compare downstream ipify with VPN status.
-
-Connect VPN using `/opt/windscribe/windscribe-cli connect Stockholm stealth:443`. User lingering starts the service before login; its override restarts it on failure. Use `systemctl --user stop/start windscribe` for maintenance. Own gateway firewall remains separate; **do not flush Windscribe or all nftables rules**.
-
-Configuration: `/etc/printing-station/dnsmasq.conf`, `/etc/printing-station/gateway.nft`, system units `printing-dhcp` and `printing-gateway`, `~/.config/Windscribe/windscribe_cli.conf`, and user service override `~/.config/systemd/user/windscribe.service.d/printing-station.conf`.
-
-Stop printer internet while retaining local LAN/DHCP using `sudo -n systemctl stop printing-gateway`; restart with `sudo -n systemctl start printing-gateway`.
+No active migration test/proxy/boot timers remain; operator sudo-expiry timers remain deliberately active. Historical staging scripts have outdated preconditions and must not be rerun, especially clock-correct.py. Secret/package duplicates were archived root-only; detailed acceptance limits remain in TESTS.
 
 ## Rollback material
 
@@ -64,7 +41,7 @@ Root-only directory: `/var/lib/printing-station/rollback/20260922/`.
 
 ## Power and retained recovery material
 
-Sleep/suspend/hibernate/hybrid/suspend-then-hibernate targets remain masked (rechecked October 6); display blanking is separate. Physical lid/power-loss behavior is untested. Restore suspend capability only deliberately with `sudo -n systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target`; suspend interrupts the current gateway.
+Sleep/suspend/hibernate/hybrid/suspend-then-hibernate targets remain masked (rechecked October 6); display blanking is separate. Physical lid/power-loss behavior is untested. Restore suspend capability only deliberately with `sudo -n systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target`; on Radxa, suspend interrupts the gateway; Chromebook power policy can be revisited after client transition.
 
 PC ED25519 host fingerprint verified previously by operator: `SHA256:5bUw2EUigkD1ebMQOUMeQ6U3dFRhY5pzg47unG5wdyM`.
 

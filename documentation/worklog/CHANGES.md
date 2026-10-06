@@ -2,6 +2,12 @@
 
 Dated history of verified outcomes. Earlier pending limitations describe that checkpoint; use [STATE](../overview/STATE.md) and the latest subject documents for current work. Read-only October 6 recap findings are recorded in TESTS and subject documents.
 
+## 2026-10-06 — Radxa physical printer gateway moved to USB
+
+Moved printer address/networkd match, DHCP/DNS binding, nftables interface rules and Docker printer allowances to the operator-selected USB `enx00e04c5a5518`. Built-in enp1s0 now unused (no IPv4/DHCP). School SSH remained available. Actual AP HTTP 200 and both known printer IP/MAC pairs/pings passed; target DNS/HTTPS and downstream VPN counters passed. Root-only port snapshot and scoped restore retained; rollback timer canceled without execution. Chromebook VPN/client transition still pending.
+
+Operator confirms macOS connected to 3D-Printere returns `146.70.242.142` from HTTPS ipify, matching Radxa after USB handoff.
+
 ## 2026-10-06 — Radxa reboot acceptance and isolated-stage cleanup
 
 New target boot `c9bd8584-b915-4424-815e-0c136d61aa6a` differs from saved preboot ID. Local SSH/gateway/DHCP worked around boot+13s with wlan0 down; client internet/DNS failed while unavailable. Timed WLAN restore began +60.8s, target VPN HTTPS observed shortly afterward; actual namespace client HTTPS/DNS recovered automatically, fresh DHCP `.139`/12h renewed. School SSH, Docker, NTP and RTC passed. Independent +180s fallback never started. No bootstrap proxy or manual VPN/login repair used after reboot.

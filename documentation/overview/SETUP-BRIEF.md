@@ -4,7 +4,7 @@
 
 The operator's October 5 migration plan supersedes the original combined router/kiosk architecture below. **Radxa becomes the school `Ishoj Kommune` enterprise-Wi-Fi + Windscribe router, DHCP/DNS server and printer gateway. The Lubuntu Chromebook becomes the Studio/touch kiosk and an ordinary optional network client.** The printer network must operate with the Chromebook disconnected/off. Latest operator direction is to retire the Chromebook's own VPN functionality after successful cutover: it uses 3D-Printere and Radxa's VPN/DNS as an ordinary client. Keep the current source VPN until that access is verified, then retire redundant services/configuration with rollback and client recovery checks. Keep Docker active on Radxa; the operator may later host personal development/server workloads there, but no additional workload, public exposure or virtualization setup is currently specified.
 
-Preserve the existing AP, printer SSID/subnet/reservations and key-only administration from the intended networks. Retain the current PC gateway until Radxa passes staged tests, the operator performs the AP cable handoff, and real-client acceptance passes. Current state and exact migration sequence: [STATE](STATE.md), [RADXA-MIGRATION](../network/RADXA-MIGRATION.md). Operator authorized implementation after the recap. Isolated Radxa activation/testing now complete; physical AP handoff awaits idle-printer/operator readiness. Preserve source connectivity until then.
+Preserve the existing AP, printer SSID/subnet/reservations and key-only administration from the intended networks. Retain the current PC gateway until Radxa passes staged tests, the operator performs the AP cable handoff, and real-client acceptance passes. Current state and exact migration sequence: [STATE](STATE.md), [RADXA-MIGRATION](../network/RADXA-MIGRATION.md). Operator authorized implementation after the recap. Isolated Radxa activation/testing now complete; physical USB handoff and AP/printer reachability now pass; real Wi-Fi client acceptance and Chromebook retirement remain. Preserve source connectivity through that transition.
 
 The original stage requirements below remain useful acceptance criteria. Apply network-service requirements to Radxa after cutover and application/touch/kiosk requirements to the Chromebook. Initial discovery observations are historical, not instructions to reinstall or repeat completed setup. Subject documents and current operator direction determine what remains.
 
@@ -52,7 +52,7 @@ Radxa Dragon Q6A
   ├─ Windscribe tunnel over school Wi-Fi
   ├─ Printer gateway/firewall/DHCP/DNS
   └─ Existing Docker; possible later development workloads
-        │ enp1s0 Ethernet
+        │ USB Ethernet enx00e04c5a5518
 TL-WR902AC AP / 192.168.77.2
         │ 2.4 GHz 3D-Printere
         ├─ A1 mini 366 / 192.168.77.115
@@ -60,7 +60,7 @@ TL-WR902AC AP / 192.168.77.2
         └─ Lubuntu Chromebook as optional client / Studio kiosk
 ```
 
-Radxa will own `192.168.77.1`; the Chromebook's final client connection/profile is configured and verified at handoff. The current live topology still uses the Chromebook as gateway, with a separate direct-management cable to Radxa. Never join the two staged `.77.1` gateways to the same segment.
+Radxa now owns `192.168.77.1` on the moved USB adapter. Built-in `enp1s0` stays unused for a possible future school Ethernet uplink. The Chromebook's ordinary Wi-Fi client transition is next; its separate school Wi-Fi/VPN remains available for recovery. Never join the two staged `.77.1` gateways to the same segment.
 
 The school's enterprise Wi-Fi stays separate from the printer LAN. Never bridge it into the AP segment. Keep one DHCP authority and local printer communication local. Do not introduce AP router-mode NAT, VLANs or another DHCP server without an established need and the required decision checkpoint. Once migration passes, stopping or rebooting the Chromebook must not interrupt printer networking.
 

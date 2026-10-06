@@ -1,5 +1,13 @@
 # Verified changes
 
+## 2026-09-28 — Shared encrypted Control D p2 DNS
+
+Changed Windscribe CLI's existing configuration to Custom / `https://freedns.controld.com/p2`. Its bundled proxy listens on loopback port 53; host system resolver uses it and printer dnsmasq now forwards to `127.0.0.1#53@lo`. DHCP remains `.1`, no system-resolver fallback, reservations unchanged. Added secure endpoint IPv4/IPv6 tunnel-only guards in own gateway.nft; retained previous fallback guard and Windscribe firewall. No additional resolver software.
+
+Validation: host and printer proxy return Control D verification IP `147.185.34.1`, doubleclick.net blocked (`0.0.0.0`), ordinary UDP/TCP DNS succeeds. Capture shows 53 packets on tun0 to/from `76.76.2.11:443`. Controlled VPN absence stops fresh host/proxy resolution, AP ping passes; reconnect restores Control D and tunnel HTTPS. School-interface endpoint capture: zero packets, zero drops. Both printer pings and Bambu API DNS pass after cleanup. This does not establish physical phone/browser behavior, post-change reboot, or a complete printing workflow.
+
+Recovery: root-only `/var/lib/printing-station/rollback/20260928/controld-p2/rollback.sh` restores original Windscribe/dnsmasq/gateway files and connects VPN. That rollback ran successfully after first attempt's premature CLI return; retry verified behavior before canceling timers. Retained original/verified copies and diagnostic logs; removed staged files, test/apply scripts and markers. No active temporary units remain; DNS/HTTPS/services rechecked after cleanup.
+
 ## Both reservations verified; A1 mini profile selected — 2026-09-24
 
 Operator confirms second printer remains .145 after Wi-Fi reconnect. Fresh DHCPREQUEST/ACK at 15:58:48 verifies e0:72:a1:a4:e4:6c → 192.168.77.145/a1mini-581 after reservation load; ping 2/2. Both printers now have verified reservations (.115/366, .145/581), confirmed identities and Studio visibility. Preserve both pre-reservation backups.

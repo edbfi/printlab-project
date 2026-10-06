@@ -1,5 +1,9 @@
 # Issues and failed attempts
 
+## 2026-09-28 — Initial Control D switch rolled back automatically
+
+First staged apply changed own gateway/DNS files and Windscribe preferences, then explicitly disconnected/reconnected. CLI connect returned `Disconnected` and exit 1; primary script stopped at 15:12:07. Agent transport unavailable until independent four-minute rollback restored all three original files and connected Stockholm Fika at 15:16:02. This verifies the rollback recovery path. Auto DNS and original printer upstream observed restored; no successful migration claimed. Logs subsequently showed custom DNS/tunnel actually connected at 15:12:09, after the premature CLI return. Retry tolerates the asynchronous return and waits for functional DNS/HTTPS; migration and outage/recovery then passed. No unresolved migration fault; retain restricted apply log and backups under `/var/lib/printing-station/rollback/20260928/controld-p2/`.
+
 ## 2026-09-24 — Firmware code 301 recovered
 
 Operator restart/retry resolved first printer update failure. Studio independently confirms 01.08.01.00 and Updating successful / 100%; printer reachable at reserved .115 with fresh DHCP ACK. Original download-failure cause remains unknown; no infrastructure changes required. Earlier unresolved entry below is historical.

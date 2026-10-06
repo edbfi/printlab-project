@@ -1,5 +1,13 @@
 # Current state
 
+## Control D p2 migration verified — 2026-09-28
+
+Operator requested encrypted Control D p2 through existing Windscribe CLI for both this machine and printer Wi-Fi. Live CLI settings: `ConnectedDNSMode=Custom`, `ConnectedDNSUpstream1=https://freedns.controld.com/p2`. Windscribe manages its bundled proxy on `127.0.0.1:53`; systemd-resolved uses that as global DNS (`~.`). Printer dnsmasq forwards to `127.0.0.1#53@lo`, keeps `no-resolv`, DHCP DNS `.1` and all reservations. Own gateway additionally blocks secure Control D endpoint IPv4/IPv6 addresses outside tun0; existing host DNS fallback guard retained.
+
+Verified host and `.1` Control D identity, TCP/UDP resolution, p2 ad filtering, HTTPS through tunnel, AP/printer reachability, and one controlled VPN-loss/recovery cycle. Captured secure DNS traffic on tun0 to `76.76.2.11:443`; zero direct endpoint packets on school Wi-Fi during outage/recovery capture. Fresh host/proxy DNS unavailable without tunnel, AP remains available, DNS/HTTPS recovers. Exit at final check `68.67.118.166`. Browser/physical phone test requested, response pending; no post-change reboot or full printing workflow tested.
+
+Initial attempt stopped verification on premature CLI failure return; independent timed rollback actually restored previous DNS/VPN. Retry waited for actual DNS/HTTPS and passed. See ISSUES/TESTS. No active test/recovery units remain. Removed proposed copies, apply/test scripts and markers after preserving verified settings; post-cleanup checks passed. Original and verified files, tested `rollback.sh` and restricted diagnostic logs retained at `/var/lib/printing-station/rollback/20260928/controld-p2/`. This request does not resume unrelated station setup.
+
 ## Both reservations verified; A1 mini profile selected — 2026-09-24
 
 Operator confirms second printer remains .145 after Wi-Fi reconnect. Fresh DHCPREQUEST/ACK at 15:58:48 verifies e0:72:a1:a4:e4:6c → 192.168.77.145/a1mini-581 after reservation load; ping 2/2. Both printers now have verified reservations (.115/366, .145/581), confirmed identities and Studio visibility. Preserve both pre-reservation backups.

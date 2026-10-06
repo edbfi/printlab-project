@@ -1,5 +1,17 @@
 # Validation
 
+## 2026-09-28 — Control D p2 shared DNS and VPN loss
+
+- Passed: Windscribe's own `windscribectrld` runs with p2 HTTPS endpoint and listens only on `127.0.0.1:53`; dnsmasq remains on `.1:53`; systemd-resolved global DNS is loopback with `~.`.
+- Passed: Control D identity (`verify.controld.com` → CNAME api.controld.com / `147.185.34.1`) through loopback proxy, `.1` and system resolver. UDP and TCP ordinary resolution pass. p2 blocking demonstrated by doubleclick.net → `0.0.0.0`.
+- Passed: connected 12-second numeric-header capture records 53 packets, all on tun0 to/from `76.76.2.11:443`, zero kernel drops.
+- Passed: deliberate disconnect removes tun0; fresh queries to `.1` and host stub time out, AP ping 2/2 succeeds. Reconnect restores host/proxy Control D identity and HTTPS exit `68.67.118.166`. 30-second school-interface capture spanning disconnect/recovery records zero direct secure endpoint packets, zero kernel drops. Own guards counted 15 system-resolver drops and 5 secure endpoint drops at inspection. Scope: configured secure endpoint addresses, not all host bootstrap traffic or arbitrary app overrides.
+- Passed: original DNS/VPN rollback actually executed after initial script exited on premature CLI status; recovery completed at 15:16:02. Corrected retry and outage test cancel rollback only after functional checks.
+- Passed after cleanup: gateway/DHCP/user Windscribe active, host/proxy verification answers, p2 blocking, Bambu API DNS, both printer pings, tunnel HTTPS. No task timers/units remain loaded.
+- Pending: user's browser/phone check, post-change reboot, complete printer/cloud workflow under p2 filtering. No print/heating/movement initiated.
+
+Evidence retained root-restricted under `/var/lib/printing-station/rollback/20260928/controld-p2/`: apply logs, test.log, connected/outage numeric-header logs and original/verified settings.
+
 ## Both reservations verified; A1 mini profile selected — 2026-09-24
 
 Operator confirms second printer remains .145 after Wi-Fi reconnect. Fresh DHCPREQUEST/ACK at 15:58:48 verifies e0:72:a1:a4:e4:6c → 192.168.77.145/a1mini-581 after reservation load; ping 2/2. Both printers now have verified reservations (.115/366, .145/581), confirmed identities and Studio visibility. Preserve both pre-reservation backups.

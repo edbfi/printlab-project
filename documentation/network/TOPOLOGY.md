@@ -1,5 +1,25 @@
 # Network topology
 
+## Active DNS path — Control D p2, verified 2026-09-28
+
+Host applications → systemd-resolved → Windscribe's bundled DNS proxy `127.0.0.1:53` → `https://freedns.controld.com/p2` through tun0. Printer-Wi-Fi clients → DHCP-advertised `192.168.77.1:53` → dnsmasq (`server=127.0.0.1#53@lo`, `no-resolv`) → the same Windscribe proxy. No separate DNS daemon installed; the existing AP bridges the client network unchanged. Per-app/device DNS overrides remain possible.
+
+CLI 2.24.13 owns proxy startup/stop across connection cycles. Current settings are Custom + p2 HTTPS, not the Auto baseline described below. ROBERT is replaced by p2 filtering. `DNSPolicy=Control D` remains the separate app-bootstrap setting. Own firewall drops traffic to secure endpoint IPv4 `76.76.2.11`, `76.76.10.11` and IPv6 `2606:1a40::11`, `2606:1a40:1::11` outside tun0; existing host-resolver fallback guard remains. These addresses are current published secure endpoints, not a general block on every alternative application resolver.
+
+Verified system/proxy Control D identity, ad blocking, TCP/UDP resolution and encrypted endpoint traffic via tun0. Controlled VPN loss stops fresh host/printer-proxy DNS; reconnect restores it and HTTPS. AP stays reachable. No physical phone/browser confirmation or post-change reboot yet. Read-only notes below describe the pre-change baseline.
+
+## DNS selection and Control D — read-only findings 2026-09-28
+
+Installed `windscribe-cli` is 2.24.13; its user service is active. `~/.config/Windscribe/windscribe_cli.conf` has `ConnectedDNSMode=Auto`, empty custom upstreams, `SplitDNS=false`, `DNSManager=Auto` and `DNSPolicy=Control D`. Live `resolvectl status tun0` shows `10.255.255.1` and routing domain `~.`. Auto selects Windscribe/ROBERT for connected system DNS. `DNSPolicy` separately selects the app's internal/bootstrap resolver; it does not select ordinary connected DNS. Version-tagged source confirms `Control D` (with a space) is valid for this installed version, despite different spelling in the current wiki.
+
+Printer DNS is separately configured in `/etc/printing-station/dnsmasq.conf`: DHCP advertises `192.168.77.1`, `no-resolv` prevents inheriting host resolvers, and `server=10.255.255.1@tun0` pins upstream DNS to Windscribe through the tunnel. Changing Windscribe's connected DNS alone would leave this printer proxy pointed at Windscribe.
+
+Control D is supported through `[Connection]` settings `ConnectedDNSMode=Custom` and `ConnectedDNSUpstream1=<resolver IP or DoH/DoT endpoint>`. Windscribe's official example uses `p2.freedns.controld.com` (DoT, Ads & Trackers). Custom DNS replaces ROBERT filtering. The 2.24.13 CLI source explicitly converts the GUI's dedicated Control D mode to Custom; use Custom with an upstream for CLI configuration. Installed CLI help says saved preference edits apply automatically; newer documentation's `preferences reload` command is not listed by this version.
+
+No live settings changed, reconnect performed, or Control D resolution tested. A future switch covering printers must also update their DNS path and revalidate tunnel-loss protection.
+
+Sources: [CLI configuration reference](https://github.com/Windscribe/Desktop-App/wiki/Linux-CLI-configuration-file-reference), [official custom DNS guide](https://windscribe.com/knowledge-base/articles/how-to-use-custom-dns-in-the-windscribe-app), [2.24.13 connected DNS parser](https://github.com/Windscribe/Desktop-App/blob/v2.24.13/src/client/client-common/types/connecteddnsinfo.cpp), [2.24.13 enum spellings](https://github.com/Windscribe/Desktop-App/blob/v2.24.13/src/client/client-common/types/enums.cpp).
+
 ## Host DNS guard — verified 2026-09-24
 
 Systemd-resolved fallback to school DNS while disconnected was identified by process trace. Own dns_guard output chain now drops systemd-resolve UID UDP/TCP destination 53 outside lo/tun0. Retest exercised drops and captured zero school-resolver DNS packets, then verified normal DNS/VPN recovery. Windscribe app-bootstrap DNS remains intentionally available; this is not a universal custom-resolver ban. Existing printer proxy tunnel binding/guard unchanged. Rule persists in gateway.nft and reload verified; full reboot with new rule still pending. Current exit `68.67.118.173`; see TESTS and rollback location in OPERATIONS.

@@ -1,5 +1,13 @@
 # Operations and recovery
 
+## Current DNS and recovery — 2026-09-28
+
+Windscribe CLI manages encrypted Control D p2 via Custom / `https://freedns.controld.com/p2` in `~/.config/Windscribe/windscribe_cli.conf`. Its bundled proxy listens at `127.0.0.1:53`. The host resolver and printer-network dnsmasq share it; clients continue receiving `192.168.77.1` as DHCP DNS. Proxy availability follows VPN connection; controlled disconnect/reconnect has been verified. Browser Private/Secure DNS can override the DHCP/system choice.
+
+Check `dig verify.controld.com +short` and `dig @192.168.77.1 verify.controld.com +short`; observed expected address is `147.185.34.1`. Check a browser separately at [Control D status](https://controld.com/status). `resolvectl status` now shows global `127.0.0.1`/`~.`, rather than DNS on tun0 itself. Upstream traffic still travels through tun0. Full reboot after this change not tested.
+
+If recovery is required, run `sudo /var/lib/printing-station/rollback/20260928/controld-p2/rollback.sh` locally. It restores pre-change Windscribe/dnsmasq/gateway settings, reloads own rules, restarts DNS/DHCP and requests VPN connection. This restores Windscribe/ROBERT for host and printer DNS; it interrupts networking briefly. Automatic execution of this rollback succeeded during the first migration attempt. Original/verified files and diagnostic logs are retained there; no temporary test timers remain.
+
 Latest fix 2026-09-24: host systemd-resolved DNS now blocked outside lo/tun0 by own gateway output rule. Controlled tunnel-loss test confirms blocked fallback to school DNS and working reconnection/host+printer DNS afterward. Windscribe's bootstrap DNS remains available. Current observed exit `68.67.118.173`; full reboot with this added rule not yet tested. Recovery for this change alone: `sudo -n /var/lib/printing-station/rollback/20260924/host-dns/host-dns-rollback-20260924.sh` restores previous own gateway config/table. Before/verified copies retained there; do not execute rollback while working normally. No test timers armed.
 
 Latest boot acceptance 2026-09-24: cold boot with Wi-Fi disabled for first 90 seconds recovered automatically when radio was enabled. Host ready by about second 100; Mac confirmed AP/DNS/HTTPS with exit `68.67.118.168`. Test units/timers removed, diagnostic copies retained restricted; no test timers remain armed and Wi-Fi is enabled. School DHCP address remains `.33`; retain numeric school SSH access and printer `.1`/`.local` access as documented below. Host plaintext school-DNS issue remains open; do not present complete station acceptance.

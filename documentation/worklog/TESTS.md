@@ -2,6 +2,10 @@
 
 Dated historical evidence follows; later results supersede earlier pending observations. The current acceptance summary is in [STATE](../overview/STATE.md). Do not rerun completed tests solely because an older entry says pending.
 
+## 2026-10-06 — Physical handoff preparation
+
+Operator confirms ready after idle/no-firmware checkpoint request. Both sudo paths, school SSH, Radxa gateway/DHCP/Docker and independent VPN rechecked. Current source config/firewall/service/active-profile snapshot and leases saved root-only in migration backup `handoff-20261006/`. Current source leases transferred over SSH and loaded into target dnsmasq, preserving its prior file and existing ownership/mode. `.115`/a1mini-366 and `.145`/a1mini-581 entries present, DHCP/gateway active and tunnel HTTPS passes. Fresh client DHCP/physical-printer behavior still requires cable handoff. No source service/VPN disabled and no cable movement observed yet.
+
 ## 2026-10-06 — Radxa reboot acceptance and isolated-stage cleanup
 
 New target boot `c9bd8584-b915-4424-815e-0c136d61aa6a` differs from saved preboot ID. Local SSH/gateway/DHCP worked around boot+13s with wlan0 down; client internet/DNS failed while unavailable. Timed WLAN restore began +60.8s, target VPN HTTPS observed shortly afterward; actual namespace client HTTPS/DNS recovered automatically, fresh DHCP `.139`/12h renewed. School SSH, Docker, NTP and RTC passed. Independent +180s fallback never started. No bootstrap proxy or manual VPN/login repair used after reboot.

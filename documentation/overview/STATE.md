@@ -10,7 +10,9 @@ Actual isolated client passed DHCP/SSH/DNS/HTTPS, VPN-loss blocking/recovery, ma
 
 Test namespace removed and spare adapter restored to `Radxa direct`. Target boot-test units/marker removed, temporary container/image and bootstrap proxies stopped/removed. No migration test/recovery timers remain; operator sudo expiry timers deliberately retained. Redundant secret/package staging moved to root-only recovery storage (not deleted); live credentials and verified snapshot preserved. Post-cleanup source and target service/DNS/HTTPS/SSH checks pass.
 
-Operator was asked whether both printers are idle with no print/firmware operation and whether they are ready for AP cable instructions. **Await this physical checkpoint; do not move cables or retire source VPN/gateway yet.** The Chromebook's current VPN preserves Codex connectivity during Radxa work.
+Operator confirmed readiness/idle-printer checkpoint. Refreshed source leases and root-only current source configuration/firewall/service/profile snapshot under migration backup `handoff-20261006/` (directory 0700, archive 0600). Imported current `.115/.145` leases into Radxa while retaining its pre-handoff lease file; target DHCP/gateway and tunnel HTTPS pass. Import is not fresh client DHCP acceptance.
+
+**Cable instructions issued next; physical movement not yet reported.** Disconnect the direct PC cable from Radxa, then move the AP cable's PC end into Radxa Ethernet, keeping AP power/configuration and Chromebook school Wi-Fi/VPN unchanged. Use `ssh radxa-school` after direct link disappears. Wait for reported cable movement, then announce `.1` and verify real AP/printers/clients. To undo, return the AP cable to its original PC adapter; original source gateway services remain active. The Chromebook's current VPN preserves Codex connectivity.
 
 ## Intended division of roles
 

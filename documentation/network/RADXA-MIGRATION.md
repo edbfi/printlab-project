@@ -4,7 +4,7 @@
 
 Radxa independently runs school Wi-Fi, Windscribe CLI 2.24.13 Stealth/443, Control D p2 DNS, printer DHCP/firewall and existing Docker. School DHCP `10.113.130.35/20`; isolated enp1s0 gateway `.77.1`. RTC correct and NTP synchronized after actual reboot. Source PC still serves the real AP/printers; cables unchanged. Latest exits: Radxa `146.70.242.142`, source `68.67.118.173` (mutable).
 
-Actual isolated client passed DHCP/SSH/DNS/HTTPS, VPN loss/reconnect, main-process recovery, school-uplink loss/recovery, Docker restart, scoped isolation, gateway stop/reload and delayed-uplink reboot. Test namespace/proxies/boot units removed; direct adapter restored and operation reverified. User asked to confirm idle printers/no firmware operation and readiness for cable instructions; physical checkpoint pending.
+Actual isolated client passed DHCP/SSH/DNS/HTTPS, VPN loss/reconnect, main-process recovery, school-uplink loss/recovery, Docker restart, scoped isolation, gateway stop/reload and delayed-uplink reboot. Test namespace/proxies/boot units removed; direct adapter restored and operation reverified. Operator confirmed idle-printer/readiness checkpoint. Current source DHCP leases imported on target; source current-state rollback snapshot saved in `handoff-20261006/`. Target DHCP/gateway and HTTPS rechecked. Cable movement not yet reported; wait before claiming physical acceptance.
 
 Direct `ssh radxa` and school `ssh radxa-school` verified, both using existing key/pinned target host key. Target sudo expires 16:21:33 CEST October 6; source cleanup timer 16:38:02 CEST. Recheck before later privileged work. No permission metadata edits.
 

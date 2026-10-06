@@ -10,7 +10,7 @@ October 6 operator renewal verified: remote sudo passes; embedded expiry and act
 
 Radxa still has no school association/internet default route or installed Windscribe CLI. Restricted packages/settings/scripts and root snapshots remain for continuation. Saved VPN-token portability, actual target routing/Docker coexistence and rollback behavior are untested. Script review found package installation precedes the router rollback timer; scoped rollback can retain packages/files/linger and assumes prior service/power state. Re-review these boundaries before execution. See [RADXA-MIGRATION](../network/RADXA-MIGRATION.md).
 
-Chromebook passwordless sudo is currently unavailable; read-only recap completed, but source-side privileged tests/cleanup require the operator's existing local renewal method when resumed. No policy changes or password collection.
+Chromebook passwordless sudo initially failed in the recap but passes at 08:39 UTC after operator renewal. Its removal timer is active for 16:38:02 CEST; no embedded deadline appears in the effective NOPASSWD rule. No policy changes or password collection by this task. Both grants must be rechecked when setup resumes.
 
 ## Open — remaining station acceptance
 

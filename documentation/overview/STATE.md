@@ -10,7 +10,7 @@ Operator reconfirmed October 6: Radxa takes over `Ishoj Kommune` school Wi-Fi, W
 
 - Radxa direct SSH and renewed `sudo -n true` pass. Grant and active removal timer both expire **2026-10-06 16:21:33 CEST / 14:21:33 UTC**. Recheck before root work; do not modify authorization deadlines.
 - Radxa system time matches PC UTC, but time sync is inactive/unsynchronized and RTC reports July 2165. Clock recovery is unfinished. Do not rerun `clock-correct.py`.
-- Chromebook `sudo -n true` currently requires interactive authentication. Independent read-only checks work; source-side privileged tests/cleanup will need local renewal when resumed.
+- Chromebook `sudo -n true` now passes (08:39 UTC), superseding the initial recap failure. Active removal timer targets **2026-10-06 16:38:02 CEST**; effective root NOPASSWD entry has no embedded NOTAFTER. Recheck when resuming.
 - Radxa wlan0 is down, no internet default route/tunnel, no installed Windscribe CLI or active printer services. Docker remains active. Only direct management and staging are established.
 - Full migration plan, artifact permissions, package digest, recovery limitations and next steps: [RADXA-MIGRATION.md](../network/RADXA-MIGRATION.md).
 
@@ -37,6 +37,10 @@ Fresh host-side checks on October 6: gateway/DHCP/helper/user VPN services activ
 | Complete station acceptance | Incomplete | Physical prints require explicit readiness; final cleanup follows verified completion |
 
 Detailed dated evidence is in [TESTS](../worklog/TESTS.md), verified changes in [CHANGES](../worklog/CHANGES.md), faults/remaining side effects in [ISSUES](../worklog/ISSUES.md). Historical entries describe their observation time; current subject documents supersede old pending instructions.
+
+## Recovered approved plan
+
+The full [October 5 Plan Mode plan](../network/RADXA-PLAN.md) was recovered from `~/.codex/sessions/`, along with the operator's “Implement the plan.” message and explicit optional-client/keep-Docker-active decisions. It adds detail omitted from the condensed checkpoint: bounded performance comparisons, school-uplink/process recovery, delayed-uplink target reboot, preserving PC personal VPN/applications, and joining 3D-Printere as an ordinary DHCP client after handoff. Current user request is plan retrieval before continuation; no activation performed.
 
 ## Next work after the recap
 

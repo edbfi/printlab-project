@@ -2,6 +2,12 @@
 
 Dated historical evidence follows; later results supersede earlier pending observations. The current acceptance summary is in [STATE](../overview/STATE.md). Do not rerun completed tests solely because an older entry says pending.
 
+## 2026-10-06 — Original plan recovered; source sudo rechecked
+
+Read the October 5 project-specific rollout under `~/.codex/sessions/2026/10/05/`. Found the full assistant `<proposed_plan>` at line 278, `2026-10-05T13:35:48.399Z`, followed by operator “Implement the plan.” at line 288. Earlier structured answers explicitly retain Docker and make the PC an optional Wi-Fi client. Recovered plan/provenance in [RADXA-PLAN](../network/RADXA-PLAN.md); the body was checked for exact equality with the session plan. No account/auth files or full session export copied into the project.
+
+At 08:39 UTC, PC `sudo -n true` passes and `sudo -n -l` includes root NOPASSWD without NOTAFTER. Operator cleanup timer active for 16:38:02 CEST. This supersedes the earlier source-sudo failure, not the unresolved Radxa RTC/NTP fault. No services/cables/configuration changed; migration still inactive.
+
 ## 2026-10-06 — Recap and non-disruptive health checks
 
 No services/configuration/cables/printer controls changed. At 08:25–08:29 UTC:

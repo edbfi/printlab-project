@@ -6,7 +6,7 @@ Chromebook kiosk mode is a separate planned feature for later: a touch-friendly 
 
 ## Current scope and boundaries
 
-The working station is the operational baseline. Maintenance follows the operator's current request and stays scoped to the diagnosed problem. Keep the Chromebook's school Wi-Fi profile and Radxa school-side SSH available for recovery. Preserve Docker, application sessions, credential/key policy, restricted backups and user data. Documentation and connectivity checks do not authorize printing tests or kiosk implementation.
+The current operator request authorizes assigning the printer LAN to Radxa built-in Ethernet and deferring wired school uplink work. Preserve school Wi-Fi access and scope configuration/cabling changes to that LAN move. The working station is the operational baseline. Maintenance follows the operator's current request and stays scoped to the diagnosed problem. Keep the Chromebook's school Wi-Fi profile and Radxa school-side SSH available for recovery. Preserve Docker, application sessions, credential/key policy, restricted backups and user data. Documentation and connectivity checks do not authorize printing tests or kiosk implementation.
 
 Preserve unrelated networking, firewall rules, services, accounts, permissions policies, packages, firmware, cables, printer settings and application configuration. Do not reboot, disconnect the VPN, heat/move printers or start a print. Do not modify school infrastructure. Possible wired school uplink and personal Radxa workloads are future options only.
 

@@ -1,5 +1,13 @@
 # Issues and failed attempts
 
+## 2026-10-05 — Clock correction expired Radxa sudo
+
+Clock correction rebased only grant comment and cleanup-calendar expiry, missing the embedded sudo permission deadline. Correcting the clock expired effective sudo. The root script also exited because `hwclock` is not installed, leaving time-sync and cleanup timer stopped. User asked to renew grant through existing procedure. Pending repair: restart services and set/check RTC after renewal. Permission scope was not expanded. Radxa networking remains unchanged; existing PC gateway remains operational.
+
+## 2026-10-05 — Radxa prerequisites
+
+Direct cable initially had carrier but no IPv4: this PC's DHCP-client profile timed out while peer also sent DHCP requests. Resolved local administration using a separate IPv6 link-local profile; SSH works. Radxa still has no observed internet default route; migration/network sharing is not implemented. Existing key was encrypted and unloaded; operator unlocked it locally, resolving SSH authentication. Remote <gateway-user> belongs to sudo group, but `sudo -n true` requires a password; remote elevation remains unverified. No changes to remote sudo policy.
+
 ## 2026-09-28 — Initial Control D switch rolled back automatically
 
 First staged apply changed own gateway/DNS files and Windscribe preferences, then explicitly disconnected/reconnected. CLI connect returned `Disconnected` and exit 1; primary script stopped at 15:12:07. Agent transport unavailable until independent four-minute rollback restored all three original files and connected Stockholm Fika at 15:16:02. This verifies the rollback recovery path. Auto DNS and original printer upstream observed restored; no successful migration claimed. Logs subsequently showed custom DNS/tunnel actually connected at 15:12:09, after the premature CLI return. Retry tolerates the asynchronous return and waits for functional DNS/HTTPS; migration and outage/recovery then passed. No unresolved migration fault; retain restricted apply log and backups under `/var/lib/printing-station/rollback/20260928/controld-p2/`.

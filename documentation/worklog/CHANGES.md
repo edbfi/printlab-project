@@ -1,5 +1,11 @@
 # Verified changes
 
+## 2026-10-05 — Direct Radxa SSH access
+
+Added separate persistent NetworkManager `Radxa direct` profile on enx00e04c5835c8 (IPv6 link-local, IPv4 disabled, never-default, autoconnect priority 10), and `radxa` SSH alias using <gateway-user>/TCP 22/id_ed25519. First-use host key stored in known_hosts. Existing encrypted key unlocked locally by operator. Direct and alias logins identify Radxa Dragon Q6A / Armbian Ubuntu 26.04. No Radxa settings modified.
+
+Verified afterward: AP and both printer pings, printer DNS, gateway/DHCP/Windscribe active, host tunnel HTTPS. Existing network/firewall configuration preserved. Reboot/reconnect persistence not tested. Retain active profile/alias and original SSH config backup `~/.ssh/config.before-radxa-20261005`; rollback deletes new profile/Host block, leaving original wired profile intact. No disposable task artifacts created.
+
 ## 2026-09-28 — Shared encrypted Control D p2 DNS
 
 Changed Windscribe CLI's existing configuration to Custom / `https://freedns.controld.com/p2`. Its bundled proxy listens on loopback port 53; host system resolver uses it and printer dnsmasq now forwards to `127.0.0.1#53@lo`. DHCP remains `.1`, no system-resolver fallback, reservations unchanged. Added secure endpoint IPv4/IPv6 tunnel-only guards in own gateway.nft; retained previous fallback guard and Windscribe firewall. No additional resolver software.

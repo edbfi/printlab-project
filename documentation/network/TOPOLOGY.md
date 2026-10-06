@@ -1,5 +1,17 @@
 # Network topology
 
+## Radxa migration preparation — 2026-10-05
+
+Source PC remains the live router. Radxa package/settings/scripts are staged only; no school association, VPN installation or gateway activation yet. Independent simulation tests passed, but remote sudo expired during clock correction and operator renewal is required. See [migration checkpoint and resumption](RADXA-MIGRATION.md). Existing source network remains unchanged.
+
+## Direct Radxa management link — verified 2026-10-05
+
+Separate USB Ethernet `enx00e04c5835c8` (Realtek RTL8153/r8152, MAC `00:e0:4c:58:35:c8`) connects to Radxa `enp1s0` (MAC `00:48:54:21:66:96`) at 1000 Mb/s full duplex. Host IPv6 link-local `fe80::f2be:921b:654:190e`; peer `fe80::248:54ff:fe21:6696`. Use interface scope on the PC. Persistent NetworkManager `Radxa direct` uses IPv6 link-local and disables IPv4, supplies no default route or DNS. Original DHCP-client profile retained. No bridging, DHCP server or forwarding added for this port; existing printer/VPN interfaces are unchanged.
+
+`ssh radxa` verified as `<gateway-user>` on TCP 22 with existing id_ed25519 via local SSH agent. Remote hostname `radxa-dragon-q6a`, model Radxa Dragon Q6A, Armbian 26.8.3 / Ubuntu 26.04, aarch64. Remote Wi-Fi down and no internet default route observed. sudo group present; noninteractive sudo requires a password.
+
+Observed SSH ED25519 host fingerprint: `SHA256:iKC7f3TUsa3p3T5ErWF2UKdSexfJR1/e0ki6sO5HhXQ`, accepted on first use over the direct cable and retained in known_hosts; not independently compared against a prior trusted fingerprint. Boot/reconnect persistence remains untested.
+
 ## Active DNS path — Control D p2, verified 2026-09-28
 
 Host applications → systemd-resolved → Windscribe's bundled DNS proxy `127.0.0.1:53` → `https://freedns.controld.com/p2` through tun0. Printer-Wi-Fi clients → DHCP-advertised `192.168.77.1:53` → dnsmasq (`server=127.0.0.1#53@lo`, `no-resolv`) → the same Windscribe proxy. No separate DNS daemon installed; the existing AP bridges the client network unchanged. Per-app/device DNS overrides remain possible.

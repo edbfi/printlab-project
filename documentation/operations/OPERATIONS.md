@@ -1,5 +1,11 @@
 # Operations and recovery
 
+## SSH to the Radxa — verified 2026-10-05
+
+From this PC, run `ssh radxa`. Alias in `~/.ssh/config` selects user <gateway-user>, port 22, id_ed25519 and the Radxa IPv6 link-local address scoped to `enx00e04c5835c8`. If the key is locked, run `ssh-add ~/.ssh/id_ed25519` and enter its passphrase locally. Both direct-address and alias logins passed. Remote sudo requires a password; use an interactive remote terminal when elevation is needed. This management link does not provide Radxa internet access.
+
+Keep the Radxa on the second adapter. Rollback removes only the `Radxa direct` NetworkManager profile (`sudo nmcli connection delete 'Radxa direct'`) and its SSH Host block. Original SSH config backup: `~/.ssh/config.before-radxa-20261005`; restore only if no later edits would be lost. Original `Wired connection 2` remains intact. Profile autoconnect is configured; reboot/reconnect behavior has not been tested.
+
 ## Current DNS and recovery — 2026-09-28
 
 Windscribe CLI manages encrypted Control D p2 via Custom / `https://freedns.controld.com/p2` in `~/.config/Windscribe/windscribe_cli.conf`. Its bundled proxy listens at `127.0.0.1:53`. The host resolver and printer-network dnsmasq share it; clients continue receiving `192.168.77.1` as DHCP DNS. Proxy availability follows VPN connection; controlled disconnect/reconnect has been verified. Browser Private/Secure DNS can override the DHCP/system choice.

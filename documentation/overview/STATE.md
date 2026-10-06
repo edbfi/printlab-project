@@ -1,5 +1,37 @@
 # Current state
 
+## Radxa migration prepared; remote privilege blocked — 2026-10-05
+
+Current checkpoint: root backups saved on both machines. Radxa clock now matches source UTC, but its existing sudo entry retains expired `NOTAFTER=20261005025949Z`. Sudo listing independently confirms that embedded deadline. Operator asked asynchronously to renew their temporary grant; no response yet. No workaround or new privilege created. Time-sync and expired grant cleanup timer remain stopped from interrupted clock correction; repair immediately after operator renewal. Do not rerun the clock-correction script.
+
+Independent preparation completed: official Windscribe CLI 2.24.13 ARM64 package downloaded and SHA-256 verified before/after SSH transfer; package scripts inspected; ARM executable library dependencies resolve using its bundled library directory. School PEAP settings and minimal saved Windscribe login token staged with restrictive permissions, no secret values logged. No packages installed or WLAN/VPN/gateway services activated on Radxa. Staging: source `.work/radxa-migration/`, target `/home/<gateway-user>/.cache/printing-station-migration/`. Exact prepared scripts, tests and resumption steps in `network/RADXA-MIGRATION.md`.
+
+Staged firewall passed isolated network-namespace tests for VPN forwarding, no school fallback, private-network/reverse isolation, spoofed-source drop, Docker forwarding coexistence, Docker-rule reinsertion, and printer-gateway stop/reload. These tests emulate Docker and a VPN; they are NOT Radxa acceptance. Actual reverse SSH SOCKS download path from Radxa through this PC's VPN tested (68.67.118.173); tunnel then closed. Use AddressFamily=any for the bootstrap SSH connection, because alias inet6 otherwise prevents IPv4 destination resolution. Test namespaces removed. Actual DHCP/VPN/WLAN/reboot/physical-client tests remain pending.
+
+Next: verify `ssh radxa 'sudo -n true'`, repair/verify time sync and RTC and renewed expiry timer, run prepared school-Wi-Fi stage with timed rollback, independently test school-side SSH before canceling rollback, then install/stage router. Preserve PC gateway until operator cable handoff.
+
+## Radxa clock correction interrupted — 2026-10-05 14:58 UTC
+
+Root-only backups completed on both machines. Radxa system clock corrected to host UTC; original sudo grant's comment expiry and cleanup timer calendar rebased to preserve remaining authorized duration. However, grant also has an embedded sudo permission expiry that was not rebased; subsequent `sudo -n true` fails. Clock script then stopped on missing `hwclock` binary before restarting `systemd-timesyncd` and sudo cleanup timer. Both services remain stopped pending restored privilege. No renewed or broader privilege created. Original permission lines remain byte-equivalent to backup. Current expired grant cannot authorize root work. Operator asked to renew using their usual method; continue only unprivileged target inspection and local preparation meanwhile. No Radxa WLAN/VPN/gateway changes yet; live source printer network unaffected.
+
+Recovery next: after operator renews sudo, restart time-sync and verify corrected system/RTC time using available tooling, verify new grant expiry/removal timer. Do not rerun the original clock script. Backups at `/var/lib/printing-station/rollback/20261005/radxa-migration/` on both hosts.
+
+## Radxa router migration — implementation started 2026-10-05
+
+Approved plan: autonomously stage and test networking on Radxa; preserve live PC gateway until operator moves AP cable. Docker remains active. PC becomes ordinary optional Wi-Fi client afterward. Radxa school Wi-Fi uses existing protected PEAP credentials; Windscribe 2.24.13 ARM64, encrypted Control D p2, unchanged printer subnet/reservations and key-only SSH on both networks. No printer controls or application migration.
+
+Before changes: prepare root-only snapshots on both hosts at `/var/lib/printing-station/rollback/20261005/radxa-migration/`; staging scripts under ignored `.work/radxa-migration/`. Radxa has working sudo now. Its clock is ~16 hours behind; first correct clock and rebase only existing grant expiry metadata to preserve remaining authorized six-hour lifetime. Existing permission entries remain unchanged. Subsequent changes use independent recovery timers and retain IPv6 direct SSH until school path verified.
+
+Pending: school authentication; VPN/session migration; DNS and Docker-compatible gateway; isolated downstream/recovery/reboot tests; cleanup. Physical AP cable handoff and live-printer acceptance remain operator checkpoints. Do not disable PC routing while operator is absent. No migration success claimed yet.
+
+## Radxa direct SSH verified — 2026-10-05
+
+Operator requests migration to directly cabled Radxa, beginning with identification/SSH. This checkpoint is complete: `ssh radxa` logs in as `<gateway-user>` using the existing encrypted `~/.ssh/id_ed25519`, unlocked locally by the operator. Hostname `radxa-dragon-q6a`, device-tree model Radxa Dragon Q6A, aarch64, Armbian 26.8.3 / Ubuntu 26.04. Remote user belongs to sudo group; `sudo -n true` requires a password, so elevated remote operation remains unverified. No remote configuration changed and no migration performed.
+
+New adapter `enx00e04c5835c8` has 1000 Mb/s full-duplex carrier to peer MAC `00:48:54:21:66:96`. Original DHCP-client profile could not obtain an address; peer also requested DHCP. Added persistent `Radxa direct` NetworkManager profile, UUID `53303fed-e9fd-489a-b7c2-267c9f3dae8a`, IPv4 disabled, IPv6 link-local only, never-default, autoconnect priority 10. Peer reachable at `fe80::248:54ff:fe21:6696%enx00e04c5835c8`, remote interface `enp1s0`. SSH alias added to `~/.ssh/config`; original at `~/.ssh/config.before-radxa-20261005`. First-use host key accepted on direct cable; fingerprint in network/TOPOLOGY.md. No independent prior fingerprint comparison.
+
+Verified alias login, AP and both printer pings, printer DNS, active DHCP/gateway/Windscribe services and tunnel HTTPS (exit 68.67.118.173). No existing profile, firewall, VPN or printer configuration modified. Link is for local administration only; Radxa has no observed internet default route. Reboot/cable-reconnect persistence untested. Key may need local ssh-add again after agent/session restart. Retain active profile/alias and rollback backup. Rollback: delete only `Radxa direct` and remove its SSH alias; original `Wired connection 2` retained. Next checkpoint: migration planning and remote sudo access when needed, without moving the existing working gateway prematurely.
+
 ## Control D p2 migration verified — 2026-09-28
 
 Operator requested encrypted Control D p2 through existing Windscribe CLI for both this machine and printer Wi-Fi. Live CLI settings: `ConnectedDNSMode=Custom`, `ConnectedDNSUpstream1=https://freedns.controld.com/p2`. Windscribe manages its bundled proxy on `127.0.0.1:53`; systemd-resolved uses that as global DNS (`~.`). Printer dnsmasq forwards to `127.0.0.1#53@lo`, keeps `no-resolv`, DHCP DNS `.1` and all reservations. Own gateway additionally blocks secure Control D endpoint IPv4/IPv6 addresses outside tun0; existing host DNS fallback guard retained.

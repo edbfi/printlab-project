@@ -1,5 +1,17 @@
 # Validation
 
+## 2026-10-05 — Radxa migration staging validation only
+
+Windscribe 2.24.13 ARM64 installer digest verified against official release and again after transfer; bundled dependency resolution checked without starting client. Protected configuration/script bundle transferred; shell, nftables and dnsmasq syntax checks passed. Staged units reference not-yet-installed helpers, so full unit verification remains pending on target. No package installed or target network activated.
+
+All sixteen assertions in isolated firewall simulation passed (details network/RADXA-MIGRATION.md). The test emulated Docker FORWARD DROP and a tunnel; it is not actual Radxa acceptance. Temporary namespaces removed. Reverse SSH SOCKS request from Radxa returned current source VPN exit 68.67.118.173; tunnel closed afterward. Initial SOCKS attempt failed because the SSH alias forced IPv6 for forwarded destinations; AddressFamily=any resolved it. Real radio/DHCP/VPN/outage/boot tests are blocked on operator sudo renewal.
+
+## 2026-10-05 — Radxa direct management checkpoint
+
+Passed: second Ethernet carrier 1000 Mb/s full duplex; peer DHCP frame and IPv6 neighbor map MAC 00:48:54:21:66:96; link-local ping; SSH TCP 22 as <gateway-user> using id_ed25519, then repeat login using new `radxa` alias. Remote hostname/device-tree identify Radxa Dragon Q6A; aarch64, Armbian 26.8.3 / Ubuntu 26.04. First-use host key accepted; prior independent fingerprint comparison not performed.
+
+Post-change host checks passed: printing-dhcp, printing-gateway and user Windscribe active; ping replies from AP .2 and printers .115/.145; DNS answer through 192.168.77.1; HTTPS explicitly bound to tun0 exits as 68.67.118.173. This is host-side health evidence, not a fresh end-to-end printer internet or print test. No interruption tests performed. Remote noninteractive sudo requires password. Profile reboot/reconnect persistence and migration untested.
+
 ## 2026-09-28 — Control D p2 shared DNS and VPN loss
 
 - Passed: Windscribe's own `windscribectrld` runs with p2 HTTPS endpoint and listens only on `127.0.0.1:53`; dnsmasq remains on `.1:53`; systemd-resolved global DNS is loopback with `~.`.

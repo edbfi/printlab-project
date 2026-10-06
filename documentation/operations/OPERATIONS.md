@@ -81,42 +81,19 @@ The following commands change connection state; use them only to recover the nam
 
 Both hosts currently mask sleep/suspend/hibernate targets. Display blanking is separate. Physical lid/idle/power-loss behavior remains a [kiosk acceptance item](../kiosk/CONFIGURATION.md); do not assume automatic power-on.
 
-### USB Ethernet driver stall
+### Printer Ethernet link
 
-A specific observed fault leaves Radxa's USB printer interface apparently up but unable to transmit: AP/printer access fails, RX advances without TX, and `sudo -n ethtool -i enx00e04c5a5518` reports “No such device”. Kernel logs contain xHCI warnings and USB resets. For recovery, connect the administering Chromebook directly to its saved `Ishoj Kommune` Wi-Fi profile, then confirm `ssh radxa-school` works. Using that alias while still on the printer WLAN does not create an independent recovery path. A working VPN alone does not establish a working printer LAN.
+The AP cable belongs in Radxa's built-in Ethernet socket (`enp1s0`). For independent recovery access, connect the administering Chromebook directly to its saved `Ishoj Kommune` Wi-Fi profile, then confirm `ssh radxa-school` works. Using that alias while still on the printer WLAN does not create an independent recovery path.
 
-With the operator's authorization for an interruption, detaching/reattaching only the adapter's `r8152` interface restores local access in the observed case. Run on **Radxa as `<gateway-user>`, through school-side SSH**, after checking that the shown interface still belongs to this USB adapter:
+On **Radxa as `<gateway-user>`**, check `networkctl status enp1s0`, `ip -4 address show dev enp1s0` and `sudo -n ethtool enp1s0`. Confirm carrier, `192.168.77.1/24`, and the expected network file before checking DHCP/DNS and actual clients. Networkd's nonsecret `.network` files must be readable by `systemd-networkd`; mode 0644 is used for the printer and unused-adapter files. An unreadable match file can cause a generic DHCP configuration to be selected instead.
 
-```sh
-sudo -n python3 - <<'PYRECOVER'
-from pathlib import Path
-import time
-nic = Path('/sys/class/net/enx00e04c5a5518')
-assert (nic / 'address').read_text().strip() == '00:e0:4c:5a:55:18'
-interface = (nic / 'device').resolve()
-device = interface.parent
-assert (device / 'idVendor').read_text().strip() == '0bda'
-assert (device / 'idProduct').read_text().strip() == '8153'
-driver = (interface / 'driver').resolve()
-assert driver == Path('/sys/bus/usb/drivers/r8152')
-try:
-    (driver / 'unbind').write_text(interface.name)
-    time.sleep(2)
-finally:
-    if not (interface / 'driver').exists():
-        (driver / 'bind').write_text(interface.name)
-PYRECOVER
-```
-
-Verify the LAN address, AP HTTP, both printer addresses and actual client DHCP/DNS/HTTPS afterward. This action briefly interrupts printer networking; it does not alter school Wi-Fi, VPN settings, Docker or persistent network configuration. It is a recovery method, not a permanent cure. The adapter currently uses USB 2.0; keep that physical connection and review the reliability evidence in [issues](../worklog/ISSUES.md). No automatic reset watchdog is installed.
-
-USB autosuspend is already disabled for this adapter (`power/control=on`), and EEE is reported inactive. The active device tree already disables USB U1/U2 entry. These observations do not support blindly toggling those settings. Kernel guidance distinguishes [USB interface driver unbinding from parent-device unbinding](https://docs.kernel.org/driver-api/usb/power-management.html); do not reset the whole controller as an equivalent action.
+The unused USB adapter has no IPv4/DHCP role and is not a fallback gateway. Its reliability limitation is in [issues](../worklog/ISSUES.md); moving the AP cable to it alone does not restore service. Any future reassignment needs matching networkd, DHCP, firewall and Docker configuration plus client verification.
 
 ## Live configuration ownership
 
 | Host / owner | Paths and purpose |
 |---|---|
-| Radxa / networkd | `/etc/systemd/network/05-school-wifi.network`, `05-printer-lan.network`, `05-reserved-ethernet.network`: uplink, USB LAN and unused built-in Ethernet |
+| Radxa / networkd | `/etc/systemd/network/05-school-wifi.network`, `05-printer-lan.network`, `05-reserved-usb.network`: uplink, built-in printer LAN and unused USB Ethernet |
 | Radxa / wpa_supplicant | `/etc/wpa_supplicant/wpa_supplicant-wlan0.conf`; `wpa_supplicant@wlan0.service`, with restart override in `/etc/systemd/system/wpa_supplicant@wlan0.service.d/printing-station.conf` |
 | Radxa / printing services | `/etc/printing-station/dnsmasq.conf`, `gateway.nft`; `/etc/systemd/system/printing-dhcp.service`, `printing-gateway.service` |
 | Radxa / gateway helpers | `/usr/local/libexec/printing-station/gateway-control`, `docker-forwarding`; Docker integration at `/etc/systemd/system/docker.service.d/printing-station.conf` |
@@ -134,7 +111,9 @@ Both hosts retain the restricted base directory `/var/lib/printing-station/rollb
 
 | Host | Useful retained material |
 |---|---|
-| Radxa | `verified-usb-router-20261006.tar` under that base: snapshot of the working USB gateway configuration, units, credentials and leases |
+| Radxa | `/var/lib/printing-station/rollback/20261006/builtin-ethernet/verified-config.tar`: current built-in Ethernet snapshot of 11 selected network/service/helper/resolver files; no full-system or credential backup |
+| Radxa | `before.tar` and `rollback.sh` in that same `20261006/builtin-ethernet/` directory: scoped recovery for the port change; restoring it requires the AP cable on USB Ethernet. No rollback timer is active |
+| Radxa | `verified-usb-router-20261006.tar` under the older base: retained USB gateway configuration, units, credentials and leases; its interface assignments are not current |
 | Chromebook | `chromebook-client-20261006/verified-client.tar` under that base: snapshot of the working ordinary-client configuration |
 | Both | Additional restricted snapshots, installers and scoped restore scripts under the same base; retained for administrator review |
 | Chromebook | `/var/lib/printing-station/rollback/20260922/audio/ucm-before.tar` and saved ALSA state: audio recovery material |
@@ -142,7 +121,7 @@ Both hosts retain the restricted base directory `/var/lib/printing-station/rollb
 | Chromebook | Restricted diagnostics under `/var/lib/printing-station/tests/`; Studio reboot evidence under the backup base's `retired-staging/post-reboot-check/` |
 | Both | Additional retained diagnostic/staging material under the backup base's `retired-staging/`; Radxa has no `/var/lib/printing-station/tests/` directory at this inspection |
 
-The two working-configuration snapshots exist; that does not establish an end-to-end restore test. Review the host, interface names, individual files and intended effect before any scoped restoration. Some retained scripts are only reviewed/syntax-checked. Never restore complete archives blindly, especially account/sudo/system files, or run an old installer/restore script as routine maintenance. Preserve all restricted backups and user data. Git can restore documentation; it does not back up live system configuration.
+The current Radxa and Chromebook configuration snapshots exist; that does not establish an end-to-end restore test. Review the host, interface names, individual files and intended effect before any scoped restoration. Some retained scripts are only reviewed/syntax-checked. Never restore complete archives blindly, especially account/sudo/system files, or run an old installer/restore script as routine maintenance. Preserve all restricted backups and user data. Git can restore documentation; it does not back up live system configuration.
 
 ### Backup inventory, inspected 2026-10-06
 
@@ -155,6 +134,6 @@ Sizes are rounded disk usage. Inspection covers the project recovery directories
 | Chromebook project `.work/` | 2.6 MiB: setup checkouts, a printer test-model directory and restricted AP backup |
 | Radxa `/var/lib/printing-station/rollback/` | 24 MiB: configuration snapshots, restore/diagnostic material and the ARM64 Windscribe installer |
 
-The current Radxa snapshot is about 350 KiB and the Chromebook client snapshot is 10 KiB. Archive member names show selected configuration files: these are not full-machine backups. The Chromebook snapshot covers Netplan/SSH settings and does not include Studio projects or its application session. Credentials are present in restricted configuration archives; keep those archives private.
+The current Radxa selected-configuration snapshot is 30 KiB; the retained USB gateway archive is about 350 KiB, and the Chromebook client snapshot is 10 KiB. Archive member names show selected configuration files: these are not full-machine backups. The Chromebook snapshot covers Netplan/SSH settings and does not include Studio projects or its application session. Some older restricted configuration archives contain credentials; keep all recovery archives private. The current Radxa selected-configuration snapshot excludes school/Windscribe authentication, leases and user data; it supplements the retained material.
 
 One CLI installer copy is retained per architecture: AMD64 in the Chromebook backup base's `chromebook-client-20261006/windscribe-cli_2.24.13_amd64.deb` (21.4 MiB), ARM64 in Radxa's backup base as `windscribe-cli_2.24.13_arm64.deb` (21.7 MiB). The saved GUI installer under Chromebook `rollback/20260922/windscribe/` is a different version, 33.3 MiB. Current sizes reflect the operator-approved removal of the two redundant CLI installer copies and downloaded AP manual; configuration snapshots, audio/AP recovery material and other files remain retained.

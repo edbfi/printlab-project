@@ -8,7 +8,7 @@ Ishoj Kommune enterprise Wi-Fi
 Radxa Dragon Q6A
     ├─ Windscribe VPN, Stealth/443
     ├─ Firewall, DHCP and DNS
-    └─ USB Ethernet enx00e04c5a5518 / 192.168.77.1/24
+    └─ Built-in Ethernet enp1s0 / 192.168.77.1/24
           │
       TL-WR902AC access point / 192.168.77.2
           │ 2.4 GHz 3D-Printere
@@ -23,20 +23,20 @@ Radxa Dragon Q6A
 | Device / interface | Role and address |
 |---|---|
 | Radxa `wlan0` | School Wi-Fi uplink; IPv4 DHCP |
-| Radxa `enx00e04c5a5518` | Printer LAN gateway/DNS, static `192.168.77.1/24`; USB MAC `00:e0:4c:5a:55:18` |
+| Radxa `enp1s0` | Printer LAN gateway/DNS, static `192.168.77.1/24`; MAC `00:48:54:21:66:96` |
 | Radxa `tun0` | Windscribe tunnel; internet forwarding and NAT use this interface |
-| Radxa `enp1s0` | Unused, no IPv4/DHCP; available for a possible future school Ethernet uplink, which is not configured |
+| Radxa `enx00e04c5a5518` | Unused USB Ethernet, no IPv4/DHCP; MAC `00:e0:4c:5a:55:18` |
 | TL-WR902AC | Static `192.168.77.2/24`, gateway `.1`; MAC `ec:b9:31:19:d2:7f` |
 | 3DP-030-366 | Reserved `192.168.77.115`; MAC `ac:a7:04:12:be:58`; lease name `a1mini-366` |
 | 3DP-030-581 | Reserved `192.168.77.145`; MAC `e0:72:a1:a4:e4:6c`; lease name `a1mini-581` |
 | Chromebook `wlp0s20f3` | NetworkManager profile `3D-Printere client`; autoconnect, IPv4 DHCP, IPv6 disabled |
 | Radxa `docker0` | Docker bridge `172.17.0.1/16`; Docker manages unrelated container forwarding |
 
-The USB Ethernet adapter is connected to a Radxa USB 2.0 port and enumerates at 480 Mb/s. Its interface name and LAN address are unchanged by the port choice. Keep this connection while the USB reliability issue in [ISSUES](../worklog/ISSUES.md) is monitored; `enp1s0` remains unused.
+The AP cable connects directly to Radxa's built-in Ethernet socket. The live link reports 100 Mb/s full duplex. School Ethernet is deferred and not configured. The unused USB adapter is a possible future uplink option, subject to the reliability limitation in [ISSUES](../worklog/ISSUES.md); do not connect either port to school Ethernet under the current configuration.
 
 Observed on 2026-10-06: Radxa school address `10.113.128.131/20`; Chromebook address `192.168.77.179/24`. Both are DHCP observations, not reservations. Discover them with `ip -4 address show dev wlan0` on Radxa and `ip -4 address show dev wlp0s20f3` on the Chromebook. VPN tunnel and public exit addresses are also transient.
 
-Radxa is the sole DHCP authority on the printer LAN: pool `192.168.77.100–192.168.77.199`, 12-hour leases, gateway and DNS `192.168.77.1`. dnsmasq binds to the USB printer interface. Its AP reservation matches the AP's static address; the AP itself has DHCP disabled.
+Radxa is the sole DHCP authority on the printer LAN: pool `192.168.77.100–192.168.77.199`, 12-hour leases, gateway and DNS `192.168.77.1`. dnsmasq binds to `enp1s0`. Its AP reservation matches the AP's static address; the AP itself has DHCP disabled.
 
 The AP bridges Ethernet to **3D-Printere** in AP mode: 2.4 GHz, WPA2-PSK/AES, 20 MHz, client isolation off, 5 GHz off. Preserve these security/radio settings. The school WLAN is routed, never bridged into this segment. Local clients can communicate directly; the printer LAN does not isolate colleagues' devices from each other.
 
@@ -66,13 +66,13 @@ Radxa's firewall blocks systemd-resolve-owned port-53 traffic outside loopback/t
 
 ## Forwarding and isolation
 
-The Radxa table `inet printer_gateway` handles traffic entering or leaving the USB printer interface. It rejects invalid packets, sources outside the printer subnet, the configured nonpublic IPv4 destinations and IPv6 forwarding; permits public IPv4 forwarding only through `tun0`; and permits established/related tunnel replies. Tunnel-only NAT supplies internet access. Losing the VPN blocks downstream internet while local gateway/AP/printer reachability remains available. Cloud-dependent printing features still need internet.
+The Radxa table `inet printer_gateway` handles traffic entering or leaving the built-in printer interface. It rejects invalid packets, sources outside the printer subnet, the configured nonpublic IPv4 destinations and IPv6 forwarding; permits public IPv4 forwarding only through `tun0`; and permits established/related tunnel replies. Tunnel-only NAT supplies internet access. Losing the VPN blocks downstream internet while local gateway/AP/printer reachability remains available. Cloud-dependent printing features still need internet.
 
 The printer interface retains IPv6 link-local addressing, advertises no IPv6 router and accepts no router advertisements; Radxa IPv6 forwarding is disabled. Firewall input rules restrict DNS to loopback/printer LAN, DHCP to the printer interface, and SSH to loopback/printer LAN/school Wi-Fi. School clients cannot initiate forwarded connections into the printer LAN through this gateway.
 
 Docker remains active. The `PRINTING-VPN` chain, reached from `DOCKER-USER`, adds only printer↔tunnel allowances and returns other traffic to Docker's rules. A Docker service drop-in reapplies those allowances after startup. The independent printer firewall enforces restrictions before those allowances. Stopping `printing-gateway` flushes only its forwarding allowance chains, preserving local services and Docker's unrelated forwarding.
 
-Existing evidence covers actual client VPN loss/recovery, Radxa reboot and Chromebook independence, plus scoped isolation/Docker checks. It does not prove every possible bypass or failure case; see [validation and limits](../worklog/TESTS.md).
+Current client checks cover built-in Ethernet, DHCP/DNS, local devices and VPN egress. Existing policy/recovery evidence has its original test scope; a reboot or VPN-loss test has not been repeated for this interface assignment. See [validation and limits](../worklog/TESTS.md).
 
 ## Management paths
 

@@ -14,6 +14,13 @@ ssh radxa
 
 To administer the Chromebook from another printer-LAN machine with an authorized key, discover its current address on the Chromebook with `ip -4 address show dev wlp0s20f3`, then use `ssh -p 2222 <workstation-user>@<client-address>` (replace the placeholder). Its DHCP address is not reserved. Do not disable host-key verification or create automatic key unlocking.
 
+ED25519 host fingerprints, checked against each host's public key on 2026-10-06:
+
+| Host | Fingerprint |
+|---|---|
+| Radxa | `SHA256:iKC7f3TUsa3p3T5ErWF2UKdSexfJR1/e0ki6sO5HhXQ` |
+| Chromebook | `SHA256:5bUw2EUigkD1ebMQOUMeQ6U3dFRhY5pzg47unG5wdyM` |
+
 AP administration is at <http://192.168.77.2> from the printer LAN. Preserve AP mode, security/radio settings and disabled DHCP. Credential locations are listed below.
 
 Use `sudo -n` for unattended privileged inspection only when currently authorized. If it is unavailable, use the operator's normal local authentication process when privileged work is necessary. Never renew an expired grant, change its expiry policy or restore archived sudo permissions as a recovery shortcut.

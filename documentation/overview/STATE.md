@@ -12,5 +12,3 @@ The operator confirms the printing workflow, including slicing and transfer, wor
 ## Outstanding work
 
 Chromebook kiosk mode is planned for later and is not implemented. Its agreed direction, open interface/account decisions and future acceptance requirements are in [kiosk configuration](../kiosk/CONFIGURATION.md). Touch/scaling, physical power behavior and audio audibility have the limits recorded in [inventory](../system/INVENTORY.md); they are not blockers to the confirmed printing workflow.
-
-The current task is documentation-only consolidation. Read-only host inspection is complete; operational references are being reviewed and committed in subject groups. Remaining documentation work: reconcile project/printing/kiosk references, remove obsolete plan narratives, condense evidence, then check links and the full diff. No system configuration or recovery material is being changed. Git provides recovery for these documentation edits.

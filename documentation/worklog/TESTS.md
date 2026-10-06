@@ -2,6 +2,16 @@
 
 Dated historical evidence follows; later results supersede earlier pending observations. The current acceptance summary is in [STATE](../overview/STATE.md). Do not rerun completed tests solely because an older entry says pending.
 
+## 2026-10-06 — Radxa isolation, uplink and Docker tests; reboot staged
+
+Corrected uplink test stopped supplicant/link from 09:30:31 to 09:30:56 UTC. At 09:30:35 target wlan0 DOWN/no address, local client SSH/gateway services available; explicit-IP HTTPS timed out. Automatic target VPN/client HTTPS recovered 09:31:04, exit `146.70.242.134`; DNS and school SSH passed. Fallback canceled without execution. Initial PATH-failed attempt remains invalid (ISSUES).
+
+Actual target firewall tests: three client pings toward known school gateway timed out and private-drop counter rose 0→3/252 bytes; one spoofed client-source packet caused source-drop 0→1/48; one controlled packet sent from PC school interface through Radxa toward isolated client caused reverse-drop 0→1/48. Normal client had no IPv6 default route; a temporary explicit IPv6 address/route and native-AAAA-pinned request timed out (HTTP 000), then test route/address removed. Target IPv6 forwarding=0. School-address DNS query timed out; management counter was not exercised, so no packet-level rule claim for that query.
+
+Docker 29.8.2 restarted; own DOCKER-USER jump/allowances restored. Ephemeral official busybox:1.37 container DNS/egress and actual printer-client egress passed afterward. Busybox HTTPS lacks certificate validation, so its result demonstrates container traffic/egress only; normal client curl validates TLS separately. Gateway stop blocked client HTTPS while local SSH and container HTTP egress survived; start/reload restored client HTTPS. Existing cloakbrowser/hello-world images preserved; temporary Busybox image queued for cleanup. No persistent workload created.
+
+Target reboot/late-uplink test now staged with +60s restore, +180s fallback, root observer, saved boot ID and pre-reboot recovery. This entry does not claim reboot success. Source services/AP/printers untouched; physical handoff pending.
+
 ## 2026-10-06 — Radxa router and real isolated downstream validation
 
 Installed verified Windscribe CLI 2.24.13 ARM64 plus dnsmasq/tcpdump/arping dependencies, with rollback armed before APT and bounded apply lifetime. Activated networkd `.77.1` on isolated enp1s0, own gateway/Docker integration, DHCP reservations, resolved and Windscribe Control D p2; original Unbound disabled and retained. Existing user linger was already enabled; sleep targets masked. School/direct key SSH retained. NTP now synchronized and RTC correct.

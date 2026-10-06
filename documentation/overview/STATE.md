@@ -2,11 +2,11 @@
 
 Updated 2026-10-06 after documentation/history review and non-disruptive checks. **Partially complete. Radxa router active on isolated test segment; physical cutover pending.** Operator now authorizes continuation of the approved migration. Preserve live PC gateway and cable layout through isolated Radxa preparation/tests.
 
-## Active work — 2026-10-06 09:25 UTC
+## Active work — Radxa reboot checkpoint 2026-10-06 09:34 UTC
 
-Radxa router installed; direct/school SSH, tunnel HTTPS (`68.67.118.166`), Control D host DNS and services pass. Saved login state accepted after temporary loopback HTTP bootstrap fetched API data; API initially timed out on school transport. HTTP/SOCKS proxies removed and prefs returned to no proxy; actual tunnel now independent. Router rollback canceled only after functional checks. NTP restarted with tunnel ready; synchronization pending check.
+Real isolated-client baseline, VPN loss/reconnect, Windscribe main-process crash recovery, school-WLAN loss/recovery, Docker restart, scoped isolation and gateway stop/reload passed. Source PC still serves AP/printers and agent transport. Namespace `radxa-test` retains spare adapter/client `.139`; school SSH `.35`; source adapter restoration timer remains armed until 12:10:52 CEST.
 
-Next: actual downstream namespace on source spare adapter ONLY. Root source recovery script `/var/lib/printing-station/tests/radxa-restore-test-link-20261006.sh`, timer `radxa-test-link-recover` at +45 minutes restores direct profile and deletes test namespace/bind files. Namespace `radxa-test`, source config `/etc/netns/radxa-test/`, staging DHCP client script. School SSH via restricted `.work/radxa-migration/ssh-school.conf` remains available; live source printer adapter untouched. Test target outages/reboot only after independent recovery is armed.
+Prepared target late-uplink reboot: disable only target wpa_supplicant before reboot, persistent `radxa-lateboot-restore.timer` enables it at boot+60s, independent fallback at +180s, restricted observer log. Units/copies/scripts and `lateboot.armed` in target migration backup; current-boot 90-second failsafe covers failed reboot dispatch. Preboot ID `c2133876-e2d5-4280-929e-568e6f989d62`. Observe local client access before uplink return, then DHCP/DNS/HTTPS/SSH/Docker and NTP/RTC after new boot. Cancel fallback only on functional recovery, remove test units/marker and verify again. If school SSH is unavailable, use namespace client SSH to `.1`; source restore script `/var/lib/printing-station/tests/radxa-restore-test-link-20261006.sh` restores direct IPv6 administration.
 
 ## Intended division of roles
 

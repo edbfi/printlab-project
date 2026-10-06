@@ -2,6 +2,10 @@
 
 Reconciled 2026-10-06. Current unresolved items are separated from resolved historical failures; detailed evidence remains in [TESTS](TESTS.md) and Git history.
 
+## 2026-10-06 — Target uplink test PATH failure, corrected
+
+Initial test service exited 127 before interruption because `rfkill` was unavailable in its explicit system-service PATH. Wi-Fi remained connected; successful client requests from that interval are not outage evidence. Same dependency removed from fallback immediately; corrected test stops/starts the installed wpa_supplicant service and explicitly changes link state. Retry and behavioral verification required. No PC network changes or remaining radio block.
+
 ## Open — Radxa clock recovery and migration prerequisites
 
 October 5 clock correction rebased grant comment/cleanup calendar but missed embedded `NOTAFTER`, expiring effective sudo. Missing `hwclock` then stopped the script before time-sync/timer restart. No broadened privilege was created; no Radxa WLAN/VPN/gateway activation occurred.

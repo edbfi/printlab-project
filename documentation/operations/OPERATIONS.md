@@ -108,6 +108,22 @@ Both hosts retain the restricted base directory `/var/lib/printing-station/rollb
 | Both | Additional restricted snapshots, installers and scoped restore scripts under the same base; retained for administrator review |
 | Chromebook | `/var/lib/printing-station/rollback/20260922/audio/ucm-before.tar` and saved ALSA state: audio recovery material |
 | Chromebook | `/home/<workstation-user>/kiosk-mode/.work/setup/router-backups/before-ap-config.bin`: restricted AP backup; it does not represent current station settings |
-| Both | Restricted diagnostics under `/var/lib/printing-station/tests/` and the backup base's `retired-staging/`; Chromebook Studio reboot evidence in `retired-staging/post-reboot-check/` |
+| Chromebook | Restricted diagnostics under `/var/lib/printing-station/tests/`; Studio reboot evidence under the backup base's `retired-staging/post-reboot-check/` |
+| Both | Additional retained diagnostic/staging material under the backup base's `retired-staging/`; Radxa has no `/var/lib/printing-station/tests/` directory at this inspection |
 
 The two working-configuration snapshots exist; that does not establish an end-to-end restore test. Review the host, interface names, individual files and intended effect before any scoped restoration. Some retained scripts are only reviewed/syntax-checked. Never restore complete archives blindly, especially account/sudo/system files, or run an old installer/restore script as routine maintenance. Preserve all restricted backups and user data. Git can restore documentation; it does not back up live system configuration.
+
+### Backup inventory, inspected 2026-10-06
+
+Sizes are rounded disk usage. Inspection covers the project recovery directories and setup workspace, not an exhaustive search of either machine's personal data.
+
+| Host / location | Size / contents |
+|---|---|
+| Chromebook `/var/lib/printing-station/rollback/` | 82 MiB: dated configuration snapshots, restore scripts, saved Windscribe packages/settings and 1.4 MiB audio recovery material |
+| Chromebook `/var/lib/printing-station/tests/` | 216 KiB of retained diagnostics |
+| Chromebook project `.work/` | 35 MiB: setup downloads/checkouts, a printer test-model directory and restricted AP backup |
+| Radxa `/var/lib/printing-station/rollback/` | 24 MiB: configuration snapshots, restore/diagnostic material and the ARM64 Windscribe installer |
+
+The current Radxa snapshot is about 350 KiB and the Chromebook client snapshot is 10 KiB. Archive member names show selected configuration files: these are not full-machine backups. The Chromebook snapshot covers Netplan/SSH settings and does not include Studio projects or its application session. Credentials are present in restricted configuration archives; keep those archives private.
+
+Two installer duplicates are confirmed by SHA-256 comparison: Chromebook `.work/setup/windscribe-cli.deb` matches its retained `chromebook-client-20261006/windscribe-cli_2.24.13_amd64.deb` (21.4 MiB); the Chromebook backup base's `retired-staging/windscribe-cli_2.24.13_arm64.deb` matches Radxa's installer at its backup base (21.7 MiB). `.work/setup/tl-wr902ac-guide.pdf` adds 11.0 MiB. The saved GUI installer under `rollback/20260922/windscribe/` is a different version, 33.3 MiB, not a duplicate. No backup or setup artifact is removed by this inventory.

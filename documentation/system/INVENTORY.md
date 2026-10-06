@@ -1,36 +1,43 @@
 # System inventory
 
-Current inventory reconciled 2026-10-06. Dates identify observation scope; this is not complete hardware/workload acceptance.
+OS/kernel and Radxa package versions below were checked read-only on 2026-10-06. Hardware identification and application/firmware versions retain their recorded provenance where no fresh check was made. [Topology](../network/TOPOLOGY.md) owns interface roles, addressing and AP radio settings.
 
-## Lubuntu Chromebook — intended kiosk
+## Lubuntu Chromebook
 
-| Item | Verified observation |
+| Item | Current inventory |
 |---|---|
-| Machine | Acer Chromebook Spin 511/R753T class reported; DMI Google Magolor, coreboot MrChromebox-2606.1 observed September 22 |
-| OS | Ubuntu 26.04.1 LTS with Lubuntu; kernel **7.0.0-38-generic** observed October 6; no kernel installation in recap |
-| CPU / memory | Intel Celeron N5100, four logical CPUs; 7.6 GiB usable RAM |
-| October 6 resources | Root 29 GiB, 17 GiB used / 13 GiB available; 5.4 GiB RAM available; no swap. Active session, not idle or slicing benchmark |
-| Storage / boot | Internal eMMC, XFS root, FAT EFI partition; October 6 root `/dev/mmcblk0p2`. Device numbering differs from initial observation; use filesystem identity when needed |
-| Graphics / desktop | Intel Jasper Lake/i915, X11/LXQt, 1366×768 at 60 Hz; September 22 accelerated Mesa 26.0.8/OpenGL 4.6 and Studio rendering verified |
-| Inputs | Elan touchscreen/touchpad and AT keyboard enumerate; physical touch/scaling acceptance pending |
-| School Wi-Fi | wlp0s20f3, iwlwifi; NetworkManager `Ishoj Kommune`; protected PEAP profile preserved |
-| Printer adapter | enx00e04c5a5518, Realtek RTL8153/r8152, USB ID 0bda:8153; selected UE300 reported by operator; moved to Radxa October 6 |
-| Radxa adapter | enx00e04c5835c8, separate RTL8153/r8152; former direct management link, now disconnected |
-| Windscribe | CLI-only 2.24.13 replaced GUI 2.24.12; lingering systemd user service, Stealth/443 |
-| Studio | Official 2.8.2.61 AppImage plus WebKit runtime; GUI/model rendering and both device visibility verified September 24 |
-| SSH | TCP 2222, key-only; actual access from printer and school networks verified September 24 |
-| Power | Sleep/hibernate targets masked and rechecked October 6; physical lid/idle/power-loss behavior untested |
+| Identity | `<workstation-host>`, administrator/application user `<workstation-user>`; Acer Chromebook Spin 511/R753T class reported by operator; DMI Google Magolor |
+| OS | Ubuntu 26.04.1 LTS with Lubuntu/LXQt; kernel `7.0.0-38-generic`, x86-64 |
+| CPU / memory / storage | Intel Celeron N5100, four logical CPUs; approximately 7.6 GiB usable RAM; 29.1 GiB internal eMMC, XFS root and FAT EFI partition; no swap in recorded inventory |
+| Graphics / input | Intel Jasper Lake/i915; X11, 1366×768; accelerated Studio rendering verified. Elan touchscreen/touchpad and AT keyboard enumerate; physical touch usability remains for kiosk acceptance |
+| Wi-Fi | `wlp0s20f3`, iwlwifi; ordinary NetworkManager client on the printer WLAN |
+| Bambu Studio | Official Ubuntu 24.04 AppImage, version `2.8.2.61`, at `/home/<workstation-user>/Applications/BambuStudio-2.8.2.61.AppImage`; executable present at this review, version/digest verified at installation; distribution WebKit runtime installed |
+| Administration | SSH TCP 2222, key-only |
+| Power / audio | Sleep and hibernation targets masked. HiFi speaker/headphone/microphone profiles available in recorded checks; audibility and physical lid/power behavior unconfirmed |
 
-Audio repair followed normal JSL detection with inspected installer `cd3c5f5c73cae02738b3b37e887a4b67579ef74c` and UCM `a46dd193ab81ed71c4465453f5297f21e413769f`. HiFi now exposes speaker/headphone/mic profiles; low-volume sample submission was observed, audibility and post-reboot functional checks remain unconfirmed. No forced flags, boot firmware flashing or audio firmware/module changes on that repair path. Recovery in [OPERATIONS](../operations/OPERATIONS.md).
+The Chromebook has no local Windscribe installation or router/DHCP role. Current-user Studio login and both online printer/status views survive application restart and a full reboot. Printing status is in [workflow](../printing/WORKFLOW.md); kiosk startup is [planned](../kiosk/CONFIGURATION.md).
 
-Initial Studio session peaked around 1.1 GiB; headless Windscribe main process around 18.4 MiB (helper/tunnel excluded). These September observations are not final workload budgets. Local agent depends on working internet; reconnection can lag network recovery.
+## Radxa gateway
 
-## Radxa — intended router and possible development host
+| Item | Current inventory |
+|---|---|
+| Identity | `radxa-dragon-q6a`, administrator/VPN user `<gateway-user>`; Radxa Dragon Q6A, aarch64 |
+| OS | Armbian 26.8.3 / Ubuntu 26.04 (recorded identification); kernel `6.18.2-current-qcs6490` |
+| Resources | Approximately 11 GiB RAM, 5.7 GiB swap and 457 GiB root filesystem in recorded inventory; not a workload benchmark |
+| Printer Ethernet | TP-Link UE300 reported by operator; Realtek RTL8153, USB ID `0bda:8153`, r8152 driver; USB interface serves the AP |
+| Network software | systemd-networkd, wpa_supplicant, dnsmasq, nftables, systemd-resolved; Windscribe CLI `2.24.13` ARM64 |
+| Docker | Docker Engine `29.8.2`, active; preserve existing data/images and service integration |
+| Other resolver | Unbound `1.24.2-1ubuntu2.2` installed, disabled |
+| Administration / power | SSH TCP 22, key-only; sleep and hibernation targets masked |
 
-Identified over direct SSH October 5 and rechecked October 6: hostname `radxa-dragon-q6a`, user `<gateway-user>`, Radxa Dragon Q6A, aarch64, Armbian 26.8.3 / Ubuntu 26.04; kernel `6.18.2-current-qcs6490`. wlan0 is the active school uplink. USB `enx00e04c5a5518` now serves the physical AP; built-in enp1s0 is unused for a possible future wired uplink. Docker active with docker0 `172.17.0.1/16` (link down at observation). Unbound 1.24.2-1ubuntu2.2 retained but disabled; Windscribe CLI 2.24.13 ARM64 installed, active and boot-tested October 6. Target measured 11 GiB RAM, about 10 GiB available, 5.7 GiB swap unused, 457 GiB root with 419 GiB available; not a workload benchmark. Docker 29.8.2/overlayfs, existing cloakbrowser and hello-world images preserved; temporary Busybox test image removed.
-
-Intended role: school enterprise uplink plus Windscribe printer gateway, independent of the Chromebook. Operator may also use it for personal development/server workloads; preserve Docker, with additional services/exposure not yet specified or requested. Physical USB AP/printer reachability now passes; Wi-Fi client acceptance, Chromebook VPN retirement and full client reboot passed. See [RADXA-MIGRATION](../network/RADXA-MIGRATION.md) for clock/privilege recovery and staging.
+Personal development/server workloads are a possible future use of Radxa. No additional workload or public hosting is part of this printing station's agreed functionality.
 
 ## AP and printers
 
-TL-WR902AC EU V4.40 in AP mode at `.77.2`; exact observed firmware/radio settings in [TOPOLOGY](../network/TOPOLOGY.md). Both Bambu A1 minis identified, reserved at `.115`/`.145`, cloud baseline and Studio visibility established; hardware/firmware details and remaining print acceptance in [WORKFLOW](../printing/WORKFLOW.md). Private serial inventory remains Git-ignored.
+| Device | Hardware / last recorded firmware |
+|---|---|
+| TP-Link TL-WR902AC | EU V4.40 per operator label; firmware `0.9.1 0.3 v0089.0 Build 240903 Rel.41878n(4555)` from existing AP inspection |
+| 3DP-030-366 and 3DP-030-581 | Both Bambu Lab A1 mini; firmware `01.08.01.00` last confirmed in Studio on 2026-09-24, not freshly queried in this review |
+| Both printers' fitted hardware | Operator-confirmed 0.4 mm stainless-steel nozzle, Bambu Textured PEI Plate, no AMS Lite |
+
+Loaded filament is a per-job physical check; a saved material preset does not identify what is on the spool. Private serial/account inventory stays outside Git as described in [operations](../operations/OPERATIONS.md).

@@ -1,59 +1,106 @@
 # Operations and recovery
 
-Current procedures reconciled after USB handoff on 2026-10-06. **Radxa serves the physical printer LAN; Chromebook is now an ordinary Wi-Fi client; full client reboot acceptance passed.** Start from [STATE](../overview/STATE.md). Canonical migration/recovery: [RADXA-MIGRATION](../network/RADXA-MIGRATION.md).
+Use [printing workflow](../printing/WORKFLOW.md) for daily Studio work and [topology](../network/TOPOLOGY.md) for addresses, interface roles and DNS/isolation behavior. Keep Radxa and the AP powered. Chromebook power, login and applications do not provide printer networking.
 
-## Everyday network and access
+## Administration
 
-- Printer Wi-Fi **3D-Printere**, 2.4 GHz. Radxa gateway/DNS **192.168.77.1**, AP **http://192.168.77.2**, printers **.115** (366) and **.145** (581).
-- Keep Radxa and AP powered. USB `enx00e04c5a5518` connects Radxa to AP; built-in Ethernet remains unused for a possible future school uplink. No school wired connection is configured.
-- Use `ssh radxa` at `.1` (normal client path), or `ssh radxa-school` at observed school DHCP `10.113.128.131`; user <gateway-user>, key-only TCP22 with original pinned key. School DHCP may change. Unlock the existing private key with `ssh-add ~/.ssh/id_ed25519` locally if needed.
-- Chromebook uses ordinary DHCP `192.168.77.179` on 3D-Printere, gateway/DNS `.1`, with no own VPN or gateway. Public-key-only TCP2222 is reachable from Radxa; new external key login remains untested. Old `.1:2222` and school `.33` addresses are obsolete. `.local` failed previously on school Wi-Fi; do not invent static school addresses.
-- Wi-Fi/AP credentials stay in mode0600 files under `~/.config/printing-station/credentials/` (0700). Never print them in logs/chat/docs.
-- Target sudo expiry is 16:21:33 CEST October 6; Chromebook timer is 16:09:26 CEST after operator renewal following reboot. Recheck before privileged work and never alter deadlines.
+On the Chromebook as `<workstation-user>`, use `ssh radxa` for normal gateway administration. `ssh radxa-school` is an alternative using an observed school DHCP address; confirm that address on Radxa before relying on it. Both aliases preserve the existing pinned host key. If the encrypted key is unavailable after login/reboot, unlock it locally:
 
-## Diagnose Radxa
+```sh
+# Chromebook, <workstation-user>; enter the passphrase only in the local prompt.
+ssh-add ~/.ssh/id_ed25519
+ssh radxa
+```
 
-Run on Radxa: `systemctl status printing-gateway printing-dhcp windscribe-helper docker`, `systemctl --user status windscribe`, and `/opt/windscribe/windscribe-cli status`. Inspect leases with `sudo -n cat /var/lib/printing-station/dnsmasq.leases`. Compare client `https://api.ipify.org` to target `curl --interface tun0 https://api.ipify.org`. Mac matched target after handoff; latest Chromebook/target match is `79.142.77.67`, a mutable observation.
+To administer the Chromebook from another printer-LAN machine with an authorized key, discover its current address on the Chromebook with `ip -4 address show dev wlp0s20f3`, then use `ssh -p 2222 <workstation-user>@<client-address>` (replace the placeholder). Its DHCP address is not reserved. Do not disable host-key verification or create automatic key unlocking.
 
-DNS: `dig @192.168.77.1 verify.controld.com +short` should include `147.185.34.1`; p2 blocked `doubleclick.net` returns `0.0.0.0`. Browser Secure/Private DNS can override system DHCP DNS. Radxa resolved and printer dnsmasq forward to Windscribe's loopback proxy, using encrypted Control D p2 through tun0; no school DNS fallback configured.
+AP administration is at <http://192.168.77.2> from the printer LAN. Preserve AP mode, security/radio settings and disabled DHCP. Credential locations are listed below.
 
-Connect VPN with `/opt/windscribe/windscribe-cli connect Stockholm stealth:443`. Linger and user-service restart preserve headless recovery. `sudo systemctl stop printing-gateway` blocks printer internet while retaining local/DHCP and Docker; `sudo systemctl start printing-gateway` restores allowances. Do not flush all nftables/Windscribe/Docker rules.
+Use `sudo -n` for unattended privileged inspection only when currently authorized. If it is unavailable, use the operator's normal local authentication process when privileged work is necessary. Never renew an expired grant, change its expiry policy or restore archived sudo permissions as a recovery shortcut.
 
-Target files: `/etc/systemd/network/05-printer-lan.network`, `05-school-wifi.network`, `05-reserved-ethernet.network`; `/etc/printing-station/{dnsmasq.conf,gateway.nft}`; `/usr/local/libexec/printing-station/`; printing-gateway/printing-dhcp units and Docker drop-in; restricted Windscribe preferences/user override. Built-in Ethernet's reserved profile disables DHCP, accepts only link-local IPv6 and does not advertise a router.
+## Read-only diagnostics
 
-## Migration recovery
+Run on the **Chromebook as `<workstation-user>`**:
 
-Both hosts retain root-only `/var/lib/printing-station/rollback/20261005/radxa-migration/`. Target final snapshot `verified-usb-router-20261006.tar`, original/pre-USB snapshot `verified-router-20261006.tar`, package and scoped router/Wi-Fi restores remain. Target `usb-lan-20261006/before.tar` and `restore-port.sh` undo only the port change; script prepared, not exercised. Its timed rollback was canceled after successful checks. Never restore complete archives containing old sudo/system files blindly.
+```sh
+nmcli -f GENERAL.STATE,GENERAL.CONNECTION,IP4.ADDRESS,IP4.GATEWAY,IP4.DNS device show wlp0s20f3
+nmcli -g connection.autoconnect,ipv4.method,ipv6.method connection show '3D-Printere client'
+ip -4 route
+resolvectl status
+systemctl is-active NetworkManager ssh
+```
 
-Physical fallback returns the **USB adapter with AP cable** to Chromebook. First restore the former source gateway/package/profile from its restricted backup; they are now retired. Never connect two active `.1` gateways to one segment. Source `handoff-20261006/` holds fresh source configuration/profile/service/firewall/lease snapshots. Old September DNS/GUI-VPN rollback procedures below apply to the former Chromebook router, not Radxa; do not invoke them against the new topology without reviewing the affected host and role.
+The client profile should autoconnect with IPv4 DHCP, IPv6 disabled and Radxa as gateway/DNS. There should be no local VPN tunnel. The profile is managed through NetworkManager; its restricted persistent file is `/etc/netplan/90-NM-9baf8d4d-a12c-4ae6-b94f-573a6f7ddeda.yaml`.
 
-Source `chromebook-client-20261006/` holds pre-change and Netplan snapshots, matching Windscribe CLI AMD64 installer, retired config/units/account state and `restore-client.sh`. The pre-removal automatic rollback was exercised successfully. The script's later package reinstall/config/profile restoration extension is prepared and syntax-checked, not behaviorally tested. It restores school Wi-Fi/VPN and former gateway role, interrupting current client access. Use only for deliberate recovery; the AP adapter remains on Radxa until physically reversed separately. A source package reinstall can start its helper, so follow the scoped procedure rather than installing the package casually.
+Run on **Radxa as `<gateway-user>`**, after `ssh radxa`:
 
-Client persistence lives under `/etc/netplan/90-NM-9baf8d4d-a12c-4ae6-b94f-573a6f7ddeda.yaml`, mode0600, managed through NetworkManager. Use `nmcli connection up '3D-Printere client'` for normal reconnection. School profile has autoconnect off; no direct-school VPN remains installed. October 6 full reboot verified automatic client DHCP/DNS/HTTPS, no local tun0/router services, Radxa SSH and manually reopened Studio with retained login/both online devices. The encrypted administrator SSH key must be unlocked locally after reboot with ssh-add; kiosk networking does not depend on it. Radxa/AP remain powered and need no cable changes.
+```sh
+systemctl is-active systemd-networkd wpa_supplicant@wlan0 printing-gateway printing-dhcp windscribe-helper docker systemd-resolved
+systemctl --user is-active windscribe
+/opt/windscribe/windscribe-cli status
+ip -brief address
+ip -4 route
+resolvectl status
+sudo -n cat /var/lib/printing-station/dnsmasq.leases
+sudo -n nft list table inet printer_gateway
+sudo -n iptables -S PRINTING-VPN
+```
 
-No active migration test/proxy/boot timers remain; operator sudo-expiry timers remain deliberately active. Historical staging scripts have outdated preconditions and must not be rerun, especially clock-correct.py. Secret/package duplicates were archived root-only; detailed acceptance limits remain in TESTS.
+Review output locally; leases and service diagnostics can contain client identifiers. Do not publish full logs or secret-bearing settings. A running service alone does not prove client connectivity.
 
-## Rollback material
+From a **printer-LAN client**, these targeted requests separate local access, DNS and internet failures:
 
-Root-only directory: `/var/lib/printing-station/rollback/20260922/`.
+```sh
+ping -c 2 192.168.77.1
+curl --max-time 5 -o /dev/null -w '%{http_code}\n' http://192.168.77.2/
+dig @192.168.77.1 verify.controld.com +short
+dig +tcp @192.168.77.1 example.com +short
+curl --max-time 10 https://api.ipify.org
+```
 
-- `gateway-rollback.sh`: returns DHCP-only configuration and disables forwarding; prepared, not executed end-to-end.
-- `lan-rollback.sh`: restores original wired autoconnect profile; prepared, not executed end-to-end. This removes access to the AP's current subnet until a compatible host address is restored.
-- `windscribe/restore-gui.sh`: **actually tested**; reinstalls saved GUI 2.24.12, restores configuration/autostart, disables linger, reconnects. Only use to recover a failed headless installation.
-- AP preconfiguration backup: project `.work/setup/router-backups/before-ap-config.bin`, restricted and secret-bearing. Restore via supported Backup & Restore only when needed; it predates station SSID/static-address changes.
-- Audio: `audio/ucm-before.tar` and saved ALSA state. Preserve current ucm2 directory, restore tar at /, remove task-created `/etc/wireplumber/wireplumber.conf.d/51-increase-headroom.conf`, restore saved ALSA state and reboot. No audio firmware/module changes on JSL repair path. Audibility remains unconfirmed.
+Existing checks returned Control D identity `147.185.34.1`; `dig @192.168.77.1 doubleclick.net +short` returned `0.0.0.0` under p2 filtering. These are diagnostic observations, not permanent service guarantees. If checking VPN egress, compare the client's result to `curl --interface tun0 --max-time 10 https://api.ipify.org` run on **Radxa**. The actual public address can change. Browser Secure/Private DNS can bypass the system resolver selection.
 
-## Power and retained recovery material
+For a missing printer, match its label against the reservation in [topology](../network/TOPOLOGY.md), inspect Radxa's leases and try that printer's address. Ping establishes reachability only. Check Studio's account/device status and the printer's Wi-Fi connection before altering infrastructure. Local access with failed cloud status calls for checking Radxa's uplink, VPN and DNS. Do not change Bambu operating modes or start a print as a connectivity test.
 
-Sleep/suspend/hibernate/hybrid/suspend-then-hibernate targets remain masked (rechecked October 6); display blanking is separate. Physical lid/power-loss behavior is untested. Restore suspend capability only deliberately with `sudo -n systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target`; on Radxa, suspend interrupts the gateway; Chromebook power policy can now be revisited during kiosk setup.
+## Routine recovery
 
-PC ED25519 host fingerprint verified previously by operator: `SHA256:5bUw2EUigkD1ebMQOUMeQ6U3dFRhY5pzg47unG5wdyM`.
+The following commands change connection state; use them only to recover the named fault. Allow automatic recovery first and protect ongoing work before deliberate interruptions.
 
-Additional backups:
+- Chromebook disconnected: on **Chromebook as `<workstation-user>`**, `nmcli connection up '3D-Printere client'`. Keep the gateway/AP cabling on Radxa.
+- Radxa VPN not recovering after school Wi-Fi is available: on **Radxa as `<gateway-user>`**, inspect the two Windscribe services and CLI status, then use `/opt/windscribe/windscribe-cli connect Stockholm stealth:443` if a manual reconnect is needed. Check client DNS/HTTPS afterward; CLI completion alone is not readiness.
+- Studio application failure: on **Chromebook as `<workstation-user>`**, preserve any unsaved model/project work, close and reopen the installed AppImage, then check both device views. Current-user login persistence is established; no automatic kiosk recovery is configured.
 
-- `/var/lib/printing-station/rollback/20260924/printer-reservations/dnsmasq.before-366.conf` and `dnsmasq.before-581.conf`: pre-reservation configurations. Restoring either reverses later entries too; review before restoring/restarting printing-dhcp.
-- `/var/lib/printing-station/rollback/20261005/radxa-migration/` on both hosts: restricted migration snapshots, not full-archive restoration recipes. Old sudo/system files must not be blindly restored.
-- Restricted diagnostic scripts/logs under `/var/lib/printing-station/tests/`; no source printing/radxa test timers were listed October 6. Radxa's operator-created sudo expiry timer is deliberately active and must be preserved.
-- All previous source `.work/radxa-migration/` and target cache staging now archived under root migration `retired-staging/nonsecret-chromebook-stage/` and `nonsecret-target-stage/`. Restricted UI evidence stays in the source archive. Secret duplicates are separately root-only; old diagnostic helpers remain `/var/lib/printing-station/tests/radxa-20261006/`. Final target USB/source-client snapshots and installers are retained.
+`printing-gateway` start/reload loads its own rules and Docker allowances. Its stop action blocks printer internet forwarding while retaining local services and unrelated Docker forwarding. Do not flush the whole firewall, disable Docker or introduce another network manager to recover printer access. A school uplink outage can leave local networking available while cloud functions fail.
 
-Known-good rollback and unresolved diagnostics are required recovery material. Clean disposable task artifacts after the relevant success checks, then recheck operation. Git tracks documentation, not `/etc`, credentials or root backups. Historical tests and failures remain in worklogs; current procedures supersede the removed temporary handoff.
+Both hosts currently mask sleep/suspend/hibernate targets. Display blanking is separate. Physical lid/idle/power-loss behavior remains a [kiosk acceptance item](../kiosk/CONFIGURATION.md); do not assume automatic power-on.
+
+## Live configuration ownership
+
+| Host / owner | Paths and purpose |
+|---|---|
+| Radxa / networkd | `/etc/systemd/network/05-school-wifi.network`, `05-printer-lan.network`, `05-reserved-ethernet.network`: uplink, USB LAN and unused built-in Ethernet |
+| Radxa / wpa_supplicant | `/etc/wpa_supplicant/wpa_supplicant-wlan0.conf`; `wpa_supplicant@wlan0.service`, with restart override in `/etc/systemd/system/wpa_supplicant@wlan0.service.d/printing-station.conf` |
+| Radxa / printing services | `/etc/printing-station/dnsmasq.conf`, `gateway.nft`; `/etc/systemd/system/printing-dhcp.service`, `printing-gateway.service` |
+| Radxa / gateway helpers | `/usr/local/libexec/printing-station/gateway-control`, `docker-forwarding`; Docker integration at `/etc/systemd/system/docker.service.d/printing-station.conf` |
+| Radxa / resolver | `/etc/systemd/resolved.conf.d/printing-station.conf`; loopback Windscribe proxy and printer dnsmasq have the separate paths shown in topology |
+| Radxa / Windscribe | System `windscribe-helper.service`; `<gateway-user>` user `windscribe.service` with linger and `/home/<gateway-user>/.config/systemd/user/windscribe.service.d/printing-station.conf` |
+| Chromebook / NetworkManager | `3D-Printere client` profile and restricted Netplan file above; DHCP client only |
+
+## Credentials and recovery material
+
+Use restricted local access for credentials; never copy their values, login exports, private keys, printer access codes or screenshots into Git/chat. On the Chromebook, `/home/<workstation-user>/.config/printing-station/credentials/` is mode 0700; `printer-wifi.txt` and `router-admin.txt` are mode 0600. `/home/<workstation-user>/.ssh/id_ed25519` remains encrypted. Studio's current-user state is under `/home/<workstation-user>/.config/BambuStudio/`; preserve it without exporting or assuming it belongs to another user. The Git-ignored `documentation/printing/PRINTERS.private.md` holds private inventory and is mode 0600.
+
+On Radxa, the school supplicant file is mode 0600 and `/home/<gateway-user>/.config/Windscribe/` is mode 0700. Preserve saved authentication in place. Inspect only named nonsecret fields when documenting configuration.
+
+Both hosts retain the restricted base directory `/var/lib/printing-station/rollback/20261005/radxa-migration/`. The dated path is a backup location, not an instruction to change host roles.
+
+| Host | Useful retained material |
+|---|---|
+| Radxa | `verified-usb-router-20261006.tar` under that base: snapshot of the working USB gateway configuration, units, credentials and leases |
+| Chromebook | `chromebook-client-20261006/verified-client.tar` under that base: snapshot of the working ordinary-client configuration |
+| Both | Additional restricted snapshots, installers and scoped restore scripts under the same base; retained for administrator review |
+| Chromebook | `/var/lib/printing-station/rollback/20260922/audio/ucm-before.tar` and saved ALSA state: audio recovery material |
+| Chromebook | `/home/<workstation-user>/kiosk-mode/.work/setup/router-backups/before-ap-config.bin`: restricted AP backup; it does not represent current station settings |
+| Both | Restricted diagnostics under `/var/lib/printing-station/tests/` and the backup base's `retired-staging/`; Chromebook Studio reboot evidence in `retired-staging/post-reboot-check/` |
+
+The two working-configuration snapshots exist; that does not establish an end-to-end restore test. Review the host, interface names, individual files and intended effect before any scoped restoration. Some retained scripts are only reviewed/syntax-checked. Never restore complete archives blindly, especially account/sudo/system files, or run an old installer/restore script as routine maintenance. Preserve all restricted backups and user data. Git can restore documentation; it does not back up live system configuration.

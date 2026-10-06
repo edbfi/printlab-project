@@ -1,0 +1,16 @@
+[Unit]
+Description=Refresh printer VPN during the agreed maintenance window
+After=network-online.target windscribe-helper.service user@@GATEWAY_UID@.service
+Before=apt-daily.service apt-daily-upgrade.service
+
+[Service]
+Type=oneshot
+User=@GATEWAY_USER@
+Group=@GATEWAY_GROUP@
+Environment=HOME=@GATEWAY_HOME@ XDG_RUNTIME_DIR=/run/user/@GATEWAY_UID@ DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/@GATEWAY_UID@/bus LC_ALL=C PATH=/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/usr/bin/python3 /usr/local/libexec/printing-station/vpn-policy.py refresh
+StateDirectory=printing-station/vpn-policy
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=true
+TimeoutStartSec=7min

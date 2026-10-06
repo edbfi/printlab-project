@@ -33,3 +33,6 @@ backups/
 *.swo
 .DS_Store
 Thumbs.db
+
+# Python policy/test bytecode.
+__pycache__/

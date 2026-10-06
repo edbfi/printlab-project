@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily printer VPN maintenance window
+
+[Timer]
+OnCalendar=*-*-* 04:30:00 Europe/Copenhagen
+Persistent=false
+AccuracySec=30s
+Unit=printing-vpn-refresh.service
+
+[Install]
+WantedBy=timers.target

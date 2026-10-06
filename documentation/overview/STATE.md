@@ -18,3 +18,7 @@ Chromebook kiosk mode is planned for later and is not implemented. Its agreed di
 The current built-in Ethernet configuration snapshot and retained recovery material are listed in [operations](../operations/OPERATIONS.md). The timed rollback is canceled and temporary staging/check units are removed after successful client verification. Nine post-cleanup client/device/service samples pass over two minutes; [TESTS](../worklog/TESTS.md) records the scope and limits.
 
 School Ethernet is deferred; the USB adapter has no active network role. Its unresolved reliability issue matters before any future reuse, not as a dependency of today's printer LAN. Kiosk implementation remains separate future work.
+
+## VPN policy work in progress
+
+The operator requests country preference Denmark → Sweden → Netherlands, always Stealth/443, with automatic recovery and a daily refresh coordinated with updates/restarts. The operator confirms 04:30 Copenhagen time is a quiet window with no overnight prints or printer updates. Policy sources and 20 deterministic failure tests are prepared; read-only Radxa checks confirm healthy Stealth/443, a catalog containing all three countries, and no current maintenance conflict. Deployment/activation and final records remain in progress. The current connection remains intact; no live failover or scheduled refresh is claimed yet.

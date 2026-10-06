@@ -1,6 +1,12 @@
 # Current state
 
-Updated 2026-10-06 after documentation/history review and non-disruptive checks. **Partially complete. Radxa migration prepared, not activated.** Current request is a recap before resuming setup; cables and services were left unchanged.
+Updated 2026-10-06 after documentation/history review and non-disruptive checks. **Partially complete. Radxa migration prepared, not activated.** Operator now authorizes continuation of the approved migration. Preserve live PC gateway and cable layout through isolated Radxa preparation/tests.
+
+## Active work — 2026-10-06 09:20 UTC
+
+RTC corrected to current UTC via timedatectl; NTP service enabled/active, external synchronization not yet established. Sudo expiry unchanged. School PEAP authentication and DHCP `.35/20` passed after adding required PMF (`ieee80211w=2`); CA/name checks retained. School-side key SSH verified with existing host key, persisted config reloaded and association reverified. WLAN rollback canceled after login proof; original home-WLAN config retained.
+
+Next: install/stage router with 10-minute independent rollback armed BEFORE packages; bounded apply service stops by 8 minutes to prevent later writes racing rollback. Preflight: Docker active/no containers, original Unbound enabled, resolved disabled, linger already yes, sleep targets static, no existing Windscribe client state. Rollback restores original resolver/network, retains school WLAN and packages/diagnostics, and archives new client state. Snapshots at `/var/lib/printing-station/rollback/20261005/radxa-migration/`; tested bootstrap SOCKS currently open on target loopback 18080. PC printer segment remains untouched.
 
 ## Intended division of roles
 

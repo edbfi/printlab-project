@@ -2,6 +2,14 @@
 
 Dated historical evidence follows; later results supersede earlier pending observations. The current acceptance summary is in [STATE](../overview/STATE.md). Do not rerun completed tests solely because an older entry says pending.
 
+## 2026-10-06 — Radxa RTC recovery and school Wi-Fi
+
+Used timedatectl to write already-correct system UTC to the invalid RTC; system/RTC now agree and NTP service is enabled/active. External synchronization remains pending until reachable time service; sudo permission deadline and active cleanup timer remain unchanged (14:21:33 UTC).
+
+Configured school WLAN under existing networkd/wpa_supplicant, preserving home-WLAN settings in root rollback storage. Initial scan rejected APs because required protected management frames were absent. Added `ieee80211w=2`; PEAP/MSCHAPv2 with CA validation and exact server names retained. EAP success, authorized association and DHCP `10.113.130.35/20` observed. School-side SSH bound to PC school address succeeded with strict existing-host-key validation, and direct SSH remained available. Persisted configuration reloaded and association reverified. Five-minute WLAN rollback canceled after login proof; no credentials displayed or requested.
+
+Originals/recovery: `/var/lib/printing-station/rollback/20261005/radxa-migration/`, including `30-wifis-dhcp.yaml`, `restore-wifi.sh`, time-before-resume record and existing snapshots. Rollback is prepared but not invoked. No AP cable movement or PC routing change. Router installation/tests are a separate pending stage.
+
 ## 2026-10-06 — Original plan recovered; source sudo rechecked
 
 Read the October 5 project-specific rollout under `~/.codex/sessions/2026/10/05/`. Found the full assistant `<proposed_plan>` at line 278, `2026-10-05T13:35:48.399Z`, followed by operator “Implement the plan.” at line 288. Earlier structured answers explicitly retain Docker and make the PC an optional Wi-Fi client. Recovered plan/provenance in [RADXA-PLAN](../network/RADXA-PLAN.md); the body was checked for exact equality with the session plan. No account/auth files or full session export copied into the project.

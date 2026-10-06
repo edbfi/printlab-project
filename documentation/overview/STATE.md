@@ -1,6 +1,6 @@
 # Current operational status
 
-The configured printing station has a current printer-LAN outage; see the incident below. Radxa provides the school uplink, VPN and printer LAN services; the Lubuntu Chromebook is an ordinary Wi-Fi client running Bambu Studio. Printer networking is independent of the Chromebook's power, login and applications.
+Printer-LAN access is restored after a scoped USB Ethernet driver reattach; recurring USB reset warnings remain under investigation. Radxa provides the school uplink, VPN and printer LAN services; the Lubuntu Chromebook is an ordinary Wi-Fi client running Bambu Studio. Printer networking is independent of the Chromebook's power, login and applications.
 
 The operator confirms the printing workflow, including slicing and transfer, works. Existing evidence also establishes current-user Studio login and both online printer/status views after application restart and a full Chromebook reboot. This does not establish another user's session or automatic kiosk startup.
 
@@ -13,8 +13,12 @@ The operator confirms the printing workflow, including slicing and transfer, wor
 
 Chromebook kiosk mode is planned for later and is not implemented. Its agreed direction, open interface/account decisions and future acceptance requirements are in [kiosk configuration](../kiosk/CONFIGURATION.md). Touch/scaling, physical power behavior and audio audibility have the limits recorded in [inventory](../system/INVENTORY.md); they are not blockers to the confirmed printing workflow.
 
-## Current printer-LAN incident
+## USB Ethernet recovery and remaining risk
 
-On 2026-10-06 the operator reports loss of internet on `3D-Printere` and switches the Chromebook to `Ishoj Kommune` to regain access. Preserve that working connection. Radxa remains reachable through `ssh radxa-school`; its school uplink, VPN HTTPS, local DNS and printing/Docker services work. AP/printer reachability fails through the USB printer interface. Repeated USB-controller warnings/resets, failing driver queries and a stationary transmit counter indicate a USB Ethernet transmit/driver fault; the underlying cause is unconfirmed. See [ISSUES](../worklog/ISSUES.md).
+Radxa's printer USB Ethernet driver was reattached with operator authorization. AP/both printer reachability and an actual Chromebook Wi-Fi client check pass, including a fresh DHCP ACK, DNS and HTTPS matching Radxa's VPN. School-side SSH and gateway/DHCP/Windscribe/Docker services remain available. No permanent gateway configuration was changed.
 
-The three approved disposable files are deleted and retained recovery material verified. Network recovery remains outstanding; no adapter reset, reboot or network configuration change has been performed. Next recovery candidate is a scoped reinitialization of Radxa's USB Ethernet adapter, requiring operator authorization under the existing no-network-change boundary. Keep school SSH available and validate the AP/printer path and a real client after any authorized recovery.
+USB-controller warnings and automatic adapter resets recur after the driver recovery. A bounded function trace identifies one reset as `usb_reset_device` called from `hub_event`; the trace instance is removed. Seventeen client checks over eight minutes pass despite those resets. The Chromebook remains on `3D-Printere`; temporary recovery/check units and the fallback timer are removed.
+
+The operator moves the same adapter to a USB 2.0 port with no print/update running. Live inspection confirms 480 Mb/s USB, the same LAN address, AP/both printer access and client DNS/HTTPS. A bounded observation is in progress to check whether resets recur on this path. The cause is not established; do not mark long-term reliability fixed. Update [ISSUES](../worklog/ISSUES.md) and [TESTS](../worklog/TESTS.md) with the observation result.
+
+The approved download cleanup is complete; retained recovery snapshots/installers are intact. Useful recovery material remains listed in [operations](../operations/OPERATIONS.md).

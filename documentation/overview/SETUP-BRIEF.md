@@ -6,9 +6,9 @@ Chromebook kiosk mode is a separate planned feature for later: a touch-friendly 
 
 ## Current scope and boundaries
 
-The current authorized work is documentation investigation, consolidation and cleanup. Read-only host inspection can reconcile facts; it does not authorize setup, network changes, printing tests or kiosk implementation. Preserve the running system, Docker, application sessions, credential/key policy, restricted backups and user data.
+The current authorized work includes recovery of the reported printer-LAN outage: the operator approves a one-time reset of Radxa's USB Ethernet adapter and autonomous investigation/verification, and moves the adapter to USB 2.0 for verification. Keep the Chromebook's school Wi-Fi profile and Radxa school-side SSH available. Changes beyond that recovery must remain scoped to the diagnosed fault; printing tests and kiosk implementation remain excluded. Preserve the running system, Docker, application sessions, credential/key policy, restricted backups and user data.
 
-Do not change networking, firewall rules, services, accounts, permissions policies, packages, firmware, cables, printer settings or application configuration. Do not reboot, disconnect the VPN, heat/move printers or start a print. Do not modify school infrastructure. Possible wired school uplink and personal Radxa workloads are future options only.
+Preserve unrelated networking, firewall rules, services, accounts, permissions policies, packages, firmware, cables, printer settings and application configuration. Do not reboot, disconnect the VPN, heat/move printers or start a print. Do not modify school infrastructure. Possible wired school uplink and personal Radxa workloads are future options only.
 
 ## Working safeguards
 

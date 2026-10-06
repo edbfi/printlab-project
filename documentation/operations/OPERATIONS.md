@@ -81,6 +81,37 @@ The following commands change connection state; use them only to recover the nam
 
 Both hosts currently mask sleep/suspend/hibernate targets. Display blanking is separate. Physical lid/idle/power-loss behavior remains a [kiosk acceptance item](../kiosk/CONFIGURATION.md); do not assume automatic power-on.
 
+### USB Ethernet driver stall
+
+A specific observed fault leaves Radxa's USB printer interface apparently up but unable to transmit: AP/printer access fails, RX advances without TX, and `sudo -n ethtool -i enx00e04c5a5518` reports “No such device”. Kernel logs contain xHCI warnings and USB resets. Confirm the school-side SSH path first; a working VPN alone does not establish a working printer LAN.
+
+With the operator's authorization for an interruption, detaching/reattaching only the adapter's `r8152` interface restores local access in the observed case. Run on **Radxa as `<gateway-user>`, through school-side SSH**, after checking that the shown interface still belongs to this USB adapter:
+
+```sh
+sudo -n python3 - <<'PYRECOVER'
+from pathlib import Path
+import time
+nic = Path('/sys/class/net/enx00e04c5a5518')
+assert (nic / 'address').read_text().strip() == '00:e0:4c:5a:55:18'
+interface = (nic / 'device').resolve()
+device = interface.parent
+assert (device / 'idVendor').read_text().strip() == '0bda'
+assert (device / 'idProduct').read_text().strip() == '8153'
+driver = (interface / 'driver').resolve()
+assert driver == Path('/sys/bus/usb/drivers/r8152')
+try:
+    (driver / 'unbind').write_text(interface.name)
+    time.sleep(2)
+finally:
+    if not (interface / 'driver').exists():
+        (driver / 'bind').write_text(interface.name)
+PYRECOVER
+```
+
+Verify the LAN address, AP HTTP, both printer addresses and actual client DHCP/DNS/HTTPS afterward. This action briefly interrupts printer networking; it does not alter school Wi-Fi, VPN settings, Docker or persistent network configuration. The recovery performed in this incident runs inside a bounded transient systemd unit. It is not a permanent cure: reset warnings recur afterward, so reliability remains open in [issues](../worklog/ISSUES.md). No automatic reset watchdog is installed.
+
+USB autosuspend is already disabled for this adapter (`power/control=on`), and EEE is reported inactive. The active device tree already disables USB U1/U2 entry. These observations do not support blindly toggling those settings. Kernel guidance distinguishes [USB interface driver unbinding from parent-device unbinding](https://docs.kernel.org/driver-api/usb/power-management.html); do not reset the whole controller as an equivalent action.
+
 ## Live configuration ownership
 
 | Host / owner | Paths and purpose |

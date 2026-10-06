@@ -40,3 +40,9 @@ After documentation cleanup, bounded read-only checks pass: Chromebook system DN
 Documentation validation passes for local links, balanced code fences, shell-example syntax, obsolete-reference scans and `git diff --check`. The full content changes are reviewed for host ownership, unsupported claims and secret disclosure. Private inventory and AP backups remain Git-ignored; AGENTS.md is unchanged.
 
 Future kiosk validation belongs in [planned kiosk requirements](../kiosk/CONFIGURATION.md); current physical usability/audio limitations are in [issues](ISSUES.md).
+
+## USB Ethernet incident recovery, 2026-10-06
+
+An operator-authorized `r8152` interface reattach restores AP HTTP 200, both printer pings and driver queries. An actual Chromebook client on `3D-Printere` obtains a fresh Radxa DHCP ACK and passes AP/printer access, gateway UDP/TCP DNS, system DNS and HTTPS matching Radxa's tunnel. Seventeen subsequent client AP/DNS/HTTPS checks over eight minutes pass; the normal printer profile remains active. Temporary recovery/check units and the unused fallback timer are removed. No printing or firmware control is involved.
+
+Eleven named live networkd/gateway/DHCP/Docker/resolver files match the retained working USB-router snapshot byte-for-byte. Kernel xHCI warnings and automatic USB resets recur despite successful client checks. A scoped function trace captures `usb_reset_device <- hub_event` in a kernel worker; the temporary trace instance is removed. The USB link/controller cause remains unresolved, and reset recovery must not be reported as a permanent repair.

@@ -32,6 +32,8 @@ Full evidence and limits: [TESTS](../worklog/TESTS.md), [CHANGES](../worklog/CHA
 
 ## Next checkpoint — Chromebook reboot
 
+Operator explicitly confirmed reboot readiness at 2026-10-06 11:03 UTC. Pre-reboot Chromebook boot ID: `888223d2-1a24-441b-82f4-1c78de092511`. Saving this checkpoint before scheduling a one-minute reboot. Reboot success is **not yet verified**. Radxa/AP stay powered and cables unchanged. After login, reopen this Codex session in `/home/<workstation-user>/kiosk-mode`; compare boot ID and verify the checks below. If printer Wi-Fi does not reconnect, use the local desktop network menu or `nmcli connection up '3D-Printere client'`; preserve Radxa's working gateway and investigate before invoking old-router rollback. No source reboot observer or persistent test service was installed.
+
 All available network cutover checks passed except a **full Chromebook reboot** in its final client role. Its Wi-Fi disconnect/reconnect passed, and persistent Netplan/NetworkManager client profile is enabled. Rebooting this machine closes the local Codex/terminal session; save work and reopen this project/session afterward, then verify client DHCP/DNS/HTTPS, Radxa SSH, Studio account/device view and absence of local VPN/router services. Resume from this file. Do not treat reconnect alone as reboot evidence.
 
 After that, continue Studio/kiosk acceptance: actual filament/presets, GUI slicing/preview, agreed transfer checks, touch/scaling/power and application/account persistence. Optional custom interface/Bambuddy/Android remain deferred. Before physical printing, require selected-printer, clear plate, loaded filament and readiness confirmation; network-test readiness does not authorize printing.

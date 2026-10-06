@@ -1,42 +1,30 @@
 # Printing workflow
 
-Current status reconciled 2026-10-06: both printers are associated, identified, reserved and visible in Studio based on September 24 acceptance. October 6 post-migration pings to both pass, and Studio reopened with both devices online before and after full Chromebook reboot. **Slicing, preview, transfer and physical printing remain unverified.** Router migration is complete; application work stays on the Chromebook.
+Bambu Studio on the Lubuntu Chromebook is the working interface for **3DP-030-366** and **3DP-030-581**. The operator confirms the printing workflow, including slicing and transfer, works. This confirmation supplies the workflow status; it is not an agent-performed printing test and does not supply per-printer measurements, materials or job timestamps.
 
-## Printers and addressing
+Both A1 minis use the dedicated Bambu account and normal cloud-enabled operation, with **LAN Only off**. They connect to the printer WLAN; [topology](../network/TOPOLOGY.md) owns their reserved addresses. The [inventory](../system/INVENTORY.md) records firmware and the fitted hardware: both have 0.4 mm stainless-steel nozzles, Bambu Textured PEI Plates and no AMS Lite.
 
-| Printer | Reserved address | MAC / lease name | Firmware last confirmed in Studio |
-|---|---|---|---|
-| 3DP-030-366 | 192.168.77.115 | ac:a7:04:12:be:58 / a1mini-366 | 01.08.01.00 |
-| 3DP-030-581 | 192.168.77.145 | e0:72:a1:a4:e4:6c / a1mini-581 | 01.08.01.00 |
+## Everyday use on the Chromebook
 
-Both A1 minis use **3D-Printere**, LAN Only **Off**, and the dedicated Bambu account (operator confirmed binding; both appeared under My Device). September 24 fresh post-load DHCP ACKs verified `.115` at 15:37:42/15:41:14 and `.145` at 15:58:48; operator confirmed display/address after reconnect. Reserve existing addresses through the Radxa migration.
+Use the current `<workstation-user>` desktop session. Open the installed Bambu Studio AppImage:
 
-Operator-confirmed hardware: stainless-steel 0.4 mm nozzles, Bambu Textured PEI Plates, no AMS Lite. Reported printing times at inventory: 33 hours/366 and 44 hours/581. Physically loaded filament material/brand/colour is still unknown. Full serials, previous SSID and account identifier remain in ignored mode-0600 `PRINTERS.private.md`; never force-add it. No printer access codes belong in tracked records.
+```sh
+# Chromebook, <workstation-user>, from the graphical desktop session.
+~/Applications/BambuStudio-2.8.2.61.AppImage
+```
 
-First printer originally reported 01.03.30.01, independently confirmed in Studio. An operator-initiated update failed at 32% with code 301; operator restart/retry succeeded and Studio confirmed 01.08.01.00 / Updating successful / 100%. Cause of the first download failure remains unknown. No update was performed on the second printer by this task. No agent-initiated movement/heating/calibration/print.
+1. Select the intended printer by its physical label and matching Studio device name. Check its current status and that it is available for the job.
+2. Open a prepared project or import the new model in Studio. For a prepared sliced job, check compatibility with the selected A1 mini, nozzle, plate and material before using it.
+3. Select the A1 mini 0.4 mm printer profile and Textured PEI Plate. Match the filament preset to the material physically loaded on that printer. A saved PLA preset is not evidence of loaded filament.
+4. For new or changed geometry/settings, slice in Studio and inspect the preview, placement, supports and material requirements. Prepared jobs still need a review for the selected printer.
+5. Confirm the selected printer, clear/ready plate and loaded filament before sending or starting the job. Use Studio's normal transfer/print controls and monitor its device status. Transfer or printer visibility alone does not establish the outcome of a physical job.
 
-Pre-reservation dnsmasq backups remain at `/var/lib/printing-station/rollback/20260924/printer-reservations/dnsmasq.before-366.conf` and `dnsmasq.before-581.conf`.
+Prepared jobs and new models are both part of the intended colleagues' workflow. The current application is Studio; a simplified touch interface is [planned for later](../kiosk/CONFIGURATION.md).
 
-## Studio baseline
+## Sessions and operational limits
 
-Official Bambu Studio **2.8.2.61** Ubuntu 24.04 AppImage at `~/Applications/BambuStudio-2.8.2.61.AppImage`; published SHA-256 verified at installation. Distribution WebKit runtime installed. GUI launches under Ubuntu 26.04/X11 with accelerated Intel graphics; generated 20 mm cube imported/rendered (12 triangles/8000 mm³).
+Current-user Studio login, both online device indicators and both printer/status views survive application restart and a full Chromebook reboot, as recorded in [validation](../worklog/TESTS.md). Studio is manually opened after login. This evidence applies to `<workstation-user>`, not to an automatic kiosk launch or another account. Preserve the existing session; do not export credentials to create a kiosk login.
 
-Official A1 mini preset added September 24 without removing X1 Carbon preset. Selected UI: Bambu Lab A1 mini, 0.4 mm, Standard flow, Textured PEI Plate, `0.20mm Standard @BBL A1M`. PLA Basic is provisional until actual filament is confirmed. Plate was empty. Profile restart persistence remains untested. Studio reopened after the October 6 network migration; its existing account persisted and both devices appeared online.
+Radxa provides the school/VPN/DNS path. Chromebook shutdown or Studio exit does not stop printer networking. Loss of Radxa's VPN blocks downstream internet while local networking remains available; do not assume cloud-dependent login, transfer or status features work offline. Keep normal cloud-enabled mode unless the operator deliberately chooses a different mode after reviewing its consequences.
 
-CLI slicing failed because bundled GLFW attempted Wayland initialization on X11; exit 0 produced no slice output. Continue the GUI baseline; do not infer slicing success from CLI exit/help output or replace the desktop stack for this incidental test. Homebrew's Studio cask required macOS when researched; the installed Linux AppImage is the established baseline.
-
-## Chosen mode and deferred work
-
-Normal cloud-enabled operation with official Studio is the agreed initial baseline. Research on September 24 used the [official LAN Only guide](https://wiki.bambulab.com/en/knowledge-sharing/enable-lan-mode) and [A1 mini firmware history](https://wiki.bambulab.com/en/a1-mini/manual/a1-mini-firmware-release-history): LAN Only restricts Handy/off-site/history features; cloud functions depend on internet/VPN and can send job data through Bambu services. No Developer Mode requirement established or change performed. Revisit actual-firmware implications before any future mode change.
-
-Operator created the dedicated account and reported local LibreWolf/Studio logins. Actual Studio device recognition was observed; October 6 application restart and full Chromebook reboot retained the current-user account/device view without new credentials; separate logout-only and future kiosk-user persistence remain untested. Future separate kiosk-user authentication is a distinct acceptance check; preserve existing sessions. See [kiosk configuration](../kiosk/CONFIGURATION.md).
-
-Mixed prepared-job/new-model workflow, no operator-supplied kiosk code. Optional interface, Bambuddy and Android/Waydroid are explicitly deferred; no optional stack installed. The Chromebook is intended for Studio/kiosk while Radxa provides networking independently.
-
-Remaining printing acceptance:
-
-- Confirm actual filament on each printer and select matching presets.
-- Import, slice and inspect toolpaths in the GUI; verify transfer separately to both printers.
-- Verify full slicing-profile persistence and the eventual kiosk user’s own login/reboot behavior; current-user Studio login/device access survived application restart and full reboot.
-- Before physical printing, obtain explicit selected-printer, clear plate, loaded filament and readiness confirmation. No incidental motion/heating tests.
-- Verify the complete cloud/printing workflow under Control D p2; address filtering only if observed behavior justifies it.
+If a device is missing, follow [operations diagnostics](../operations/OPERATIONS.md) before changing settings. Do not use printer motion, heating, firmware changes or a new print as an incidental connectivity check. Routine printing is already confirmed working; there is no outstanding slicing/transfer acceptance blocker.

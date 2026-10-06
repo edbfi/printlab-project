@@ -1,27 +1,25 @@
 # Lubuntu printing station
 
-Project files and documentation for a Lubuntu Chromebook touch kiosk serving two Bambu Lab A1 minis. The current migration moves school Wi-Fi, Windscribe and printer routing to a Radxa Dragon Q6A, so networking can operate independently of the kiosk. The Chromebook remains the live gateway until verified cutover.
+A working Bambu Studio station for two Bambu Lab A1 mini printers. Radxa Dragon Q6A supplies the school uplink, Windscribe VPN and printer network services. The Lubuntu Chromebook is an ordinary Wi-Fi client. The operator confirms the printing workflow, including slicing and transfer, works.
 
-Start with [current state](documentation/overview/STATE.md) and the [setup brief](documentation/overview/SETUP-BRIEF.md).
+Chromebook kiosk mode is planned for later and is not implemented.
+
+Start with [current status](documentation/overview/STATE.md). For daily printing, use the [workflow](documentation/printing/WORKFLOW.md); for administration, use [operations](documentation/operations/OPERATIONS.md).
 
 ## Documentation
 
-- [System inventory](documentation/system/INVENTORY.md)
-- [Radxa migration and recovery](documentation/network/RADXA-MIGRATION.md)
-- [Network topology](documentation/network/TOPOLOGY.md)
-- [Printing workflow](documentation/printing/WORKFLOW.md)
-- [Kiosk configuration](documentation/kiosk/CONFIGURATION.md)
-- [Operations and recovery](documentation/operations/OPERATIONS.md)
-- [Verified changes](documentation/worklog/CHANGES.md), [tests](documentation/worklog/TESTS.md) and [issues](documentation/worklog/ISSUES.md)
-
-Keep secrets out of documentation. Record verified outcomes, pending work and failures distinctly.
+- [Project brief and scope](documentation/overview/SETUP-BRIEF.md)
+- [Network topology, addresses and service boundaries](documentation/network/TOPOLOGY.md)
+- [Hardware and software inventory](documentation/system/INVENTORY.md)
+- [Planned kiosk requirements and open decisions](documentation/kiosk/CONFIGURATION.md)
+- [Verified changes](documentation/worklog/CHANGES.md), [validation and limits](documentation/worklog/TESTS.md), [current issues](documentation/worklog/ISSUES.md)
 
 ## Local version control
 
-This repository starts with categorized snapshots of the existing project on 2026-09-22; it does not reconstruct earlier edit history. Use Conventional Commits for future changes. No remote is configured.
+Use focused Conventional Commits. Git history holds superseded documentation; the active tree describes current operation and clearly marked future work. This repository has no remote configured.
 
-Git tracks project documentation, not the live system configuration or rollback backups. `.work/`, credentials, machine backups, logs and generated print jobs are ignored. Review staged files before committing; ignore rules cannot detect every secret.
+Git tracks documentation, not live system configuration or recovery backups. `.work/`, credentials, private inventory, logs and generated print jobs are ignored. Review staged files before committing; ignore rules cannot detect every secret. Preserve restricted recovery material at the locations documented in operations.
 
 ## License
 
-Project material is licensed under GNU AGPL-3.0-only; see [LICENSE](LICENSE), downloaded from the [GNU license text](https://www.gnu.org/licenses/agpl-3.0.txt). Third-party software and retained downloads keep their own licenses.
+Project material is licensed under GNU AGPL-3.0-only; see [LICENSE](LICENSE). Third-party software and retained downloads keep their own licenses.

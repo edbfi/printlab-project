@@ -1,29 +1,32 @@
-# Kiosk configuration
+# Planned Chromebook kiosk mode
 
-Architecture clarified 2026-10-06: this Lubuntu Chromebook is the intended Studio/touch kiosk; Radxa takes over the school Wi-Fi/Windscribe router role. Networking must remain available with the Chromebook off. Router migration is complete and serves the physical AP/printers; Chromebook is now an ordinary 3D-Printere client with its local VPN/router role retired.
+Kiosk mode is **planned for later and not implemented**. Bambu Studio currently runs in the administrator's ordinary desktop session; [printing workflow](../printing/WORKFLOW.md) describes what works today. The current session is not automatic kiosk startup, lockdown or evidence of access under a different account.
 
-Status: **deferred by operator**; interface and lockdown level undecided. Printer association is complete; finish the Studio workflow baseline first. Do not create kiosk users, install a credential helper or redesign the interface during this stage.
+## Agreed direction
 
-Required outcome: touch-friendly daily use, dedicated non-administrative account, deliberate administrator exit and application recovery. Network services must survive kiosk restarts and not require its login.
+Provide colleagues with a touch-friendly printing interface for prepared jobs and new models. Use a separate non-administrative kiosk account; retain `<workstation-user>` as the administrator unless the operator later decides otherwise. `<workstation-host>` is the Chromebook hostname, not an account name.
 
-Record the agreed interface, startup configuration, touch/keyboard behaviour, administrator exit and tested recovery here after validation.
+The kiosk needs appropriate automatic/fullscreen startup, application recovery, dependable application login and a deliberate administrator exit. Radxa continues to supply printer networking independently of the Chromebook and its users. Preserve current application sessions and the administrator's key-only SSH access.
 
-## Operator direction — 2026-09-24
+## Decisions still open
 
-Working idea, not a final account design: retain current local user **<workstation-user>** as the main/admin account, later create a separate non-administrative kiosk user for everyday use. **<workstation-host>** is the hostname, not the login username. Final kiosk username, administrator exit and lockdown level remain for that later discussion; no user renamed or created.
+| Decision | What must be agreed before implementation |
+|---|---|
+| Interface and software | Final daily interface, how prepared jobs are selected and how new models reach slicing; no custom interface, Bambuddy or Android/Waydroid stack is selected |
+| Account and launch | Kiosk username, automatic login policy, exact startup/fullscreen behavior and recovery behavior |
+| Lockdown and exit | Whether the goal is accidental-change prevention or stronger restrictions; deliberate administrator exit and maintenance return path |
+| Authentication | The kiosk account's own authorized application session and recovery from expiration; no credential-storage or automatic-unlocking mechanism is selected |
+| Touch and power | Scaling, touch targets, on-screen input, lid/idle/display behavior and recovery after power loss |
 
-The operator created a dedicated Bambu account and reports login completed in LibreWolf and Bambu Studio under the current user. Routine staff use must survive application restart, logout/login and machine reboot without repeated login prompts. Browser login, Studio login and future kiosk-user login are separate things to verify; success in the admin session does not establish persistence or access under another account.
+Test the chosen application's own session persistence before considering extra credential storage. Browser login, Studio login and another user's login are separate. `<workstation-user>`'s successful restart/reboot session does not transfer automatically to the kiosk user. Never place passwords, tokens, recovery codes or exported login state in Git or chat.
 
-Prefer testing the applications' existing session persistence before introducing custom credential storage. Operator accepts restricted local plaintext storage if necessary for dependable unattended operation; this is a tradeoff preference, not a request to save a password now. Never put passwords, tokens, recovery codes or exported login state in Git/documentation/chat. No new password copy, token export or authentication script created.
+## Future acceptance requirements
 
-`age` via Homebrew was suggested as an optional future tool, not selected or installed. Any encrypted-at-rest design must account for automatic unlocking and key custody; a manual passphrase prompt at each boot would fail the stated usability requirement. Defer that choice until testing identifies an actual need. Preserve existing sessions while continuing printer setup.
+- Colleagues can select a prepared job and handle a new model, identify the correct printer, review settings and preview, and make an explicit print-start decision using touch controls.
+- The chosen account reaches the agreed interface after boot/login and returns to a usable state after application failure. Delayed internet readiness allows recovery without permanent startup failure.
+- That account retains usable printer/application access through application restart, logout/login and reboot without routine login prompts. An administrator can recover expired or revoked sessions through a documented path.
+- Touch targets, scaling, on-screen text entry and any switching into Studio work for staff. The administrator can deliberately exit, maintain the system and return to the daily interface.
+- Lid, idle, display and power-loss behavior are tested for the selected setup; no automatic power-on guarantee is assumed. Check resource use during the chosen workload, rather than treating idle figures as a slicing budget.
+- Kiosk restart/logout or Chromebook shutdown leaves Radxa printer networking operational. Preserve Radxa's services, Docker and the existing network configuration throughout kiosk work.
 
-October 6 current-user acceptance: manually reopened Studio after full Chromebook reboot with retained login, both devices online and both status views loaded. Ordinary network access recovered independently of Studio/login. This does not establish kiosk autostart, future kiosk-account access or browser-session persistence.
-
-## Deferred acceptance checks
-
-- Separate logout-only behavior and future kiosk-user login retain usable account/printer access; current-user restart/full-reboot checks passed.
-- Automatic kiosk launch restores the intended daily workflow; delayed application internet readiness must recover gracefully. Manual current-user Studio launch after reboot already passed.
-- Under the future kiosk user, establish and test that user's own authorized Studio session; do not assume admin browser/app sessions transfer.
-- Staff can recover from expired/revoked sessions through a documented administrator path; distinguish exceptional reauthentication from routine boot behavior.
-- Network services remain independent of kiosk login/process, and administrator access/recovery remains available.
+Implementation needs a later operator request and decisions above. For any future test that starts heating, motion or printing, confirm the selected printer, clear plate, loaded filament and readiness first.

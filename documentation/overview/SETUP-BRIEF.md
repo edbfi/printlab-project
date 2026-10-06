@@ -1,18 +1,26 @@
 # Agent brief: Lubuntu printing station
 
+## Current architecture and scope — clarified 2026-10-06
+
+The operator's October 5 migration plan supersedes the original combined router/kiosk architecture below. **Radxa becomes the school `Ishoj Kommune` enterprise-Wi-Fi + Windscribe router, DHCP/DNS server and printer gateway. The Lubuntu Chromebook becomes the Studio/touch kiosk and an ordinary optional network client.** The printer network must operate with the Chromebook disconnected/off. Keep Docker active on Radxa; the operator may later host personal development/server workloads there, but no additional workload, public exposure or virtualization setup is currently specified.
+
+Preserve the existing AP, printer SSID/subnet/reservations and key-only administration from the intended networks. Retain the current PC gateway until Radxa passes staged tests, the operator performs the AP cable handoff, and real-client acceptance passes. Current state and exact migration sequence: [STATE](STATE.md), [RADXA-MIGRATION](../network/RADXA-MIGRATION.md). Current request is a recap before activation; leave cables/services unchanged.
+
+The original stage requirements below remain useful acceptance criteria. Apply network-service requirements to Radxa after cutover and application/touch/kiosk requirements to the Chromebook. Initial discovery observations are historical, not instructions to reinstall or repeat completed setup. Subject documents and current operator direction determine what remains.
+
 ## Your assignment
 
 You are running on the actual Lubuntu machine (formerly a Chromebook); there is no separate Chromebook to configure. Its firmware flashing and OS installation are already complete. Investigate it, configure it as a school printing station, and validate the complete setup described below. OS installation and Chromebook firmware flashing are already complete and outside this task. Carry out the work; do not stop after proposing a plan or producing commands for someone else to execute.
 
 Work in stages. Preserve working configurations, verify outcomes, and keep a persistent record so another session can resume. Ask the operator for physical actions and genuinely missing information when needed. Continue independent work while awaiting answers, but never treat silence as confirmation.
 
-The intended result is a lightweight touch kiosk serving two Bambu Lab A1 mini printers. The computer also provides the printers with a local network and internet access through Windscribe over the school's enterprise Wi-Fi.
+The intended result is a lightweight touch kiosk serving two Bambu Lab A1 mini printers. The Radxa will provide the printers with a local network and internet access through Windscribe over the school's enterprise Wi-Fi; the computer currently supplies that role until verified cutover.
 
 This brief authorizes routine installation, configuration, reversible fixes, service setup, and testing on this computer and the dedicated printer networking equipment. It does not authorize modifying the school's infrastructure, erasing disks, flashing firmware, changing printer operating modes with cloud implications, or starting physical prints without the checkpoints below.
 
 Conditional audio repair in Stage 2 is explicitly authorized, including necessary sudo use and installation of Linux audio firmware files. Those files are loaded by Linux; this authorization does not include flashing Chromebook boot firmware or updating printer/router firmware.
 
-## Confirmed setup and details to investigate
+## Initial setup context — historical September 22 baseline
 
 The operator is a school IT counselor and teacher. They are comfortable administering headless Ubuntu servers and prefer familiar Debian/Ubuntu tooling. Colleagues need a simple printing workflow without having to understand a full slicer interface.
 
@@ -35,34 +43,26 @@ The operator is a school IT counselor and teacher. They are comfortable administ
 
 Do not turn uncertain details in this table into facts. Discover hardware through local tools and logs; ask for labels or cable changes when software cannot identify it conclusively.
 
-## Intended topology
+## Intended topology after migration
 
 ```text
-School internet access
+Ishoj Kommune enterprise Wi-Fi
         │
-Ishøj Kommune enterprise Wi-Fi
-        │  enterprise-authenticated wireless uplink
-Chromebook built-in Wi-Fi
-        │
-Lubuntu Chromebook
-  ├─ Windscribe tunnel carried over school Wi-Fi
-  ├─ Printer LAN gateway, DHCP, DNS and forwarding
-  └─ Touch kiosk and Bambu Studio
-        │
-TP-Link UE300 USB 3.0 to Gigabit Ethernet adapter
-        │  Ethernet cable
-TP-Link TL-WR902AC AC750 Wi-Fi 5 travel router
-  configured in access-point/bridge mode
-        │  dedicated 2.4 GHz printer Wi-Fi
-        ├─ A1 mini 1
-        └─ A1 mini 2
+Radxa Dragon Q6A
+  ├─ Windscribe tunnel over school Wi-Fi
+  ├─ Printer gateway/firewall/DHCP/DNS
+  └─ Existing Docker; possible later development workloads
+        │ enp1s0 Ethernet
+TL-WR902AC AP / 192.168.77.2
+        │ 2.4 GHz 3D-Printere
+        ├─ A1 mini 366 / 192.168.77.115
+        ├─ A1 mini 581 / 192.168.77.145
+        └─ Lubuntu Chromebook as optional client / Studio kiosk
 ```
 
-The Chromebook's Ethernet interface, the access point's management interface and the two printers belong to one printer LAN. The school's Wi-Fi is a separate upstream network. The access point bridges its printer Wi-Fi to Ethernet; the Chromebook provides the gateway.
+Radxa will own `192.168.77.1`; the Chromebook's final client connection/profile is configured and verified at handoff. The current live topology still uses the Chromebook as gateway, with a separate direct-management cable to Radxa. Never join the two staged `.77.1` gateways to the same segment.
 
-The VPN is not a physical hop between the school and computer. It runs on the computer and carries selected internet traffic through the existing school connection. Printer-to-computer and printer-to-printer LAN traffic must remain local.
-
-Do not bridge the enterprise Wi-Fi into the printer LAN. The current recommendation is one dedicated physical printer LAN with firewall isolation on Lubuntu; VLANs are optional only if a concrete isolation need and verified equipment support justify them. Do not introduce router-mode NAT or a second DHCP server unless the intended AP design proves impossible and the operator accepts an explained alternative.
+The school's enterprise Wi-Fi stays separate from the printer LAN. Never bridge it into the AP segment. Keep one DHCP authority and local printer communication local. Do not introduce AP router-mode NAT, VLANs or another DHCP server without an established need and the required decision checkpoint. Once migration passes, stopping or rebooting the Chromebook must not interrupt printer networking.
 
 ## Working rules and persistent records
 

@@ -1,250 +1,56 @@
 # Current state
 
-## Radxa migration prepared; remote privilege blocked — 2026-10-05
+Updated 2026-10-06 after documentation/history review and non-disruptive checks. **Partially complete. Radxa migration prepared, not activated.** Current request is a recap before resuming setup; cables and services were left unchanged.
 
-Current checkpoint: root backups saved on both machines. Radxa clock now matches source UTC, but its existing sudo entry retains expired `NOTAFTER=20261005025949Z`. Sudo listing independently confirms that embedded deadline. Operator asked asynchronously to renew their temporary grant; no response yet. No workaround or new privilege created. Time-sync and expired grant cleanup timer remain stopped from interrupted clock correction; repair immediately after operator renewal. Do not rerun the clock-correction script.
+## Intended division of roles
 
-Independent preparation completed: official Windscribe CLI 2.24.13 ARM64 package downloaded and SHA-256 verified before/after SSH transfer; package scripts inspected; ARM executable library dependencies resolve using its bundled library directory. School PEAP settings and minimal saved Windscribe login token staged with restrictive permissions, no secret values logged. No packages installed or WLAN/VPN/gateway services activated on Radxa. Staging: source `.work/radxa-migration/`, target `/home/<gateway-user>/.cache/printing-station-migration/`. Exact prepared scripts, tests and resumption steps in `network/RADXA-MIGRATION.md`.
+Operator reconfirmed October 6: Radxa takes over `Ishoj Kommune` school Wi-Fi, Windscribe, DHCP/DNS and printer routing; the Chromebook is the Studio/touch kiosk. Printer networking must work with the Chromebook disconnected/off. Existing Docker remains on Radxa, which may also serve future personal development workloads. That future use does not yet specify additional services, public exposure or virtualization work.
 
-Staged firewall passed isolated network-namespace tests for VPN forwarding, no school fallback, private-network/reverse isolation, spoofed-source drop, Docker forwarding coexistence, Docker-rule reinsertion, and printer-gateway stop/reload. These tests emulate Docker and a VPN; they are NOT Radxa acceptance. Actual reverse SSH SOCKS download path from Radxa through this PC's VPN tested (68.67.118.173); tunnel then closed. Use AddressFamily=any for the bootstrap SSH connection, because alias inet6 otherwise prevents IPv4 destination resolution. Test namespaces removed. Actual DHCP/VPN/WLAN/reboot/physical-client tests remain pending.
+## Immediate checkpoint
 
-Next: verify `ssh radxa 'sudo -n true'`, repair/verify time sync and RTC and renewed expiry timer, run prepared school-Wi-Fi stage with timed rollback, independently test school-side SSH before canceling rollback, then install/stage router. Preserve PC gateway until operator cable handoff.
+- Radxa direct SSH and renewed `sudo -n true` pass. Grant and active removal timer both expire **2026-10-06 16:21:33 CEST / 14:21:33 UTC**. Recheck before root work; do not modify authorization deadlines.
+- Radxa system time matches PC UTC, but time sync is inactive/unsynchronized and RTC reports July 2165. Clock recovery is unfinished. Do not rerun `clock-correct.py`.
+- Chromebook `sudo -n true` currently requires interactive authentication. Independent read-only checks work; source-side privileged tests/cleanup will need local renewal when resumed.
+- Radxa wlan0 is down, no internet default route/tunnel, no installed Windscribe CLI or active printer services. Docker remains active. Only direct management and staging are established.
+- Full migration plan, artifact permissions, package digest, recovery limitations and next steps: [RADXA-MIGRATION.md](../network/RADXA-MIGRATION.md).
 
-## Radxa clock correction interrupted — 2026-10-05 14:58 UTC
+## Working system
 
-Root-only backups completed on both machines. Radxa system clock corrected to host UTC; original sudo grant's comment expiry and cleanup timer calendar rebased to preserve remaining authorized duration. However, grant also has an embedded sudo permission expiry that was not rebased; subsequent `sudo -n true` fails. Clock script then stopped on missing `hwclock` binary before restarting `systemd-timesyncd` and sudo cleanup timer. Both services remain stopped pending restored privilege. No renewed or broader privilege created. Original permission lines remain byte-equivalent to backup. Current expired grant cannot authorize root work. Operator asked to renew using their usual method; continue only unprivileged target inspection and local preparation meanwhile. No Radxa WLAN/VPN/gateway changes yet; live source printer network unaffected.
+School Wi-Fi → Chromebook Windscribe/gateway/DHCP/DNS → USB Ethernet → TL-WR902AC AP → **3D-Printere** → both A1 minis. The second USB Ethernet adapter connects only to Radxa for administration. Do not move the AP cable or retire the PC gateway before the physical handoff checkpoint.
 
-Recovery next: after operator renews sudo, restart time-sync and verify corrected system/RTC time using available tooling, verify new grant expiry/removal timer. Do not rerun the original clock script. Backups at `/var/lib/printing-station/rollback/20261005/radxa-migration/` on both hosts.
+Current addresses: PC school DHCP `10.113.130.33/20`, printer gateway `192.168.77.1`, AP `.2`, printer 366 `.115`, printer 581 `.145`. School/VPN addresses are observations, not reservations. Windscribe CLI 2.24.13 uses Stealth/443, Always On firewall and a lingering user service. Host and printer DNS share encrypted Control D p2 through its loopback proxy. [Topology](../network/TOPOLOGY.md) holds interface/configuration details.
 
-## Radxa router migration — implementation started 2026-10-05
+Fresh host-side checks on October 6: gateway/DHCP/helper/user VPN services active; tunnel-bound HTTPS exits `68.67.118.173`; system and printer-proxy Control D identity answers pass; p2 blocking answer passes; AP HTTP 200 and AP/both printer pings 2/2. Direct Radxa login passes. These are not fresh downstream internet, Studio, print, reboot or outage tests.
 
-Approved plan: autonomously stage and test networking on Radxa; preserve live PC gateway until operator moves AP cable. Docker remains active. PC becomes ordinary optional Wi-Fi client afterward. Radxa school Wi-Fi uses existing protected PEAP credentials; Windscribe 2.24.13 ARM64, encrypted Control D p2, unchanged printer subnet/reservations and key-only SSH on both networks. No printer controls or application migration.
+## Stage status and evidence
 
-Before changes: prepare root-only snapshots on both hosts at `/var/lib/printing-station/rollback/20261005/radxa-migration/`; staging scripts under ignored `.work/radxa-migration/`. Radxa has working sudo now. Its clock is ~16 hours behind; first correct clock and rebase only existing grant expiry metadata to preserve remaining authorized six-hour lifetime. Existing permission entries remain unchanged. Subsequent changes use independent recovery timers and retain IPv6 direct SSH until school path verified.
+| Area | Status | Verified scope / remaining work |
+|---|---|---|
+| Baseline discovery | Passed | Chromebook/OS/hardware recorded in inventory; no OS or boot-firmware work needed |
+| Linux usability | In progress | Accelerated graphics and model rendering; repaired audio profiles, audibility unconfirmed; touch/scaling/lid/power checks remain |
+| School Wi-Fi and headless VPN | Passed for tested PC cases | Boot, running uplink loss, delayed-uplink boot and main-process recovery; helper crash and broader failure cases untested |
+| Printer LAN/DNS/gateway | Working, acceptance partial | Actual Mac DHCP/DNS/VPN egress, VPN-loss blocking/recovery, AP restart and Ethernet reconnect; isolation evidence scoped; no full reboot acceptance after latest DNS changes |
+| Both printers | Association passed | Confirmed identities, fresh DHCP reservation ACKs, LAN Only Off, dedicated-account binding and Studio visibility; no transfer/print proof |
+| Studio | In progress | 2.8.2.61 AppImage, GUI import/render and A1 mini 0.4 mm/Textured PEI profile; actual filament, slicing/preview/transfer and profile/session persistence pending |
+| Kiosk/optional interface | Deferred | Mixed prepared-job/new-model workflow; no kiosk users, custom UI, Bambuddy or Android stack created |
+| Radxa migration | Prepared | Direct SSH, restricted package/config staging and sixteen simulated firewall assertions; real target WLAN/VPN/DHCP/recovery/boot tests pending |
+| Complete station acceptance | Incomplete | Physical prints require explicit readiness; final cleanup follows verified completion |
 
-Pending: school authentication; VPN/session migration; DNS and Docker-compatible gateway; isolated downstream/recovery/reboot tests; cleanup. Physical AP cable handoff and live-printer acceptance remain operator checkpoints. Do not disable PC routing while operator is absent. No migration success claimed yet.
+Detailed dated evidence is in [TESTS](../worklog/TESTS.md), verified changes in [CHANGES](../worklog/CHANGES.md), faults/remaining side effects in [ISSUES](../worklog/ISSUES.md). Historical entries describe their observation time; current subject documents supersede old pending instructions.
 
-## Radxa direct SSH verified — 2026-10-05
+## Next work after the recap
 
-Operator requests migration to directly cabled Radxa, beginning with identification/SSH. This checkpoint is complete: `ssh radxa` logs in as `<gateway-user>` using the existing encrypted `~/.ssh/id_ed25519`, unlocked locally by the operator. Hostname `radxa-dragon-q6a`, device-tree model Radxa Dragon Q6A, aarch64, Armbian 26.8.3 / Ubuntu 26.04. Remote user belongs to sudo group; `sudo -n true` requires a password, so elevated remote operation remains unverified. No remote configuration changed and no migration performed.
+1. Resume Radxa clock recovery with available authorized sudo; verify RTC/time-sync behavior and expiry timer separately. Confirm source privilege before source-dependent tests.
+2. Review staged scripts, authenticate Radxa school Wi-Fi with independent timed rollback, and verify school-side key-only SSH before canceling rollback.
+3. Install/stage VPN/DNS/router using the tested temporary reverse-SOCKS bootstrap path. Wait for functional VPN/DNS readiness; saved-token portability and rollback behavior remain untested.
+4. Test real target DHCP/DNS/egress, VPN loss/recovery, isolation, Docker restart and reboot on the isolated direct cable. Preserve the working printer segment.
+5. Operator moves the AP cable only at handoff; verify real clients/printers and operation without the PC before retiring PC gateway configuration.
+6. Return to Studio slicing/preview/transfer and explicit print readiness. Keep optional kiosk/account design deferred until its decision checkpoint.
 
-New adapter `enx00e04c5835c8` has 1000 Mb/s full-duplex carrier to peer MAC `00:48:54:21:66:96`. Original DHCP-client profile could not obtain an address; peer also requested DHCP. Added persistent `Radxa direct` NetworkManager profile, UUID `53303fed-e9fd-489a-b7c2-267c9f3dae8a`, IPv4 disabled, IPv6 link-local only, never-default, autoconnect priority 10. Peer reachable at `fe80::248:54ff:fe21:6696%enx00e04c5835c8`, remote interface `enp1s0`. SSH alias added to `~/.ssh/config`; original at `~/.ssh/config.before-radxa-20261005`. First-use host key accepted on direct cable; fingerprint in network/TOPOLOGY.md. No independent prior fingerprint comparison.
+## Recovery, Git and cleanup
 
-Verified alias login, AP and both printer pings, printer DNS, active DHCP/gateway/Windscribe services and tunnel HTTPS (exit 68.67.118.173). No existing profile, firewall, VPN or printer configuration modified. Link is for local administration only; Radxa has no observed internet default route. Reboot/cable-reconnect persistence untested. Key may need local ssh-add again after agent/session restart. Retain active profile/alias and rollback backup. Rollback: delete only `Radxa direct` and remove its SSH alias; original `Wired connection 2` retained. Next checkpoint: migration planning and remote sudo access when needed, without moving the existing working gateway prematurely.
-
-## Control D p2 migration verified — 2026-09-28
-
-Operator requested encrypted Control D p2 through existing Windscribe CLI for both this machine and printer Wi-Fi. Live CLI settings: `ConnectedDNSMode=Custom`, `ConnectedDNSUpstream1=https://freedns.controld.com/p2`. Windscribe manages its bundled proxy on `127.0.0.1:53`; systemd-resolved uses that as global DNS (`~.`). Printer dnsmasq forwards to `127.0.0.1#53@lo`, keeps `no-resolv`, DHCP DNS `.1` and all reservations. Own gateway additionally blocks secure Control D endpoint IPv4/IPv6 addresses outside tun0; existing host DNS fallback guard retained.
-
-Verified host and `.1` Control D identity, TCP/UDP resolution, p2 ad filtering, HTTPS through tunnel, AP/printer reachability, and one controlled VPN-loss/recovery cycle. Captured secure DNS traffic on tun0 to `76.76.2.11:443`; zero direct endpoint packets on school Wi-Fi during outage/recovery capture. Fresh host/proxy DNS unavailable without tunnel, AP remains available, DNS/HTTPS recovers. Exit at final check `68.67.118.166`. Browser/physical phone test requested, response pending; no post-change reboot or full printing workflow tested.
-
-Initial attempt stopped verification on premature CLI failure return; independent timed rollback actually restored previous DNS/VPN. Retry waited for actual DNS/HTTPS and passed. See ISSUES/TESTS. No active test/recovery units remain. Removed proposed copies, apply/test scripts and markers after preserving verified settings; post-cleanup checks passed. Original and verified files, tested `rollback.sh` and restricted diagnostic logs retained at `/var/lib/printing-station/rollback/20260928/controld-p2/`. This request does not resume unrelated station setup.
-
-## Both reservations verified; A1 mini profile selected — 2026-09-24
-
-Operator confirms second printer remains .145 after Wi-Fi reconnect. Fresh DHCPREQUEST/ACK at 15:58:48 verifies e0:72:a1:a4:e4:6c → 192.168.77.145/a1mini-581 after reservation load; ping 2/2. Both printers now have verified reservations (.115/366, .145/581), confirmed identities and Studio visibility. Preserve both pre-reservation backups.
-
-Studio Prepare had default X1 Carbon. Added official A1 mini system preset without removing existing X1 preset; current UI confirms Bambu Lab A1 mini, 0.4 mm nozzle, Standard flow, Textured PEI Plate and 0.20mm Standard @BBL A1M. Plate empty. Current PLA Basic selection is provisional; asked operator for physically loaded material/brand/colour on each printer before filament-specific slicing. No transfer, motion, heating or print. Profile restart persistence not yet tested.
-
-
-## Second printer confirmed; reservation loaded — 2026-09-24 15:57
-
-Operator confirms 3DP-030-581 at 192.168.77.145, LAN Only Off and new-account binding successful. Studio lists both under My Device; selected second printer details match private serial, A1 mini and firmware 01.08.01.00. DHCP ACK 15:54:11 maps e0:72:a1:a4:e4:6c to .145; ping passes. Reservation `e0:72:a1:a4:e4:6c,192.168.77.145,a1mini-581,12h` syntax-checked and loaded by printing-dhcp restart at 15:57. Gateway/DHCP active, DNS via .1 and second-printer ping pass after load. Fresh post-load DHCP ACK still pending: operator to reconnect only 581 Wi-Fi, no reset or print. Backup `/var/lib/printing-station/rollback/20260924/printer-reservations/dnsmasq.before-581.conf` retained. No firmware changes, motion, heating or transfer performed on second printer. Physical filament details and Studio slicing/transfer still pending for both.
-
-
-## Second printer association — 2026-09-24
-
-Operator reports second printer connected at 192.168.77.145. DHCP ACK at 15:54:11 maps e0:72:a1:a4:e4:6c to .145; ping 2/2. Studio lists both printers under My Device, selected 3DP-030-581 details confirm A1 mini, private inventory serial and firmware 01.08.01.00. Physical LAN Only/account confirmation requested; no motion or printing. Stage reservation for existing .145/a1mini-581, preserving current configuration at `/var/lib/printing-station/rollback/20260924/printer-reservations/dnsmasq.before-581.conf`. Restore backup and restart printing-dhcp to undo. Syntax check and load next; fresh DHCP renewal still required for behavioral verification.
-
-## First printer update and reservation verified — 2026-09-24
-
-Operator reports recovery and IP 192.168.77.115. Studio directly confirms 3DP-030-366 Idle, firmware **01.08.01.00**, “Updating successful” / 100%. Fresh DHCP ACKs at 15:37:42 and 15:41:14 map ac:a7:04:12:be:58 to reserved .115/a1mini-366 after reservation load; ping 2/2. Earlier code-301 failure recovered after operator restart/retry. No additional reconnect needed. Next physical checkpoint: connect second printer 3DP-030-581 to 3D-Printere and confirm displayed IP, LAN Only Off and dedicated-account binding for agreed cloud baseline. No print, motion, heating or transfer tested. Preserve reservation rollback backup.
-
-
-## First printer firmware update failed — 2026-09-24 15:38
-
-Operator initiated firmware update on 3DP-030-366, then reported download stuck at 32% followed by “update failed 301 please restart and re-update”. Installed version remains unverified after this attempt; retain last observed 01.03.30.01. Next physical checkpoint: operator follows printer's explicit restart/retry instruction on this printer only, reports outcome. No factory reset or network changes. Reservation fresh ACK and second-printer association remain pending. Avoid network interruptions during retry.
-
-Read-only checks during investigation: printer ping 3/3, gateway/DHCP active, station DNS and tunnel HTTPS succeed, VPN exit 68.67.118.173. An 18-second targeted Ethernet header capture shows printer TCP/8883 outbound packets and remote acknowledgements, no bulk download observed in that window. This does not establish firmware-server reachability or explain error 301. No printer controls or infrastructure configuration changed.
-
-## First printer confirmed and visible in Studio — 2026-09-24 15:24
-
-Operator confirms **3DP-030-366** displays `.115`, LAN Only Off and dedicated-account binding successful. Native Studio Device page directly shows 3DP-030-366/status/temperature telemetry; no second binding action required. Read-only device details match private inventory serial, A1 mini and firmware **01.03.30.01**. Thus original version report confirmed despite absent exact public release-history entry. Firmware update offered but NOT selected. External spool configured PLA in UI; physical filament details still need operator confirmation before slicing/print readiness.
-
-DHCP reservation loaded at 15:22:13: `ac:a7:04:12:be:58,192.168.77.115,a1mini-366,12h`. Syntax test passed, printing-dhcp restarted, host printer-DNS NOERROR and printer ping passed. Lease file now carries a1mini-366, but expiry/ACK still pre-change at inspection: actual fresh renewal remains pending. Operator asked to disconnect/reconnect only first printer Wi-Fi; wait for new ACK before marking reservation behavior verified. Backup `/var/lib/printing-station/rollback/20260924/printer-reservations/dnsmasq.before-366.conf`. Restore file and restart printing-dhcp to undo. Screenshot/staging artifacts removed after findings recorded; live Studio left on Status. No motion/heating/print/firmware update. Second printer association next after first reservation checkpoint.
-
-## First printer association — 2026-09-24 15:19
-
-Operator subsequently confirms displayed IP `.115`, LAN Only Off and successful new-account binding for **3DP-030-366**; Studio open and logged in per operator. Stage reservation for confirmed MAC `ac:a7:04:12:be:58`, retaining existing `.115`, hostname a1mini-366/12h lease. Backup `/var/lib/printing-station/rollback/20260924/printer-reservations/dnsmasq.before-366.conf`; restore that file and restart printing-dhcp to undo. Syntax-check first, then brief DHCP/DNS service restart to load reservation (SIGHUP does not reload main dnsmasq config). Existing lease remains; fresh printer renewal/ACK must verify applied reservation separately. Studio device availability still unverified; no motion/print.
-
-Operator reports **3DP-030-366** connected. New DHCP ACK at 15:17:45 for `ac:a7:04:12:be:58` → `192.168.77.115`; local ping 3/3, neighbor and direct Ethernet route verified. Asked operator to match displayed IP and confirm actual LAN Only Off/account binding; replies pending. Reserve existing `.115` for that MAC once identity confirmed to avoid needless renumbering, then verify reservation behavior. No DHCP config changed yet. Do not move second printer or infer cloud control from lease/ping. No motion/heating/print.
-
-## Next printer checkpoint and deferred login design — 2026-09-24
-
-Operator created the dedicated Bambu account and reports local LibreWolf/Studio logins complete. Both printers previously showed Account Disabled. Proceed with first **3DP-030-366** on **3D-Printere**, normal cloud-enabled baseline (LAN Only Off) and binding to the new account through official UI; verify lease/physical identity before second printer. No printer has yet been observed on this LAN (latest leases only Mac `.181`). Preserve firmware; no Developer Mode, heating, movement or print. Both reported stainless 0.4 mm/Textured PEI/no AMS; filament unknown and first firmware string still needs recheck.
-
-Current Linux username **<workstation-user>**, hostname **<workstation-host>**. Operator's tentative later design: existing user as admin, separate non-admin kiosk user; authentication should work seamlessly on routine restart/reboot. Restricted plaintext acceptable if necessary, age mentioned as optional; neither is a current implementation request. No new credential copy/tooling/user creation. Canonical deferred design/acceptance in kiosk/CONFIGURATION.md; private account identifier only in ignored printing/PRINTERS.private.md. Preserve native app sessions; actual restart/reboot/kiosk-user authentication remains unverified. Complete printer/Studio work first.
-
-## Current checkpoint — 2026-09-24 13:44
-
-Latest printer clarification: both stainless-steel 0.4 mm nozzles and Bambu Textured PEI Plates. Loaded filament still unknown. Operator does not require LAN Only and prefers considering cloud-enabled operation initially; current mode remains On until actual change. The earlier preserve-mode wording is a temporary holding state, not chosen final workflow. Review actual-firmware implications and explain account/cloud/Handy behavior before settling mode; no firmware update/Developer Mode requested. Tracked and private inventories updated.
-
-Official wiki checked: LAN Only disables Handy/off-site remote printing/print history; normal mode uses account/cloud connectivity, with cloud functions depending on VPN/internet and potentially sending job data through Bambu services. Proposed initial baseline normal mode + official Studio; intended account binding not yet known. A1 mini history lists 01.08.01.00 and authorization since 01.05; exact reported 01.03.30.01 not listed, retain as reported and recheck on printer. No mode/firmware changes made. Sources/findings in WORKFLOW.
-
-Host system-resolver fallback is identified and fixed. Own persistent gateway DNS output chain now drops systemd-resolve-owned UDP/TCP destination 53 except on lo/tun0; preserves Windscribe's independently attributed public bootstrap DNS. Controlled outage exercised new rule (23 drops at test snapshot), ordinary host query timed out and school-resolver capture recorded zero packets/zero drops. Tunnel reconnect, fresh host resolver answer, printer DNS and AP passed; exit `68.67.118.173`. Independent rollback/recovery canceled without execution, no printing timers armed. Existing profiles/Windscribe firewall unchanged. New rule loaded by existing gateway unit; a full reboot with this added rule has not yet been tested (earlier late-uplink boot passed before this change).
-
-Verified config backup and rollback at `/var/lib/printing-station/rollback/20260924/host-dns/` (`gateway.nft.before`, `gateway.nft.verified`, `host-dns-rollback-20260924.sh`). Root-only diagnostic copies/logs retained, duplicate workspace scripts/config removed after comparison. Host/printer DNS, tunnel HTTPS and services rechecked after cleanup. Rule scope is the system resolver, not a universal block on apps implementing their own DNS; Windscribe bootstrap remains intentional.
-
-Next physical checkpoint: associate first A1 mini **3DP-030-366** only, preserve existing LAN Only mode and firmware. Both printer inventories supplied by operator and saved in printing/WORKFLOW.md; full serials and old SSID in local mode-0600, Git-ignored `printing/PRINTERS.private.md`. First firmware 01.03.30.01, second **3DP-030-581** firmware 01.08.01.00; neither has AMS Lite. Both still on old test Wi-Fi, LAN Only On. Nozzle/plate/loaded filament unknown. No movement/heating/print requested. Verify first lease/identity before moving second. Full station acceptance remains incomplete; broader adversarial isolation/helper-crash cases and post-rule reboot not claimed.
-
-## Latest result — 2026-09-24 13:27
-
-### Host resolver fallback identified; fix staged — 2026-09-24 13:36
-
-Targeted strace of systemd-resolved PID 435 connects to school DNS at timestamps matching all three outbound packets during controlled outage. Normal `resolvectl query` without interface override used school DNS with tun0 absent. Windscribe reconnected automatically after test command, host HTTPS exit `149.50.216.72`; no timers left. This identifies host system-resolver fallback, distinct from printer dnsmasq and Windscribe bootstrap.
-
-Planned surgical fix: add own output-chain rule rejecting systemd-resolve-owned UDP/TCP destination-53 traffic unless outgoing on lo/tun0. Existing printer guard and Windscribe rules retained. Backup `/var/lib/printing-station/rollback/20260924/host-dns/gateway.nft.before`; rollback script same directory `host-dns-rollback-20260924.sh` restores only own gateway file/table. Prearm independent rollback before applying; syntax-check staged file, reload printing-gateway, verify connected host DNS/HTTPS/AP, then test outage with guard counter and school DNS capture. Do not claim success until behavior verified. This targets the host system resolver; Windscribe bootstrap traffic remains a deliberate exception and arbitrary applications with their own resolver are not newly constrained by this rule.
-
-Follow-up host-DNS attribution staged: trace only systemd-resolved connect/getsockname metadata (no query payload) with targeted school-resolver outbound header capture; briefly disconnect VPN, invoke one fresh normal host-resolver query without forcing interface, then reconnect. Independent `printing-host-dns-recover-20260924` timer armed before primary. Root-only script/log `/var/lib/printing-station/tests/host-dns-*-20260924.*`; no firewall/profile modifications. Goal is identify ordinary host resolver fallback before choosing a surgical fix. Printer identity/hardware facts requested independently; operator instructed not to move Wi-Fi/modes yet.
-
-Late-uplink reboot passed on new boot `0ffa9988-d0d2-499b-a0f5-ca88d24b9389`. Wi-Fi observed disabled/interface down at uptime 12–89 seconds; Ethernet `.1`, DHCP/gateway active, AP ping passed during unavailable uplink. Fresh proxy DNS REFUSED with network error during that interval. Restore timer enabled radio at boot+90s (13:25:30); automatic school/VPN recovery produced tunnel HTTPS, DNS and AP success by boot+100s (13:25:40), exit `68.67.118.168`, tun0 `10.145.156.218/22`. No explicit connection repair or four-minute fallback ran. Mac confirms AP, matching HTTPS and DNS NOERROR at 13:26:40. This is one cold-start delayed-radio case, not every enterprise-authentication failure mode.
-
-Temporary lateboot units disabled/removed after retaining root-only copies/logs; marker cleared by observer, duplicate workspace copies removed after comparison. No printing test/recovery timers remain. Wi-Fi on; host services, tunnel HTTPS, DNS and AP reverified after cleanup. Existing configuration/backups preserved. Remaining network issue: unexplained host school-resolver DNS packets during tunnel absence; downstream proxy failure behavior already verified. Printers still untouched. Continue that targeted investigation before printer association; printer identity/hardware facts can be collected independently.
-
-## Reboot preparation checkpoint (completed) — 2026-09-24 13:20
-
-Operator explicitly confirms work saved and ready to reboot for initially unavailable uplink test. Preboot ID `56a11b6f-9190-46e5-9ea7-74926d46c8c4`; mains online, sudo available. Plan sets Wi-Fi radio off immediately before reboot (NetworkManager persists radio state), preserving profiles/firewall. Temporary boot observer starts after NetworkManager; restore timer enables radio at boot+90s, then automatic Wi-Fi/VPN recovery observed. Independent fallback at boot+240s explicitly activates school profile and starts/connects Windscribe if needed. Separate current-boot transient failsafe reenables radio if reboot fails. Mac remains printer-side; local terminal recovery commands supplied. Do not assume outage actually persisted into boot—verify observer radio/interface timestamps.
-
-New temporary units named `printing-lateboot-{observe,restore,fallback}-20260924`, scripts/logs under root-only `/var/lib/printing-station/tests/`, condition marker `lateboot-20260924.armed`. Enable for next boot only, not start timers now. Observer cancels timers/removes marker only after host tunnel HTTPS, DNS and AP verification; downstream confirmation remains separate. Retain unit/script copies then disable/remove active test units and verify networking after cleanup. Current configs/backups remain unchanged apart from deliberate runtime/persisted radio-off test state, automatically restored by timers. GUI rollback remains available; no firmware or printer action.
-
-## Latest checkpoint — 2026-09-24 13:08 CEST
-
-Networking still partially complete; printers untouched. Verified today: host health; school-uplink loss/recovery; Ethernet reconnection; AP power restart; normal-client native IPv6 unavailability; Windscribe main-process restart; SSH from printer and school networks; actual Mac DNS refusal during tunnel loss and restoration afterward. Scoped private-school probe/drop evidence recorded. Current VPN exit `68.67.118.166` (Stockholm Fika); school DHCP `.33`, printer gateway `.1`, Mac `.181`. No active test/recovery timers; no persistent live configuration changes this session. Diagnostic scripts/logs retained restricted, backups unchanged.
-
-Open: host plaintext DNS to school resolver during VPN absence (process attribution incomplete), late-uplink cold-start/recovery, broader isolation coverage. Windscribe public bootstrap DNS traffic separately attributed to Windscribe PID 9399, not dnsmasq. Complete remaining network acceptance before printer association. Operator wants SSH on both networks; key logins verified, `.local` works only on printer network in observed tests. Do not change school DHCP to an arbitrary static IP. Detailed chronological evidence follows.
-
-## Resumed read-only checkpoint — 2026-09-24 11:29–11:31 CEST
-
-### Uplink-loss, Ethernet and AP recovery passed — 2026-09-24
-
-Operator confirms ready with local terminal, downstream Mac and no affected active prints; subsequently confirms AP page, expected VPN exit and DNS baseline all work. Mac lease `.181` observed, gateway counters advanced (2502 outbound / 2311 return at snapshot). Checkpoint satisfied.
-
-Test completed: radio off 11:37:55, on 11:38:39, automatic tunnel HTTPS recovery observed 11:38:49 (about 10 seconds after radio restoration). No explicit connection command or fallback needed. Host DNS and AP ping passed; Mac operator confirms AP UI reachable while public HTTPS failed, then HTTPS recovered at matching exit `79.142.77.70`. tun0 now `10.130.12.40/22`. Explicit downstream post-recovery DNS response still pending; this does not prove cold boot with initially absent uplink or DNS/IPv6 leak isolation.
-
-Root-only diagnostic script copies/log retained under `/var/lib/printing-station/tests/uplink-{test,recover}-20260924.*`. Independent fallback timer was verified armed, then canceled by the primary test after recovery; fallback service did not execute. No printing-uplink timers remain listed. Profiles/firewall unchanged. Agent resumed several minutes after actual local recovery, consistent with earlier transport delays.
-
-Ethernet checkpoint completed: operator confirms AP page, public HTTPS and DNS all work after cable reconnection. NetworkManager records carrier loss 11:51:56 and return/automatic Printer LAN activation 11:52:15. At 11:58 host `.1`, DHCP/gateway services, AP ping, DNS and VPN `.70` healthy; downstream counters advance. Bounded link monitor had expired before the physical action; journal provides the link evidence. No settings changed.
-
-AP power-restart checkpoint completed: operator confirms all three Mac checks (AP page, ipify, DNS) recovered. NetworkManager records carrier loss 12:20:19 and automatic profile activation 12:20:25, with further link events through 12:20:57; this does not measure Wi-Fi readiness time. At 12:23 host AP ping/HTTP, DNS, tunnel HTTPS `.70`, DHCP/gateway active, Mac lease `.181` and increased forwarding counters corroborate operation. No configuration changes or manual repair; printers untouched.
-
-Targeted private-school check: operator reports Mac ping to known school gateway `10.113.128.1` times out (supplied first timeout line). Private-destination drop counter increased from 1 packet/73 bytes at 12:23 to 7/577 at 12:25:37. Route lookup for forwarded Mac traffic would select school Wi-Fi; private-address rule drops before tun0 accept. This corroborates blocked private-destination traffic during probe, but aggregate delta of six packets cannot be attributed exactly to the requested three pings without capture. No scan or rule change performed; broader school isolation remains scoped/unproven.
-
-Next: downstream IPv6 route/egress inspection, then VPN process recovery and DNS failure checks with independent recovery. Cold-start late uplink and actual administrator login/exposure also remain pending.
-
-IPv6 inspection unresolved at 12:32: Mac reports no IPv6 default route, but supplied `curl --noproxy '*' -6 ... https://api64.ipify.org` output is IPv4 `79.142.77.70`. Do not classify as a leak or a passed IPv6 block without connection-level evidence. Host recheck: printer interface IPv6 disabled, no IPv6 address, accept_ra=0, global IPv6 forwarding=0; own IPv6 drop counter remains 0. DNS proxy returns two genuine AAAA answers for api64.ipify.org. Next request uses explicit macOS `/usr/bin/curl`, disables default curl config/proxy, and prints local/remote addresses to identify the actual connection. No configuration changes proposed.
-
-Follow-up at 12:34: explicit system curl reports `local=::ffff:192.168.77.181 remote=::ffff:173.231.16.77 HTTP=200`, body `.70`. Both socket addresses are IPv4-mapped: this successful request used IPv4, not native IPv6. Why curl's IPv6 option selected mapped addresses remains undiagnosed; no need to change station settings for this client behavior. Next probe pins endpoint to freshly verified native AAAA `2607:f2d8:1:3c::3` using curl `--resolve`, retaining HTTPS hostname validation. Native IPv6 connectivity acceptance remains pending.
-
-Native IPv6 follow-up completed: operator supplies two pinned-AAAA attempts, both immediate curl error 7, empty local/remote addresses and HTTP 000. Normal Mac configuration has no demonstrated native IPv6 internet path, consistent with no IPv6 default route and host IPv6 disabled. Earlier success was IPv4-mapped. This passes normal-client native IPv6 unavailability only; no adversarial/static client configuration or packet-level IPv6 drop test performed. Next milestone is Windscribe process recovery with independent timer before disruption.
-
-### Windscribe main-process test staged — 2026-09-24 12:36
-
-Result: systemd killed PID 1099 at 12:37:56, automatically restarted at 12:38:01 with PID 9399/NRestarts=1. Direct host checks then confirmed connected Stealth/443, tunnel HTTPS exit `79.142.77.67`, DNS NOERROR and AP ping 2/2. Downstream confirmation pending. Automated observer failed to recognize recovery because `rg` is absent from system-service PATH; stopped observer and canceled fallback after direct verification. No fallback ran and no printing-vpn-process timers remain. Failed script retained as diagnostic only; replace PATH-dependent status matcher before any reuse. No repeated process kill needed to prove the already observed restart. Root-only script/log retained; cleanup of duplicate workspace copies follows byte comparison. VPN helper crash and DNS-failure isolation remain untested.
-
-Operator subsequently confirms Mac AP page, HTTPS and DNS all work, with exact matching exit `79.142.77.67`: downstream main-process recovery accepted for this case. Duplicate workspace scripts removed after comparison; root-only diagnostic copies retained. Next non-disruptive check: actual administrator SSH access from Mac to `.1:2222`, with verified host fingerprint supplied; intended school-facing SSH exposure still needs operator choice before tightening access.
-
-SSH access verified: operator confirms login and matching ED25519 host fingerprint; ssh journal records accepted public key for <workstation-user> from Mac `.181` at 12:42:03. Effective policy TCP 2222, public keys enabled, passwords/keyboard-interactive/root login disabled. Listeners remain all IPv4/IPv6 addresses; Windscribe input allows private school-source addresses, so school-facing exposure is not restricted by these observed rules. Actual school-side access untested. Operator asked to choose printer-LAN-only SSH or continued school-network administration before changing exposure; no SSH settings changed. DNS-failure/late-uplink acceptance remains pending.
-
-SSH exposure choice: operator wants printer LAN AND school-network administration, preferably one stable address/name. Preserve both paths. School profile remains DHCP (`ipv4.method=auto`, no manual IPv4 address, MAC preserve), currently `10.113.130.33/20`; printer address remains static `.1`. Do not invent a static school address or modify school infrastructure. A school DHCP reservation/managed DNS requires its administrator. Hostname `<workstation-host>`, avahi-daemon active; `.local` resolution/reachability from either client network not yet verified and school multicast may be filtered. Next request: Mac temporarily on school Wi-Fi tests `.33:2222`, then `.local:2222`; return Mac to printer SSID afterward for remaining gateway tests. No host settings changed.
-
-Administrator-path acceptance completed: operator supplies successful key logins from printer LAN to both `.1` and host school address `10.113.130.33`; school-side Mac also successfully logs into `.33:2222` (source `10.113.129.72` shown in subsequent login banner). On school Wi-Fi `.1` did not connect before manual cancellation; `.local` timed out with and without Mac VPN. On printer Wi-Fi `.local` resolves to `.1` and key login succeeds with verified fingerprint. This verifies school-local TCP 2222, not general school port policy. Host-owned `.33` reached from printer LAN is local INPUT, not forwarding to a school device. Keep DHCP and SSH unchanged; stable school name/address remains an external DHCP reservation/managed DNS option, not a setup blocker for demonstrated access. Operator has returned Mac to printer Wi-Fi. Next remaining acceptance: targeted DNS failure/no-fallback evidence and late-uplink startup; no printer association yet.
-
-### DNS-loss test staged — 2026-09-24 12:51
-
-Result/next checkpoint: test ran 12:52:38–12:53:24. At 12:52:51 tun0 absent; host-originated uncached proxy query returned REFUSED/EDE 23 Network Error, no answer; AP ping passed. Reconnect requested 12:53:17, tunnel HTTPS and fresh DNS authoritative negative response succeeded by 12:53:24, exit `79.142.77.75`. Guard counter stayed zero (no observed packet to protected resolver on wrong interface). Fallback canceled; no printing timers remain. Mac queries at 12:55:36/59 both succeeded after recovery, so downstream DNS during loss remains untested.
-
-School-interface outbound UDP/TCP-53 header capture found 19 UDP packets: 17 to `76.76.2.22`/`76.76.10.0`, 2 to school resolver `10.82.97.10`; zero capture drops. Cannot mark blanket no-DNS-egress accepted. Windscribe client log switches internal DNS to those public endpoints at 12:52:41, matching capture start; upstream changelog calls `.2.22` bootstrap DNS. This supports app-bootstrap origin but is not per-packet process attribution; school-resolver queries remain unattributed. No packet payload retained, no proof these were downstream proxy fallback, no firewall change made. Preserve logs/diagnostics. Next test should use a running Mac query loop before scheduling interruption, correlate controlled DNS marker traffic and investigate host resolver/process evidence; do not repeat a narrow 20-second manual timing request. Existing config/backups preserved, station incomplete.
-
-### DNS retry with active downstream loop — 2026-09-24 13:01
-
-Completed: capture contains 32 Mac marker request/reply pairs, including 18 REFUSED replies at 13:02:31–13:03:06 while tun0 absent, then normal negative answers resumed 13:03:08. HTTPS and host DNS passed by 13:03:14, new exit `68.67.118.166`. Actual downstream UDP DNS failure/recovery accepted for this case. School capture has 23 UDP packets: 17 public DNS packets individually match socket local ports owned by Windscribe PID 9399; 6 to `10.82.97.10` not sampled in time, attribution still pending. Marker query UDP lengths 64/70/126 differ from school packets (39/50/54/59); evidence supports distinction but no blanket no-host-DNS claim. All captures zero kernel drops. Fallback canceled, no test timers remain. Root-only scripts/logs retained; duplicate workspace script removed after comparison. Host school-DNS egress investigation and late-uplink startup still open.
-
-Operator confirms loop running; packet at 13:01:27 from `.181` to `.1:53` matches stationprobe marker. Stage root-only script `/var/lib/printing-station/tests/dns-loop-test-20260924.sh`: capture only marker UDP DNS requests/replies on printer Ethernet, outbound DNS headers on school interface, and port-53 UDP socket/process metadata; no general DNS payload dump. Prearm independent `printing-dns-loop-recover-20260924` reconnect timer before primary test. Disconnect about 35 seconds then reconnect and verify tunnel HTTPS/DNS; preserve all logs restricted. No firewall/profile changes. Goal: actual downstream refusal/recovery plus host-process attribution, without relying on operator timing.
-
-Plan: arm independent Windscribe-connect timer, start bounded outbound school-interface DNS header capture, deliberately disconnect VPN, query fresh name through `.1`, inspect tun0/guard counters and AP, then reconnect. Capture filter is only host school-address outbound UDP/TCP destination port 53, numeric quiet output (no payload dump). No profile/firewall changes. Primary test/capture logs and script root-only under `/var/lib/printing-station/tests/dns-loss-*20260924*`; fallback timer `printing-dns-recover-20260924`. Cancel fallback only after tunnel HTTPS restored; DNS result independently evaluated. Host-originated proxy test establishes that proxy's upstream path only; fresh downstream query during loss requested separately. Existing local/SSH recovery and GUI rollback preserved. No broad school traffic capture or infrastructure scan.
-
-Current service main PID 1099, NRestarts=0, Restart=on-failure/5s. Planned test kills only user-service main process with SIGKILL (no core dump), then observes a changed PID, active/connected status and tunnel HTTPS. Does not kill/test privileged helper or tunnel subprocess. Scripts staged in `.work/setup/vpn-process-{test,recover}-20260924.sh`, root-only copies/log under `/var/lib/printing-station/tests/`. Independent `printing-vpn-process-recover-20260924` timer must be verified armed before delayed primary test; fallback restarts user service and connects Stealth/443 if needed. Primary cancels fallback only on new-process/tunnel success. No persistent configuration edits; existing GUI rollback preserved. Mac post-test AP/HTTPS/DNS confirmation requested separately. Local fallback: `systemctl --user restart windscribe`, then `/opt/windscribe/windscribe-cli connect Stockholm stealth:443` if needed.
-
-Current operator request resumes setup; the September 22 stop-for-today instruction below is historical. Targeted checks passed on boot `56a11b6f-9190-46e5-9ea7-74926d46c8c4` (boot services started around 11:23:55). No live configuration changed or interruption performed.
-
-- `sudo -n true` succeeds now despite the previously recorded expiry; current authorization duration is unknown. AC mains online; active local X11 session reports Remote=no. Operator presence and usable local-terminal recovery still await explicit confirmation.
-- School Wi-Fi now `10.113.130.33/20`; printer Ethernet `.1/24`; tun0 `10.130.12.19/22`. Gateway/DHCP/SSH and user Windscribe active, linger=yes, Windscribe restart count 0. Stealth/443 and Always On reported. Tunnel-bound HTTPS matches reported exit `79.142.77.69`.
-- Host DNS through `.1` returns NOERROR; AP `.2` ping 2/2 and HTTP 200. Own gateway rules present, IPv4 forwarding on, IPv6 forwarding off; DNS listener restricted to `.1`, Ethernet DHCP whitelist retained. School PEAP CA/server-name validation preserved.
-- DHCP lease file currently empty and gateway forwarding counters zero: **no fresh downstream proof**. This observed boot is not another complete reboot acceptance test.
-- Recovery scripts and AP backup exist with expected restrictive permissions; contents/restoration not retested. No rollback/reboot timers listed. Backups preserved.
-
-Next concrete step: obtain operator confirmation of local terminal, available downstream client and no affected active prints; establish its DHCP/DNS/AP/HTTPS baseline, then stage school-uplink interruption/recovery with independent timed recovery and local instructions before disconnecting anything. Continue remaining network acceptance before printer association. Pending checkpoint was requested in the resumed session. SSH still listens on all addresses at TCP 2222; intended exposure and actual remote login remain unverified.
-
-Handoff refreshed 2026-09-24 in `HANDOFF-TEMP.md`; documentation-only work, no new operational validation. The recorded temporary sudo expiry is past; next agent must check availability rather than assume renewal. The September 22 stop-for-today boundary below records that session; resume setup when the operator invokes the handoff.
-
-Repository checkpoint: local Git repository on `main`, initialized after setup on 2026-09-22 with categorized Conventional Commits. No remote. Author identity is repository-local `edbfi <326875205+edbfi@users.noreply.github.com>`. AGPL-3.0-only license and `.gitignore` added; secrets, `.work/` and live-system backups remain outside Git. This records current project files, not historical system changes. Network setup remains at the verified reboot checkpoint below.
-
-Updated 2026-09-22 16:22 CEST, after operator-approved reboot. **Partially complete.** Actual Lubuntu machine; no OS/boot firmware work.
-
-## Stage status
-
-- Stage 1 baseline discovery: passed; see system/INVENTORY.md.
-- Stage 2 base: in progress. Graphics acceleration and Studio model rendering verified; touch/keyboard functional checks pending. Suspend/hibernate targets masked; physical lid/idle checks pending. Audio profiles repaired; audibility unconfirmed.
-- Stage 3 school Wi-Fi: working existing system-wide PEAP profile preserved; automatic boot reconnection passed; deliberate uplink-loss test pending.
-- Stage 4 VPN: official headless Windscribe CLI 2.24.13 installed, connected Stealth/443, Always On firewall, auto-connect; systemd user service enabled with linger and restart-on-failure. This boot passed; late-uplink/crash validation pending.
-- Stages 5–6 LAN/VPN gateway: connected-state downstream DHCP/DNS/HTTPS and one VPN-loss/recovery case passed; isolation/IPv6, Ethernet/AP interruption matrix incomplete; this host reboot restored networking.
-- Stage 7 printers: untouched, both remain on old Wi-Fi.
-- Stage 8 Studio: upstream 2.8.2.61 AppImage verified, CLI and GUI Setup Wizard launched; user configuration/plugins now present. 20 mm STL GUI import/render passed; slice/toolpath preview/transfer and A1 mini profiles unverified.
-- Stage 9 optional interface: operator explicitly deferred until much later; mixed workflow, no supplied code. No optional stack installed.
-- Stage 10 acceptance/cleanup: incomplete.
-
-## Current configuration
-
-- School Wi-Fi wlp0s20f3 / Ishoj Kommune, observed 10.113.130.14/20, gateway 10.113.128.1. Certificate validation preserved. System profile unrestricted by user, password-flags 0; autoconnect enabled.
-- Printer Ethernet enx00e04c5a5518: NetworkManager `Printer LAN`, 192.168.77.1/24, never-default, IPv6 disabled. Original wired profile retained, autoconnect off.
-- AP TL-WR902AC EU V4.40 label, UI v4 00000001 / firmware 0.9.1 0.3 v0089.0 Build 240903 Rel.41878n(4555). Switch AP/Rng Ext/Client; UI confirms AP mode. Static .2/24, gateway .1; DHCP off; 2.4 GHz SSID **3D-Printere**, WPA2-PSK/AES/20 MHz, client isolation off; 5 GHz off. No firmware/reset performed.
-- `printing-dhcp.service`: dnsmasq bound only to Ethernet, pool .100–.199, DNS only 10.255.255.1@tun0. `/etc/printing-station/dnsmasq.conf`.
-- `printing-gateway.service`: own nftables table `inet printer_gateway`, forwarding only printer subnet→tun0, established return traffic, NAT, nonpublic-destination/IPv6 drop, DNS fallback-interface guard. `/etc/printing-station/gateway.nft`. Host IPv4 forwarding enabled only after rules load; stop service disables forwarding.
-- Windscribe CLI 2.24.13 official service under <workstation-user>; `~/.config/Windscribe/windscribe_cli.conf`, override `~/.config/systemd/user/windscribe.service.d/printing-station.conf`; linger=yes. Latest observed exit **79.142.77.78**; tun0 10.130.12.14/22. GUI autostart removed and original saved.
-- Independent system services do not depend on kiosk. Boot verified: Windscribe started before desktop login and has no display environment variables. Explicit logout test pending.
-- Sleep/suspend/hibernate/hybrid/suspend-then-hibernate targets masked; originals were static. Charger now connected.
-- Exact-binary AppArmor profile `/etc/apparmor.d/printing-agent-browser` enables sandboxed automation Chrome. Task browser sessions were closed before reboot.
-
-## Verified evidence
-
-Mac client .181 on 3D-Printere reached router and ipify, initially matching VPN exit 149.50.216.80. DNS queries returned via .1; header-only capture showed Ethernet→DNS proxy→tun0 resolver and return packets. Corrected timed VPN disconnect removed tun0: forwarding accepts stopped, drop counters rose, AP ping worked, Mac internet stalled. Timed reconnect restored traffic; operator confirmed new exit 79.142.77.71. Mac AP browser during outage not explicitly confirmed.
-
-Headless migration initially misjudged an asynchronous login as failure; timed recovery **actually restored GUI and connectivity**, validating that rollback. Logs showed headless login had succeeded seconds later. Corrected retry waited for connected status, HTTPS bound to tun0 and DNS before canceling rollback locally. Headless service now active; no rollback timers armed. Agent API session can take minutes to resume despite local tunnel restoration; school blocks without VPN must not be misdiagnosed as client failure.
-
-## Stop point and next-session work
-
-**Latest operator scope: verify networking after reboot, then stop for today.** Local and Mac reboot checks passed. Operator confirmed AP access, DNS answers for google.com/example.com, and matching VPN exit 79.142.77.78. **Stopped for today.** Do not continue setup after this checkpoint today.
-
-For a later session: finish late-uplink, Ethernet/AP interruption, IPv6/private-network isolation and maintenance-access acceptance; then associate printers one at a time with operator, verify identities/modes and Studio A1 mini import/slice/preview/transfer. Physical print readiness remains a separate checkpoint. Optional interface remains explicitly deferred. Audio audibility/touch/lid checks also remain pending.
-
-## Audio state — defer further work today
-
-Repair applied using inspected upstream cd3c5f5c73cae02738b3b37e887a4b67579ef74c and UCM a46dd193ab81ed71c4465453f5297f21e413769f, normal JSL detection, no forced flags. UCM HiFi loads and speaker/headphone/mic nodes appear; 10% sample submitted but audibility unconfirmed. No firmware/module changes on this path. ALSA/WirePlumber backup and rollback are documented below and in OPERATIONS.md. Post-reboot audio functional test remains pending.
-
-## Recovery and retained artifacts
-
-- Network backups/scripts: root-only `/var/lib/printing-station/rollback/20260922/`. `lan-rollback.sh` restores old wired profile (not executed end-to-end); `gateway-rollback.sh` returns DHCP-only and disables forwarding (not executed end-to-end).
-- Windscribe known-good GUI package/config/autostart and tested `restore-gui.sh`: `.../windscribe/`. Canonical backup subdirs user-config, user-data, etc-state, lib-state; early merged duplicate directories not restoration sources. Restore script disables linger and reconnects GUI. Do not run while normal headless service is healthy.
-- AP backup `.work/setup/router-backups/before-ap-config.bin`, folder 0700/file 0600; includes secret-bearing configuration. Also retained initial-download.partial. Restore only via supported AP UI if needed.
-- Credentials ONLY in `~/.config/printing-station/credentials/` (0700), files router-admin.txt and printer-wifi.txt (0600). Do not print to agent logs/chat.
-- First generated Wi-Fi key accidentally appeared in a browser snapshot and was replaced; current key is different. All subsequent textboxes redacted.
-- Task artifacts `.work/setup/`; restricted test/migration logs `/var/lib/printing-station/tests/`. Keep unresolved diagnostic/rollback material.
-- Operator's own temporary sudo rule expires 2026-09-23 15:29 CEST. Use sudo -n; never request password in chat. Local LXQt/T3 Code agent depends on internet. SSH TCP 2222 key-only listens all addresses; actual remote access untested.
-
-See worklog/TESTS.md for scoped acceptance; worklog/ISSUES.md for failures. Successful command exit alone is not operation proof.
-
-## Reboot verification — 2026-09-22
-
-New boot ID cea77bca-934c-4ccd-881a-a9feac811ccb differs from saved preboot ID. Gateway rules and DHCP service active at first observation (uptime 10.57 s); tunnel HTTPS, DNS and AP ping passed by ~17 s, exit 79.142.77.78. Windscribe started 16:18:31, desktop session at 16:18:38; DISPLAY/WAYLAND_DISPLAY/XAUTHORITY absent from its process. PEAP CA/server-name validation settings preserved. DNS bound to .1; DHCP interface whitelist preserved (kernel socket wildcard when started before Ethernet exists). IPv6 forwarding remains off. Mac .181 renewed lease and actual tun0 forwarding/NAT counters increased; operator confirmed AP page, DNS NOERROR answers and matching ipify exit 79.142.77.78.
-
-Temporary boot-check service/timer disabled and removed from active system configuration; copies and root-only log retained in `/var/lib/printing-station/tests/`. Rechecked VPN HTTPS/AP/services after cleanup: passed. No reboot or rollback timers armed. Retain recovery/diagnostics for incomplete project.
+- Root-only migration snapshots on both machines: `/var/lib/printing-station/rollback/20261005/radxa-migration/`. Never blindly restore complete archives containing old sudo/system files.
+- Restricted staging: source `.work/radxa-migration/`, target `/home/<gateway-user>/.cache/printing-station-migration/`. Keep until migration/recovery is verified; secret files must remain outside Git.
+- Tested DNS rollback: `/var/lib/printing-station/rollback/20260928/controld-p2/rollback.sh`. Host-DNS, printer reservations, original network/GUI VPN and audio backups remain under dated rollback directories. Exact procedures and limits: [OPERATIONS](../operations/OPERATIONS.md).
+- AP preconfiguration backup and unresolved diagnostics remain restricted. Keep known-good rollback material; remove only identified, unnecessary task artifacts after relevant verification. No root-level cleanup in this recap.
+- Local Git on `main`, no remote. Use focused Conventional Commits, review staged files for secrets, and keep subject documents current rather than appending competing checkpoints. October 6 cleanup consolidated superseded documentation; historical versions remain in Git and evidence in worklogs. The obsolete temporary handoff was removed.

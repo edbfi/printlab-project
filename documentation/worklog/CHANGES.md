@@ -1,5 +1,13 @@
 # Verified changes
 
+Dated history of verified outcomes. Earlier pending limitations describe that checkpoint; use [STATE](../overview/STATE.md) and the latest subject documents for current work. Read-only October 6 recap findings are recorded in TESTS and subject documents.
+
+## 2026-10-06 — Reconciled documentation and migration roles
+
+Preserved previously uncommitted DNS and Radxa preparation records in separate Conventional Commits, then consolidated current state/topology/operations/inventory/printing/issues. Updated the brief with the operator's confirmed Radxa-router/Chromebook-kiosk division and removed superseded HANDOFF-TEMP.md. Historical evidence remains in dated worklogs and Git; no secrets, staging, root backups or live configuration removed.
+
+Validation: tracked Markdown local links resolve, all ten brief stages and key authorization checkpoints retained, diff whitespace checks pass, private inventory/staging remain ignored. After documentation cleanup, PC gateway/DHCP/helper/user VPN active, printer-proxy Control D answer and AP HTTP 200 pass, Radxa SSH/sudo still work. This verifies documentation maintenance and continuing host-side health, not target migration. Restore tracked documentation from Git if needed; live-system rollback is unchanged.
+
 ## 2026-10-05 — Direct Radxa SSH access
 
 Added separate persistent NetworkManager `Radxa direct` profile on enx00e04c5835c8 (IPv6 link-local, IPv4 disabled, never-default, autoconnect priority 10), and `radxa` SSH alias using <gateway-user>/TCP 22/id_ed25519. First-use host key stored in known_hosts. Existing encrypted key unlocked locally by operator. Direct and alias logins identify Radxa Dragon Q6A / Armbian Ubuntu 26.04. No Radxa settings modified.

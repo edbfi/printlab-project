@@ -1,33 +1,36 @@
 # System inventory
 
-2026-09-24 resumption: running kernel now `7.0.0-34-generic` (local uname verified); September 22 kernel below is historical. No kernel installation performed by this resumed task.
+Current inventory reconciled 2026-10-06. Dates identify observation scope; this is not complete hardware/workload acceptance.
 
-Observed 2026-09-22 through local read-only commands.
+## Lubuntu Chromebook — intended kiosk
 
-| Item | Observation |
+| Item | Verified observation |
 |---|---|
-| OS | Ubuntu 26.04.1 LTS; Lubuntu desktop packages installed |
-| Kernel | 7.0.0-31-generic, x86_64 |
-| CPU | Intel Celeron N5100, four logical CPUs |
-| Memory | 7.6 GiB usable; about 4.6 GiB available at inspection |
-| Swap | None configured at inspection |
-| Storage | mmcblk1, 29.1 GiB eMMC; root about 20 GiB available |
-| USB Ethernet | USB ID 0bda:8153, Realtek RTL8153; bound driver r8152 |
-| Wi-Fi | wlp0s20f3; active connection Ishoj Kommune |
-| Network manager | NetworkManager active |
-| Windscribe | GUI package 2.24.12; CLI at /opt/windscribe/windscribe-cli |
-| SSH | Service active; access and exposure not validated |
-| Firewall | Windscribe nftables table present; UFW reports inactive |
-| Browser automation | agent-browser installed and core skill loaded |
+| Machine | Acer Chromebook Spin 511/R753T class reported; DMI Google Magolor, coreboot MrChromebox-2606.1 observed September 22 |
+| OS | Ubuntu 26.04.1 LTS with Lubuntu; kernel **7.0.0-38-generic** observed October 6; no kernel installation in recap |
+| CPU / memory | Intel Celeron N5100, four logical CPUs; 7.6 GiB usable RAM |
+| October 6 resources | Root 29 GiB, 17 GiB used / 13 GiB available; 5.4 GiB RAM available; no swap. Active session, not idle or slicing benchmark |
+| Storage / boot | Internal eMMC, XFS root, FAT EFI partition; October 6 root `/dev/mmcblk0p2`. Device numbering differs from initial observation; use filesystem identity when needed |
+| Graphics / desktop | Intel Jasper Lake/i915, X11/LXQt, 1366×768 at 60 Hz; September 22 accelerated Mesa 26.0.8/OpenGL 4.6 and Studio rendering verified |
+| Inputs | Elan touchscreen/touchpad and AT keyboard enumerate; physical touch/scaling acceptance pending |
+| School Wi-Fi | wlp0s20f3, iwlwifi; NetworkManager `Ishoj Kommune`; protected PEAP profile preserved |
+| Printer adapter | enx00e04c5a5518, Realtek RTL8153/r8152, USB ID 0bda:8153; selected UE300 reported by operator |
+| Radxa adapter | enx00e04c5835c8, separate RTL8153/r8152; direct management link |
+| Windscribe | CLI-only 2.24.13 replaced GUI 2.24.12; lingering systemd user service, Stealth/443 |
+| Studio | Official 2.8.2.61 AppImage plus WebKit runtime; GUI/model rendering and both device visibility verified September 24 |
+| SSH | TCP 2222, key-only; actual access from printer and school networks verified September 24 |
+| Power | Sleep/hibernate targets masked and rechecked October 6; physical lid/idle/power-loss behavior untested |
 
-Operator reports TP-Link UE300 adapter and TL-WR902AC EU V4.40 router. Router firmware and exact machine board identity remain unverified. Bambu Studio absent per operator. Touch, audio, graphics, suspend and recovery tests remain pending.
+Audio repair followed normal JSL detection with inspected installer `cd3c5f5c73cae02738b3b37e887a4b67579ef74c` and UCM `a46dd193ab81ed71c4465453f5297f21e413769f`. HiFi now exposes speaker/headphone/mic profiles; low-volume sample submission was observed, audibility and post-reboot functional checks remain unconfirmed. No forced flags, boot firmware flashing or audio firmware/module changes on that repair path. Recovery in [OPERATIONS](../operations/OPERATIONS.md).
 
-## Completed baseline continuation
+Initial Studio session peaked around 1.1 GiB; headless Windscribe main process around 18.4 MiB (helper/tunnel excluded). These September observations are not final workload budgets. Local agent depends on working internet; reconnection can lag network recovery.
 
-DMI board `Google Magolor`, coreboot `MrChromebox-2606.1`; UEFI system partition mounted at /boot/efi. Internal eMMC root is XFS, 300 MB FAT EFI partition, no external storage observed. Intel Jasper Lake graphics bound to i915; display X11/LXQt at 1366×768, 60 Hz. Elan touchscreen, touchpad and AT keyboard enumerate; physical touch/scaling tests pending. Wireless iwlwifi, rfkill unblocked; actual on-air SSID matches Ishoj Kommune. USB Ethernet runs at USB 5000 Mb/s enumeration speed (not a measured network throughput).
+## Radxa — intended router and possible development host
 
-Audio: sof-audio-pci-intel-icl / sof-rt5682 enumerates but PipeWire exposes only Dummy Output, no sources. Repair investigation required; no playback or repair attempted yet. LXQt power manager controls lid/suspend; gateway awake policy not yet configured.
+Identified over direct SSH October 5 and rechecked October 6: hostname `radxa-dragon-q6a`, user `<gateway-user>`, Radxa Dragon Q6A, aarch64, Armbian 26.8.3 / Ubuntu 26.04; kernel `6.18.2-current-qcs6490`. enp1s0 is the direct cable, wlan0 the planned school uplink. Docker active with docker0 `172.17.0.1/16` (link down at observation). Unbound 1.24.2-1ubuntu2.2 installed; Windscribe CLI not installed yet. No CPU/RAM/storage workload budget established here.
 
-SSH listens on all addresses TCP 2222, public-key authentication enabled, password authentication disabled and root login disabled. Remote access untested. Local session 3 is Remote=no and agent descends from LXQt/T3 Code; preserve internet for online agent. About 4.4 GiB RAM available with current desktop/apps; root had 20 GiB free before Studio runtime installation. These are active-session observations, not clean idle measurements.
+Intended role: school enterprise uplink plus Windscribe printer gateway, independent of the Chromebook. Operator may also use it for personal development/server workloads; preserve Docker, with additional services/exposure not yet specified or requested. Migration has not activated these network roles. See [RADXA-MIGRATION](../network/RADXA-MIGRATION.md) for clock/privilege recovery and staging.
 
-Post-setup measurements: root about 19 GiB free, about 4.1 GiB available RAM with active desktop/browser/agent; no swap. Graphics acceleration verified by glxinfo: Intel UHD/JSL, Mesa 26.0.8, OpenGL 4.6, direct/accelerated rendering. Windscribe headless process observed ~18.4 MiB RSS/service memory (helper/tunnel and desktop excluded). Studio initial GUI session peak ~1.1 GiB. This is not a slicing workload budget yet.
+## AP and printers
+
+TL-WR902AC EU V4.40 in AP mode at `.77.2`; exact observed firmware/radio settings in [TOPOLOGY](../network/TOPOLOGY.md). Both Bambu A1 minis identified, reserved at `.115`/`.145`, cloud baseline and Studio visibility established; hardware/firmware details and remaining print acceptance in [WORKFLOW](../printing/WORKFLOW.md). Private serial inventory remains Git-ignored.

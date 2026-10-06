@@ -1,5 +1,22 @@
 # Validation
 
+Dated historical evidence follows; later results supersede earlier pending observations. The current acceptance summary is in [STATE](../overview/STATE.md). Do not rerun completed tests solely because an older entry says pending.
+
+## 2026-10-06 — Recap and non-disruptive health checks
+
+No services/configuration/cables/printer controls changed. At 08:25–08:29 UTC:
+
+- PC printing-gateway/printing-dhcp/windscribe-helper and user Windscribe active; CLI connected Stockholm Fika, Stealth/443, Always On; HTTPS explicitly bound to tun0 returned `68.67.118.173`.
+- System and `.1` DNS returned Control D identity `147.185.34.1`; `.1` doubleclick.net returned `0.0.0.0`; global resolver is `127.0.0.1`. This is host-originated evidence, not fresh downstream/packet-capture proof.
+- AP `.2` HTTP 200 and AP/printer `.115`/`.145` ping 2/2 each. Existing PC school `.33/20`, printer `.1/24`, and separate direct link remain active.
+- Direct `ssh radxa` login and renewed target sudo pass. Effective sshd policy: TCP 22, keys enabled, root/password/keyboard-interactive login disabled. Grant embedded deadline `20261006142133Z` matches active removal timer (16:21:33 CEST).
+- Radxa system UTC matches PC at sequential observation. NTP disabled/unsynchronized, timesyncd inactive, RTC reports July 2165: clock recovery unresolved, not a pass. Source `sudo -n true` fails and needs local authentication for later privileged work.
+- Radxa wlan0 down, enp1s0 only link-local, no default route/tun0; Docker active, printer services inactive; Windscribe CLI absent, Unbound installed. No migration rollback units/bootstrap listener observed.
+- Package SHA-256 matches source/target and recorded official digest; staging/secrets directories 0700, secret files 0600. Root target snapshot directory 0700 with snapshot/firewall/package/service/grant records. Source root backups not freshly inspected without sudo. Retained simulation log has sixteen PASS assertions; no new firewall simulation run.
+- PC has no named test namespaces and no listed printing/radxa test timers. Sleep targets remain masked. Inventory refreshed from uname/df/free; no install or resource stress test.
+
+Documents/history/scripts reviewed, obsolete current-state instructions consolidated and temporary handoff removed. Read-only recap is not target activation, full reboot/outage acceptance or a Studio/printing check. No root/staging cleanup; recovery material retained. After documentation cleanup, PC gateway/DHCP/helper/user VPN remain active, printer-proxy Control D identity and AP HTTP 200 pass, and Radxa SSH/sudo still work. Markdown local links and all ten brief stages/checkpoints validated; diff whitespace check passes; staging/private inventory remain Git-ignored.
+
 ## 2026-10-05 — Radxa migration staging validation only
 
 Windscribe 2.24.13 ARM64 installer digest verified against official release and again after transfer; bundled dependency resolution checked without starting client. Protected configuration/script bundle transferred; shell, nftables and dnsmasq syntax checks passed. Staged units reference not-yet-installed helpers, so full unit verification remains pending on target. No package installed or target network activated.
@@ -139,13 +156,15 @@ Boot ID `56a11b6f-9190-46e5-9ea7-74926d46c8c4` differs from September 22; servic
 
 Recovery scripts stat successfully under root-only rollback directory (0700); AP backup remains 0600. No rollback/reboot timers listed. Restore contents and recovery execution not retested. Operator presence, usable local recovery terminal, test client and no affected active prints await confirmation before disruptive acceptance. Remaining outage/isolation checks stay pending.
 
+### Historical initial baseline — superseded by dated results above
+
 | Check | Status | Evidence / remaining work |
 |---|---|---|
 | Machine resources | passed (discovery only) | lscpu, free, df, lsblk; see inventory |
 | USB Ethernet enumeration/link | passed (discovery only) | lsusb, sysfs driver link, ip address |
 | School profile inspection | passed (discovery only) | nmcli shows PEAP, CA and server-name settings |
 | Host VPN inspection | passed (discovery only) | CLI reports Stealth/443; tun0 routes and nftables observed |
-| School/VPN reconnect | not started | Requires deliberate interruption and recovery |
+| School/VPN reconnect | not started at initial baseline | Requires deliberate interruption and recovery |
 | AP configuration and printer LAN | not started | No Ethernet IPv4 address or AP management access |
 | Downstream egress/DNS/fail-closed | not started | Requires actual downstream traffic evidence |
 | Studio and both printers | not started | Installation, association and workflow pending |

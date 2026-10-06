@@ -1,12 +1,13 @@
 # Lubuntu printing station
 
-Project files and documentation for a touch printing station serving two Bambu Lab A1 minis through a dedicated printer network and Windscribe VPN.
+Project files and documentation for a Lubuntu Chromebook touch kiosk serving two Bambu Lab A1 minis. The current migration moves school Wi-Fi, Windscribe and printer routing to a Radxa Dragon Q6A, so networking can operate independently of the kiosk. The Chromebook remains the live gateway until verified cutover.
 
 Start with [current state](documentation/overview/STATE.md) and the [setup brief](documentation/overview/SETUP-BRIEF.md).
 
 ## Documentation
 
 - [System inventory](documentation/system/INVENTORY.md)
+- [Radxa migration and recovery](documentation/network/RADXA-MIGRATION.md)
 - [Network topology](documentation/network/TOPOLOGY.md)
 - [Printing workflow](documentation/printing/WORKFLOW.md)
 - [Kiosk configuration](documentation/kiosk/CONFIGURATION.md)

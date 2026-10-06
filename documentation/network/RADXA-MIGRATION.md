@@ -1,10 +1,20 @@
 # Radxa router migration
 
-## Status — 2026-10-05
+## Status — recap verified 2026-10-06, 08:25–08:29 UTC
 
-Approved autonomous preparation and isolated testing; final AP cable movement requires the operator. Existing PC remains the live gateway. Docker must remain active on Radxa; the PC becomes an ordinary optional client after cutover. No printer controls or application migration.
+The PC remains the live gateway. Current operator request is a recap before continuing activation: keep cables and live services unchanged. The earlier approved migration moves school Wi-Fi, Windscribe, DNS, DHCP and routing to Radxa; Docker stays active and the PC becomes an optional client after verified cutover. No printer controls or application migration.
 
-**Blocked before Radxa network activation:** clock correction set correct wall time but missed the sudo grant's embedded NOTAFTER deadline. Sudo is expired. The operator has been asked to renew their grant through their usual method. Time-sync and the expired grant cleanup timer are stopped; repair/check immediately after renewal. The old clock script is diagnostic only and must not be rerun. No privilege workaround is authorized or prepared.
+Renewed Radxa `sudo -n true` passes. The embedded grant deadline is `NOTAFTER=20261006142133Z` (16:21:33 CEST); its removal timer is active with the same deadline. Recheck availability when resuming. PC `sudo -n true` currently fails; source-side privileged testing/cleanup needs the operator's existing local renewal method when that work resumes.
+
+Radxa system UTC matches the PC within the sequential check interval, but `NTP=no`, `NTPSynchronized=no` and systemd-timesyncd is inactive. RTC reports July 2165 and needs investigation/correction. The original clock script must not be rerun. Renewal has restored the grant cleanup timer; it is no longer stopped. No clock/service repair was performed during this recap.
+
+Direct key-only SSH works. Radxa wlan0 is down, Ethernet has only IPv6 link-local, no internet default route or tun0 is present, Docker is active, and printer services are inactive. Windscribe CLI is not installed; Unbound 1.24.2-1ubuntu2.2 remains installed. No migration rollback units or bootstrap listener were observed. This confirms preparation rather than activation.
+
+## Intended outcome — operator reconfirmed 2026-10-06
+
+Radxa owns the school `Ishoj Kommune` uplink, Windscribe tunnel and dedicated printer gateway/DHCP/DNS. The Lubuntu Chromebook runs Studio/kiosk as an ordinary optional client, not a routing dependency. Acceptance includes printer networking with the Chromebook disconnected/off. Preserve Docker on Radxa; possible personal development/server hosting is future context, with no new workload or public exposure requested now.
+
+The operator identifies the October 5 preparation as execution of a prior Codex Plan Mode plan. No separate original plan document was found in this project; this checkpoint and the staged scripts preserve the available implementation/resumption record. The previously uncommitted migration notes were captured in commit `df1be5a` during the October 6 recap.
 
 ## Prepared artifacts
 
@@ -18,7 +28,7 @@ Root-only snapshots: `/var/lib/printing-station/rollback/20261005/radxa-migratio
 
 ## Resumption sequence
 
-1. Verify renewed target sudo. Inspect corrected time and the operator's new grant/removal timer. Restart time sync and set/check RTC using installed timedatectl; hwclock is absent. Do not rerun clock-correct.py.
+1. Recheck target sudo and matching embedded expiry/removal timer, and source sudo before source-side privileged work. Investigate/correct the invalid RTC and restart time sync using available tooling; hwclock is absent. Verify results separately: restarting a service without an internet route does not prove synchronization. Do not rerun clock-correct.py.
 2. Review then run target `apply-school-wifi.sh` as root. It installs a five-minute independent WLAN rollback, uses protected PEAP/MSCHAPv2 and exact server-name validation, retains networkd and replaces the generated old home-Wi-Fi supplicant configuration. Existing Ethernet link-local access stays in place. It prints only the new school address upon association. Actual authentication remains untested.
 3. Verify authenticated SSH to that address from this PC's school interface, pinning the already-known Radxa host key. Only after success, stop `radxa-wifi-rollback.timer` and create root-owned `school-ssh.verified` in the rollback directory. Preserve numeric school access separately from direct-link SSH.
 4. Start a temporary loopback-only reverse SOCKS tunnel from source:
@@ -42,3 +52,11 @@ Firewall/DHCP/shell syntax checks pass. Source systemd unit verification cannot 
 `check-firewall-isolated.sh` created five temporary namespaces with mock printer, school, tunnel and Docker networks. All sixteen behavioral assertions passed: local gateway; printer VPN; existing Docker egress; private school and container destination blocks; unsolicited school-to-printer block; idempotent Docker rule recovery; reachable school fallback baseline; blocked printer fallback with VPN route removed; local access during loss; restored VPN; printer stop; unaffected Docker/local access during stop; reload; spoofed source rejection. Namespaces removed afterward. Log: source staging `firewall-check.log`.
 
 These are implementation checks in an isolated simulation, not evidence of real Radxa radio, tunnel, DHCP or reboot behavior. Native IPv6 and DNS leak behavior still require actual target verification.
+
+## Read-only staging review — 2026-10-06
+
+Source and target package digests still match the recorded SHA-256. Staging/secrets directories are 0700 and the three secret files are 0600 on each host. The root-owned target backup directory is 0700 and contains the snapshot plus firewall/package/service/grant records. Source backup existence was recorded on October 5 but could not be freshly checked without source sudo. The retained simulation log contains all sixteen PASS results; tests were not rerun for the recap.
+
+Re-review scripts against live state before execution. `apply-school-wifi.sh` also changes time/NTP before arming its WLAN rollback. `install-router.sh` installs packages before arming its router rollback. `restore-router.sh` is scoped network recovery, not full uninstall: installed packages, copied files and enabled user lingering can remain. Its service/power restoration assumptions and actual rollback behavior need validation before use. Existing snapshots must remain available; do not restore the entire archive, especially old sudo files.
+
+Keep the restricted staging and diagnostic clock script until the unfinished migration/recovery is resolved. No staging artifacts, backup files, live configuration or services were removed or modified during this recap.

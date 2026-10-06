@@ -6,7 +6,7 @@ Operator authorizes implementation. PC remains live gateway and AP cable stays u
 
 Both sudo grants work. Target embedded grant/removal timer expire 16:21:33 CEST; source removal timer expires 16:38:02 CEST. Recheck before privileged work; no authorization metadata changes. Source backup directory now rechecked 0700.
 
-Router installation currently runs in bounded `radxa-router-apply.service` (8 minutes), with independent 10-minute rollback armed before package installation. Loopback bootstrap SOCKS active until dependency work completes. No target gateway/VPN acceptance claimed yet. Docker stays active; source printer segment untouched.
+Router installation completed under bounded apply/rollback. Independent target VPN, Control D DNS and school/direct SSH passed before rollback cancellation. Temporary HTTP/SOCKS bootstrap removed; no source proxy dependency. Real isolated client `.139` DHCP/DNS/SSH/HTTPS, VPN loss/recovery and main-process restart pass. NTP synchronized. Further Docker/uplink/isolation/reboot tests underway; AP/printers remain on PC. Evidence in TESTS; physical handoff pending.
 
 ## Intended outcome — operator reconfirmed 2026-10-06
 

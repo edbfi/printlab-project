@@ -2,6 +2,18 @@
 
 Dated historical evidence follows; later results supersede earlier pending observations. The current acceptance summary is in [STATE](../overview/STATE.md). Do not rerun completed tests solely because an older entry says pending.
 
+## 2026-10-06 — Radxa router and real isolated downstream validation
+
+Installed verified Windscribe CLI 2.24.13 ARM64 plus dnsmasq/tcpdump/arping dependencies, with rollback armed before APT and bounded apply lifetime. Activated networkd `.77.1` on isolated enp1s0, own gateway/Docker integration, DHCP reservations, resolved and Windscribe Control D p2; original Unbound disabled and retained. Existing user linger was already enabled; sleep targets masked. School/direct key SSH retained. NTP now synchronized and RTC correct.
+
+Initial API requests timed out on school transport despite an accepted session request. A temporary loopback HTTP CONNECT proxy through source VPN completed login/server-data bootstrap. Proxy preferences then cleared, HTTP/SOCKS forwarding and source proxy service closed. Actual independent target Stealth/443 tunnel and DNS passed; source VPN session preserved. No new account credentials needed. Temporary diagnostic script retained until stage cleanup.
+
+Real source-spare-adapter namespace client obtained DHCP `.139/24`, gateway/DNS `.1`, 12-hour lease; local ping and key SSH passed. Control D identity, blocking and TCP DNS passed. Three client HTTPS samples through target VPN: 222/194/196 ms, matching Radxa exit `68.67.118.166`; source comparison 215/229/217 ms. Small request sample only, not a throughput benchmark. Gateway/NAT counters exercised. Namespace physically separate from live source printer segment.
+
+Controlled target VPN loss: no tun0, client explicit-IP HTTPS timed out (HTTP 000), UDP fresh DNS timed out and TCP DNS REFUSED, local ping/SSH passed; own no-fallback drop counter increased. Reconnect restored pinned-IP HTTPS and Control D DNS, matching exit `146.70.242.135`. Target school-interface capture spanning outage/recovery: zero configured Control D endpoint/school-resolver DNS packets, zero capture drops. Windscribe bootstrap traffic is outside this specific capture claim. Recovery timer canceled after functional success; root log `dns-outage-headers.log` in migration backup.
+
+Main Windscribe user-process SIGKILL: PID 15445 replaced by 18927, NRestarts 0→1, downstream HTTPS/DNS restored automatically with matching `.135` exit; independent fallback canceled without execution. Helper crash not tested. Further uplink/Docker/isolation/reboot tests pending; physical AP handoff has not occurred. Root snapshots and scoped restore-router.sh retained; rollback not exercised end-to-end.
+
 ## 2026-10-06 — Radxa RTC recovery and school Wi-Fi
 
 Used timedatectl to write already-correct system UTC to the invalid RTC; system/RTC now agree and NTP service is enabled/active. External synchronization remains pending until reachable time service; sudo permission deadline and active cleanup timer remain unchanged (14:21:33 UTC).

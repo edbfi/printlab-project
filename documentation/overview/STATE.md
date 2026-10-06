@@ -1,12 +1,12 @@
 # Current state
 
-Updated 2026-10-06 after documentation/history review and non-disruptive checks. **Partially complete. Radxa migration prepared, not activated.** Operator now authorizes continuation of the approved migration. Preserve live PC gateway and cable layout through isolated Radxa preparation/tests.
+Updated 2026-10-06 after documentation/history review and non-disruptive checks. **Partially complete. Radxa router active on isolated test segment; physical cutover pending.** Operator now authorizes continuation of the approved migration. Preserve live PC gateway and cable layout through isolated Radxa preparation/tests.
 
-## Active work — 2026-10-06 09:20 UTC
+## Active work — 2026-10-06 09:25 UTC
 
-RTC corrected to current UTC via timedatectl; NTP service enabled/active, external synchronization not yet established. Sudo expiry unchanged. School PEAP authentication and DHCP `.35/20` passed after adding required PMF (`ieee80211w=2`); CA/name checks retained. School-side key SSH verified with existing host key, persisted config reloaded and association reverified. WLAN rollback canceled after login proof; original home-WLAN config retained.
+Radxa router installed; direct/school SSH, tunnel HTTPS (`68.67.118.166`), Control D host DNS and services pass. Saved login state accepted after temporary loopback HTTP bootstrap fetched API data; API initially timed out on school transport. HTTP/SOCKS proxies removed and prefs returned to no proxy; actual tunnel now independent. Router rollback canceled only after functional checks. NTP restarted with tunnel ready; synchronization pending check.
 
-Next: install/stage router with 10-minute independent rollback armed BEFORE packages; bounded apply service stops by 8 minutes to prevent later writes racing rollback. Preflight: Docker active/no containers, original Unbound enabled, resolved disabled, linger already yes, sleep targets static, no existing Windscribe client state. Rollback restores original resolver/network, retains school WLAN and packages/diagnostics, and archives new client state. Snapshots at `/var/lib/printing-station/rollback/20261005/radxa-migration/`; tested bootstrap SOCKS currently open on target loopback 18080. PC printer segment remains untouched.
+Next: actual downstream namespace on source spare adapter ONLY. Root source recovery script `/var/lib/printing-station/tests/radxa-restore-test-link-20261006.sh`, timer `radxa-test-link-recover` at +45 minutes restores direct profile and deletes test namespace/bind files. Namespace `radxa-test`, source config `/etc/netns/radxa-test/`, staging DHCP client script. School SSH via restricted `.work/radxa-migration/ssh-school.conf` remains available; live source printer adapter untouched. Test target outages/reboot only after independent recovery is armed.
 
 ## Intended division of roles
 
@@ -15,9 +15,9 @@ Operator reconfirmed October 6: Radxa takes over `Ishoj Kommune` school Wi-Fi, W
 ## Immediate checkpoint
 
 - Radxa direct SSH and renewed `sudo -n true` pass. Grant and active removal timer both expire **2026-10-06 16:21:33 CEST / 14:21:33 UTC**. Recheck before root work; do not modify authorization deadlines.
-- Radxa system time matches PC UTC, but time sync is inactive/unsynchronized and RTC reports July 2165. Clock recovery is unfinished. Do not rerun `clock-correct.py`.
+- Radxa RTC corrected and NTP synchronized (October 6 target check). Original interrupted `clock-correct.py` remains diagnostic only; do not rerun.
 - Chromebook `sudo -n true` now passes (08:39 UTC), superseding the initial recap failure. Active removal timer targets **2026-10-06 16:38:02 CEST**; effective root NOPASSWD entry has no embedded NOTAFTER. Recheck when resuming.
-- Radxa wlan0 is down, no internet default route/tunnel, no installed Windscribe CLI or active printer services. Docker remains active. Only direct management and staging are established.
+- Radxa school Wi-Fi `.35`, independent Stealth/443 tunnel, Control D DNS and printer gateway active on the isolated cable. Docker active. Real namespace client DHCP/DNS/SSH/HTTPS and target VPN-loss/process-recovery checks pass. AP/printers still use PC.
 - Full migration plan, artifact permissions, package digest, recovery limitations and next steps: [RADXA-MIGRATION.md](../network/RADXA-MIGRATION.md).
 
 ## Working system
@@ -39,7 +39,7 @@ Fresh host-side checks on October 6: gateway/DHCP/helper/user VPN services activ
 | Both printers | Association passed | Confirmed identities, fresh DHCP reservation ACKs, LAN Only Off, dedicated-account binding and Studio visibility; no transfer/print proof |
 | Studio | In progress | 2.8.2.61 AppImage, GUI import/render and A1 mini 0.4 mm/Textured PEI profile; actual filament, slicing/preview/transfer and profile/session persistence pending |
 | Kiosk/optional interface | Deferred | Mixed prepared-job/new-model workflow; no kiosk users, custom UI, Bambuddy or Android stack created |
-| Radxa migration | Prepared | Direct SSH, restricted package/config staging and sixteen simulated firewall assertions; real target WLAN/VPN/DHCP/recovery/boot tests pending |
+| Radxa migration | Isolated testing | Real school SSH, DHCP/DNS/HTTPS, VPN loss/recovery and main-process recovery passed; further isolation/Docker/uplink/boot tests and physical handoff pending |
 | Complete station acceptance | Incomplete | Physical prints require explicit readiness; final cleanup follows verified completion |
 
 Detailed dated evidence is in [TESTS](../worklog/TESTS.md), verified changes in [CHANGES](../worklog/CHANGES.md), faults/remaining side effects in [ISSUES](../worklog/ISSUES.md). Historical entries describe their observation time; current subject documents supersede old pending instructions.

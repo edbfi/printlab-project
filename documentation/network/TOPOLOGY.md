@@ -46,6 +46,14 @@ Radxa uses systemd-networkd for addressing and `wpa_supplicant@wlan0` for enterp
 
 Windscribe CLI uses Stealth/443 with autoconnect, LAN access and Always On firewall. Its user service runs as `<gateway-user>`, with linger and restart-on-failure; the privileged helper is a system service. Neither needs a Chromebook login or application. Keep Radxa and the AP powered for printer networking.
 
+### VPN location selection
+
+Read-only inspection on 2026-10-06 reports **Stockholm – Djurgarden** connected. The saved CLI preferences enable `Autoconnect=true` and manual **Stealth/443**, including the school-network override. “Manual” selects the protocol/port; it is not a server-ranking policy. The user service starts Windscribe without a location argument, and the printing helpers do not implement a ranked location list or country failover.
+
+Windscribe's [v2.24.13 auto-connect logic](https://github.com/Windscribe/Desktop-App/blob/v2.24.13/src/client/frontend/frontend-common/backend/backend.cpp#L854-L880) uses the saved last location when valid, otherwise the available Best Location. The installed CLI help likewise specifies that `connect` reuses the last connected location, while `connect best` requests Best Location. Best Location is chosen by measured latency, not a guarantee of maximum throughput; see [Windscribe's explanation](https://windscribe.com/knowledge-base/articles/how-is-best-location-determined).
+
+An explicit city request such as the `connect Stockholm stealth:443` recovery command chooses a random datacenter within that city; a nickname targets a particular location. This differs from reconnecting the saved selection. The observed location/public exit is not an immutable configuration value. No location change or failure test is performed for this inspection, and it does not establish Windscribe's internal server-node retry order or guaranteed failover to another city/country.
+
 ## DNS paths
 
 ```text

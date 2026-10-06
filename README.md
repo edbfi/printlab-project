@@ -1,6 +1,8 @@
 # Lubuntu printing station
 
-A working Bambu Studio station for two Bambu Lab A1 mini printers. Radxa Dragon Q6A supplies the school uplink, Windscribe VPN and printer network services. The Lubuntu Chromebook is an ordinary Wi-Fi client. The operator confirms the printing workflow, including slicing and transfer, works.
+A Bambu Studio station for two Bambu Lab A1 mini printers. Radxa Dragon Q6A supplies the school uplink, Windscribe VPN and printer network services. The Lubuntu Chromebook is an ordinary Wi-Fi client. The operator confirms the printing workflow, including slicing and transfer, works.
+
+A current printer-LAN connectivity incident is recorded in [STATE](documentation/overview/STATE.md). The Chromebook currently uses school Wi-Fi for administration.
 
 Chromebook kiosk mode is planned for later and is not implemented.
 

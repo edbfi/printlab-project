@@ -2,6 +2,18 @@
 
 Dated history of verified outcomes. Earlier pending limitations describe that checkpoint; use [STATE](../overview/STATE.md) and the latest subject documents for current work. Read-only October 6 recap findings are recorded in TESTS and subject documents.
 
+## 2026-10-06 — Final migration staging cleanup
+
+Saved restricted final target `verified-usb-router-20261006.tar` and source `chromebook-client-20261006/verified-client.tar`. Moved obsolete user staging into root migration `retired-staging/nonsecret-target-stage/` and `nonsecret-chromebook-stage/`; preserved earlier tested rollback, installer, credentials and diagnostic/UI evidence. Fresh client DNS/HTTPS and target gateway/DHCP/Docker/NTP passed after archival. Only operator sudo-expiry timers remain among task-related timers. Full source reboot acceptance remains pending.
+
+## 2026-10-06 — Final USB gateway recovery and independence verified
+
+Actual Chromebook Wi-Fi client retained local reachability but lost pinned-IP HTTPS/fresh DNS when Radxa VPN disconnected; target scheduled reconnect recovered both. Actual Radxa USB reboot restored WLAN/VPN/gateway/DHCP/Docker and NTP automatically; client HTTPS recovered without fallback. School DHCP changed to 10.113.128.131; alias updated. During about 30 seconds of Chromebook Wi-Fi disconnection, Radxa could not ping it but reached AP/both printers and retained gateway/DHCP/Docker/VPN HTTPS. Timed client reconnect passed. No printer controls or firmware actions performed.
+
+## 2026-10-06 — Chromebook router and VPN retired
+
+Chromebook joined 3D-Printere as DHCP client `.179`, gateway/DNS `.1`, IPv6 disabled. Fresh ACK, DNS identity/filtering, AP/both printer reachability and HTTPS matching Radxa passed without tun0. Disabled former gateway/DHCP/VPN/helper, removed only their known nftables tables, verified forwarding zero. Saved matching AMD64 installer; removed Windscribe CLI package only after dependency/removal-script review. Archived old router units/configuration and user VPN state root-only; removed obsolete Printer LAN/Radxa direct profiles. Client autoconnect on, school profile retained with autoconnect off. Updated pinned SSH aliases. Post-cleanup DNS/HTTPS/SSH passed; applications preserved. Studio reopened with account and both devices online. Full client reboot remains pending.
+
 ## 2026-10-06 — Radxa physical printer gateway moved to USB
 
 Moved printer address/networkd match, DHCP/DNS binding, nftables interface rules and Docker printer allowances to the operator-selected USB `enx00e04c5a5518`. Built-in enp1s0 now unused (no IPv4/DHCP). School SSH remained available. Actual AP HTTP 200 and both known printer IP/MAC pairs/pings passed; target DNS/HTTPS and downstream VPN counters passed. Root-only port snapshot and scoped restore retained; rollback timer canceled without execution. Chromebook VPN/client transition still pending.

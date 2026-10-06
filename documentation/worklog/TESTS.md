@@ -2,6 +2,22 @@
 
 Dated historical evidence follows; later results supersede earlier pending observations. The current acceptance summary is in [STATE](../overview/STATE.md). Do not rerun completed tests solely because an older entry says pending.
 
+## 2026-10-06 — Final migration staging cleanup
+
+Saved restricted final target `verified-usb-router-20261006.tar` and source `chromebook-client-20261006/verified-client.tar`. Moved obsolete user staging into root migration `retired-staging/nonsecret-target-stage/` and `nonsecret-chromebook-stage/`; preserved earlier tested rollback, installer, credentials and diagnostic/UI evidence. Fresh client DNS/HTTPS and target gateway/DHCP/Docker/NTP passed after archival. Only operator sudo-expiry timers remain among task-related timers. Full source reboot acceptance remains pending.
+
+## 2026-10-06 — Final USB gateway and Chromebook acceptance
+
+Fresh Radxa DHCP ACK on USB issued Chromebook 192.168.77.179 to d0:65:78:5c:0a:30. Client gateway/DNS .1; actual system and TCP/UDP queries returned Control D identity147.185.34.1 and p2 blocked0.0.0.0. HTTPS matched Radxa before and after source retirement. Source no tun0, nft list tables empty, IPv4/IPv6 forwarding0; old Windscribe/helper/gateway/DHCP inactive, Windscribe CLI package removed, obsolete profiles/configuration archived. Source key-only TCP2222 reachable from Radxa; fresh external key login/.local untested.
+
+At 10:47:26 UTC target VPN disconnected with automatic 25-second reconnect scheduled. Actual Chromebook local gateway ping2/2 and printer366 ping1/1 passed; pinned-IP validated HTTPS timed out after6s (HTTP000), fresh DNS timed out after2s. Target fallback-drop sample75 packets/28654bytes; client DNS/HTTPS recovered automatically (exit79.142.77.77). Scoped outage log retained root source backup.
+
+Target actual USB reboot changed boot ID to afbcb66d-97e9-4fb2-b04d-7f117648ded5. Client HTTPS recovered automatically to79.142.77.67; USB .1 only, school DHCP10.113.128.131, built-in disconnected/noIPv4. Docker was initially not yet started at early sample, then active with helper; NTP initially waiting, subsequently synchronized. AP/printers, DNS/HTTPS, both aliases and service checks passed. Independent source fallback canceled without execution. No precise boot-recovery duration claimed.
+
+At10:51:24–30UTC Radxa observer, while Chromebook Wi-Fi was deliberately disconnected: source .179 ping0/2; AP/each printer ping2/2, gateway/DHCP/Docker active, target HTTPS79.142.77.67. Client scheduled reconnect after30s restored .179/gatewayDNS.1 and matching HTTPS. This tests network disconnection, not source power-off/reboot or a physical print.
+
+Studio reopened with retained account; both My Device indicators online, both selected views show status/temperatures with heater targets0. No motion/heat/firmware/print command. Screenshots/logs are restricted and ignored. Full Chromebook reboot, transfer/physical printing and comprehensive failure cases remain untested.
+
 ## 2026-10-06 — Physical USB handoff
 
 Operator moved the full original USB adapter/AP cable to Radxa, preserving MAC `00:e0:4c:5a:55:18`. RTL8153/r8152, 100 Mb/s full-duplex link. After configuration: `.77.1` only on USB; built-in enp1s0 link-local only/no carrier. AP `.2` MAC ec:b9:31:19:d2:7f HTTP 200 and ping 2/2; printer `.115` MAC ac:a7:04:12:be:58 and `.145` MAC e0:72:a1:a4:e4:6c each ping 2/2. DHCP socket explicitly USB-bound. Target DNS verify.controld.com →147.185.34.1, doubleclick.net→0.0.0.0; HTTPS exit146.70.242.142. Downstream accept/return/NAT counters 94/112/8 packets at sample. School SSH stayed usable; scoped rollback did not execute. This does not establish fresh Wi-Fi DHCP, printer cloud/control, USB boot or Chromebook retirement; those remain pending.

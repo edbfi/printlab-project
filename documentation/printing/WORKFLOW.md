@@ -1,6 +1,6 @@
 # Printing workflow
 
-Current status reconciled 2026-10-06: both printers are associated, identified, reserved and visible in Studio based on September 24 acceptance. October 6 host pings to both pass. **Slicing, preview, transfer and physical printing remain unverified.** Router migration is the current priority; application work stays on the Chromebook.
+Current status reconciled 2026-10-06: both printers are associated, identified, reserved and visible in Studio based on September 24 acceptance. October 6 post-migration pings to both pass, and Studio reopened with both devices online. **Slicing, preview, transfer and physical printing remain unverified.** Router migration is the current priority; application work stays on the Chromebook.
 
 ## Printers and addressing
 
@@ -21,7 +21,7 @@ Pre-reservation dnsmasq backups remain at `/var/lib/printing-station/rollback/20
 
 Official Bambu Studio **2.8.2.61** Ubuntu 24.04 AppImage at `~/Applications/BambuStudio-2.8.2.61.AppImage`; published SHA-256 verified at installation. Distribution WebKit runtime installed. GUI launches under Ubuntu 26.04/X11 with accelerated Intel graphics; generated 20 mm cube imported/rendered (12 triangles/8000 mm³).
 
-Official A1 mini preset added September 24 without removing X1 Carbon preset. Selected UI: Bambu Lab A1 mini, 0.4 mm, Standard flow, Textured PEI Plate, `0.20mm Standard @BBL A1M`. PLA Basic is provisional until actual filament is confirmed. Plate was empty. Profile restart persistence remains untested. Studio was not reopened for the October 6 recap.
+Official A1 mini preset added September 24 without removing X1 Carbon preset. Selected UI: Bambu Lab A1 mini, 0.4 mm, Standard flow, Textured PEI Plate, `0.20mm Standard @BBL A1M`. PLA Basic is provisional until actual filament is confirmed. Plate was empty. Profile restart persistence remains untested. Studio reopened after the October 6 network migration; its existing account persisted and both devices appeared online.
 
 CLI slicing failed because bundled GLFW attempted Wayland initialization on X11; exit 0 produced no slice output. Continue the GUI baseline; do not infer slicing success from CLI exit/help output or replace the desktop stack for this incidental test. Homebrew's Studio cask required macOS when researched; the installed Linux AppImage is the established baseline.
 
@@ -29,7 +29,7 @@ CLI slicing failed because bundled GLFW attempted Wayland initialization on X11;
 
 Normal cloud-enabled operation with official Studio is the agreed initial baseline. Research on September 24 used the [official LAN Only guide](https://wiki.bambulab.com/en/knowledge-sharing/enable-lan-mode) and [A1 mini firmware history](https://wiki.bambulab.com/en/a1-mini/manual/a1-mini-firmware-release-history): LAN Only restricts Handy/off-site/history features; cloud functions depend on internet/VPN and can send job data through Bambu services. No Developer Mode requirement established or change performed. Revisit actual-firmware implications before any future mode change.
 
-Operator created the dedicated account and reported local LibreWolf/Studio logins. Actual Studio device recognition was observed; routine restart/logout/reboot session persistence remains untested. Future separate kiosk-user authentication is a distinct acceptance check; preserve existing sessions. See [kiosk configuration](../kiosk/CONFIGURATION.md).
+Operator created the dedicated account and reported local LibreWolf/Studio logins. Actual Studio device recognition was observed; October 6 application restart retained the account/device view; logout/reboot and separate kiosk-user persistence remain untested. Future separate kiosk-user authentication is a distinct acceptance check; preserve existing sessions. See [kiosk configuration](../kiosk/CONFIGURATION.md).
 
 Mixed prepared-job/new-model workflow, no operator-supplied kiosk code. Optional interface, Bambuddy and Android/Waydroid are explicitly deferred; no optional stack installed. The Chromebook is intended for Studio/kiosk while Radxa provides networking independently.
 

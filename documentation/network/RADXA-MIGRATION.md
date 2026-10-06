@@ -1,14 +1,14 @@
 # Radxa router migration
 
-## Status — physical USB gateway active, client transition pending
+## Status — operational migration; Chromebook reboot acceptance remains
 
-Operator moved the original Chromebook USB Ethernet adapter and attached AP cable to Radxa on October 6, reserving built-in `enp1s0` for a possible future school wired uplink. Updated printer networkd address, dnsmasq, own nftables rules and Docker forwarding helper to `enx00e04c5a5518` / `00:e0:4c:5a:55:18`. Built-in Ethernet has an explicit unused profile (DHCP off, IPv6 link-local only). No wired school uplink is configured.
+Radxa now serves the real AP/printers through USB `enx00e04c5a5518` / `00:e0:4c:5a:55:18`. Operator reserves built-in `enp1s0` for a possible future school Ethernet uplink; it has no IPv4/DHCP and no cable. School Wi-Fi remains the only configured uplink. School DHCP changed after final reboot to `10.113.128.131/20`; aliases updated.
 
-School SSH `.35`, AP HTTP 200, both expected printer MAC/IP pairs and pings pass. Target DNS identity/filtering and VPN HTTPS `146.70.242.142` pass; downstream forward/return/NAT counters exercised. Operator confirms macOS on 3D-Printere returns the same `146.70.242.142`: real downstream HTTPS egress passed. Chromebook retirement remains pending. Chromebook separately retains school Wi-Fi/VPN; AP no longer depends on its Ethernet.
+Mac and Chromebook real Wi-Fi clients passed Radxa VPN HTTPS. Chromebook now has `.77.179`, gateway/DNS `.1`, no local tunnel, no Windscribe package and no active router/DHCP/firewall role. Obsolete router/VPN configuration and profiles archived/removed; applications preserved. Original school profile remains disabled for autoconnect, available for deliberate recovery.
 
-Port-change snapshot and unexercised scoped restore script: target root migration `usb-lan-20261006/`. Five-minute rollback timer canceled without execution after checks. Physical fallback now means returning the USB adapter with AP cable to the Chromebook. Its original profile/services remain available. Direct `ssh radxa` alias is disconnected; use `ssh radxa-school` with pinned host key. Target sudo expires 16:21:33 CEST October 6; source timer 16:38:02 CEST. Do not alter deadlines.
+Final USB VPN-loss blocking/local reachability/reconnect, actual Radxa reboot with automatic services/Docker/NTP/client recovery, Chromebook disconnected independence observation and ordinary-client reconnect all passed. Latest exit `79.142.77.67` matches both hosts. Studio reopened and both printers appear online. Full Chromebook reboot is the remaining network checkpoint; no physical print or transfer acceptance claimed.
 
-Earlier isolated client tests passed failure/recovery, Docker/isolation and delayed-uplink reboot on built-in Ethernet. Port-specific USB/client acceptance follows; historical results do not establish USB boot recovery.
+Use `ssh radxa` at `.1` or school alias at current DHCP `.131`, with original pinned key. Source/target restricted recovery is preserved; no active task test/rollback timers remain. Target sudo expires 16:21:33 CEST October 6; source timer 16:38:02 CEST. Never alter deadlines.
 
 ## Intended outcome — operator reconfirmed 2026-10-06
 
@@ -20,7 +20,9 @@ The original approved [October 5 Plan Mode plan](RADXA-PLAN.md) was recovered fr
 
 The Chromebook should ultimately retire its own VPN functionality and use 3D-Printere as an ordinary DHCP client, obtaining VPN-protected internet and DNS through Radxa. This supersedes the recovered plan's instruction to preserve the PC's personal VPN as an active final setup. Preserve Studio, kiosk/application settings and useful rollback material.
 
-Keep the PC VPN/gateway operational during staging. After Radxa and the physical handoff pass, verify Chromebook DNS/HTTPS and matching Radxa VPN egress without its own tunnel. Then retire its Windscribe autostart/services and redundant router/DNS/firewall configuration in recoverable steps; ensure stale kill-switch rules or loopback DNS settings cannot block ordinary client operation. Remove unnecessary task-owned VPN packages/configuration only after dependency and recovery review. Verify client reconnect/reboot and Radxa-VPN-loss behavior afterward. Local VPN retirement remains pending verified client transition.
+This amendment is now implemented: Windscribe CLI removed from Chromebook after package-removal review and preserving the matching AMD64 installer. Retired user credentials/settings, router files/units and profiles are in source root migration `chromebook-client-20261006/`. No source tun0 or old nftables tables remain; forwarding is disabled. Client DHCP DNS comes from Radxa. Studio and other applications stay installed.
+
+The initial transition stopped when the CLI refused to turn off its still-effective Always On firewall; independent timer successfully restored source school Wi-Fi/VPN. Corrected transition stops the old client/helper and removes only their known firewall table. The extended post-removal recovery script can reinstall/restore the old package/config/profile, but that extension is unexercised; its earlier pre-removal version was tested.
 
 ## Active configuration and recovery material
 
@@ -30,16 +32,15 @@ DHCP/DNS and nftables: `/etc/printing-station/`; helper scripts `/usr/local/libe
 
 Windscribe user service under <gateway-user>, linger already enabled, restart-on-failure; sleep targets masked. Custom p2 HTTPS proxy on loopback, resolved uses it, printer dnsmasq forwards to it; no system fallback. Original Unbound disabled, kept installed. Windscribe preferences have no proxy; temporary HTTP/SOCKS bootstrap closed. Saved login migration succeeded without new passwords; initial server-data bootstrap required the source VPN, but independent reconnect/reboot subsequently passed.
 
-Root-only snapshots on both hosts: `/var/lib/printing-station/rollback/20261005/radxa-migration/`. **Never restore complete archives blindly**, especially old sudo/system files. Target `verified-router-20261006.tar` (0600) contains verified live config, units, credentials and lease snapshot. Target retains official ARM64 installer (0600), SHA-256 `38cfb7d223262b9ea90a0633b6066080837e1ed7aef555edf501d136c92bbb19`. Original/pre-change backup and scoped `restore-wifi.sh`/`restore-router.sh` retained; full rollback scripts are not behaviorally validated. Router rollback retains school WLAN and installed packages; archives new client state, restores original resolver/network and leaves pre-existing linger enabled.
+Root-only snapshots on both hosts: `/var/lib/printing-station/rollback/20261005/radxa-migration/`. **Never restore complete archives blindly**, especially old sudo/system files. Target `verified-usb-router-20261006.tar` (0600) contains the final USB config, units, credentials and lease snapshot; `verified-router-20261006.tar` retains the earlier built-in-port checkpoint. Target retains official ARM64 installer (0600), SHA-256 `38cfb7d223262b9ea90a0633b6066080837e1ed7aef555edf501d136c92bbb19`. Original/pre-change backup and scoped `restore-wifi.sh`/`restore-router.sh` retained; full rollback scripts are not behaviorally validated. Router rollback retains school WLAN and installed packages; archives new client state, restores original resolver/network and leaves pre-existing linger enabled.
 
-Secret staging moved from both user staging directories to root-only backup `retired-staging/`; no extra /tmp credential file needed. Source retired staging also holds duplicate package/extracted controls. Nonsecret historical install/config/test scripts remain in `.work/radxa-migration/` and target `/home/<gateway-user>/.cache/printing-station-migration/`. **Do not rerun installers or clock-correct.py**: their old preconditions no longer apply. Source test helpers archived at `/var/lib/printing-station/tests/radxa-20261006/`; target root backup retains logs/observer/unit copies. Active boot-test units/markers, namespace and proxies removed; task Busybox container/image removed, unrelated Docker images preserved.
+All historical migration staging is now archived root-only: `retired-staging/nonsecret-chromebook-stage/` on source (including restricted GUI evidence) and `nonsecret-target-stage/` on target. Source `.work/radxa-migration/` and target `/home/<gateway-user>/.cache/printing-station-migration/` no longer contain active work. Secret/package duplicates are separately retained under retired-staging. Do not rerun old installers/clock scripts: their preconditions no longer apply. Source helper archive `/var/lib/printing-station/tests/radxa-20261006/` and target observer logs remain recovery evidence. No temporary proxies, containers/images or recovery/test timers remain. Final source client configuration snapshot is `chromebook-client-20261006/verified-client.tar`; DNS/HTTPS/target services/NTP rechecked after archival.
 
-## Remaining sequence — client acceptance and Chromebook retirement
+## Remaining network checkpoint
 
-1. Confirm real Wi-Fi client DHCP, Control D DNS, VPN egress and local SSH; check Studio/printer visibility without controls.
-2. With autonomous timed Chromebook rollback ready, stop its obsolete gateway, transition its Wi-Fi to 3D-Printere, and retire its own VPN/firewall dependency. Verify Radxa-provided DNS/HTTPS without a local tunnel before canceling recovery.
-3. Archive redundant source configuration after success; preserve applications, credentials needed by the client and restricted recovery. Update primary `ssh radxa` to `.1`, keep the school address alternative.
-4. Verify USB gateway boot/reconnect, Chromebook client recovery and independent printer networking before claiming complete migration. Physical prints/kiosk work remain separate.
+A full Chromebook reboot would close the current local Codex session. Preserve work, reopen the same project/session after boot and verify ordinary DHCP/DNS/HTTPS, Radxa SSH and Studio/session persistence with no local VPN/router services. Client disconnect/reconnect already passed but is not reboot evidence. Printing/kiosk acceptance remains separate; no motion/heating/firmware/print is authorized by network testing.
+
+Final USB-specific evidence is in TESTS: real Mac/Chromebook egress, VPN outage/no-fallback, Radxa reboot, source package retirement and about 30 seconds of Chromebook disconnection while Radxa/AP/printers continued working. Earlier built-in-port isolated tests below remain historical supplemental evidence.
 
 ## Real isolated acceptance — 2026-10-06
 

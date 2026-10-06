@@ -123,17 +123,20 @@ class Host:
                     result[country].add(re.sub(r"\s+\([^)]*\)$", "", location))
         return result
 
-    def connect(self, country, allowed_locations):
+    def connect(self, target, allowed_locations):
         # Explicit disconnect makes a scheduled refresh real, even if a country
         # request happens to choose the same datacenter. No firewall-off command.
-        if command([CLI, "disconnect"], timeout=20)[0] != 0:
-            log("Disconnect did not complete; stopping this recovery pass")
-            return None
-        rc, text = command([CLI, "status"])
-        if rc or parse_status(text)[0] != "disconnected":
-            log("Disconnected state not confirmed; stopping this recovery pass")
-            return None
-        if command([CLI, "connect", "-n", country, PROTOCOL], timeout=15)[0] != 0:
+        command([CLI, "disconnect"], timeout=20)
+        disconnect_deadline = time.monotonic() + 10
+        while True:
+            rc, text = command([CLI, "status"])
+            if rc == 0 and parse_status(text)[0] == "disconnected":
+                break
+            if time.monotonic() >= disconnect_deadline:
+                log("Disconnected state not confirmed; stopping this recovery pass")
+                return None
+            time.sleep(1)
+        if command([CLI, "connect", "-n", target, PROTOCOL], timeout=15)[0] != 0:
             return False
         deadline = time.monotonic() + ATTEMPT_SECONDS
         while time.monotonic() < deadline:
@@ -160,7 +163,7 @@ def run_policy(host, state, config, mode, now, save, dry_run=False):
         state["failures"] = 0
         log("Deferred: school uplink or Windscribe service unavailable")
         return
-    health, _ = host.health()
+    health, previous_location = host.health()
     if health in ("unknown", "logged-out"):
         state["failures"] = 0
         log("Deferred: CLI state unavailable or login required; no reconnect attempted")
@@ -195,6 +198,7 @@ def run_policy(host, state, config, mode, now, save, dry_run=False):
         log("No preferred country in catalog; refusing an unverified selection")
         state["retry_after"] = now + COOLDOWN
         return
+    previous_country = next((c for c in COUNTRIES if previous_location in locations.get(c, set())), None)
     # Persist backoff before disconnecting, including if this process is stopped.
     state["retry_after"] = now + COOLDOWN
     save(state)
@@ -214,7 +218,17 @@ def run_policy(host, state, config, mode, now, save, dry_run=False):
             log(f"Verified {country}: connected with Stealth/443 and tunnel HTTPS passes")
             return
         if result is None:
-            break
+            log("Recovery stopped without a confirmed CLI state; cooldown applies")
+            return
+    # A healthy daily refresh should have a route back to its known-working
+    # location if the random datacenter attempts all fail. Stay in approved countries.
+    if daily and health == "healthy" and previous_country and host.available():
+        nickname = previous_location.split(" - ", 1)[-1]
+        log(f"Trying previously healthy location in {previous_country}")
+        if host.connect(nickname, {previous_location}) is True:
+            state.update(failures=0, retry_after=0, selected_country=previous_country, last_refresh=date)
+            log("Previously healthy location restored and verified using Stealth/443")
+            return
     log("No verified country connection; bounded pass ended, cooldown applies")
 
 

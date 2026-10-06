@@ -1,7 +1,10 @@
 """Deterministic failure scenarios: no real VPN, printer or network mutations."""
 import datetime as dt
 import importlib.util
+import fcntl
+import json
 from pathlib import Path
+import tempfile
 import unittest
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
@@ -136,6 +139,27 @@ class PolicyTests(unittest.TestCase):
         self.run_case(host, {"failures": 2})
         self.assertEqual(host.attempts, ["DK"])
 
+    def test_failed_daily_attempts_restore_previously_healthy_location(self):
+        host = FakeHost(health="healthy", results=(False, False, False, True))
+        host.locations = lambda: {"DK": {"Copenhagen - Test"}, "SE": {"Stockholm - Test"}, "NL": {"Amsterdam - Test"}}
+        state, _ = self.run_case(host, mode="refresh")
+        self.assertEqual(host.attempts, ["DK", "SE", "NL", "Test"])
+        self.assertEqual(state["selected_country"], "SE")
+        self.assertIn("last_refresh", state)
+
+    def test_lock_prevents_overlapping_run_from_probing_or_connecting(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)
+            config = path / "config.json"
+            config.write_text(json.dumps(CONFIG))
+            with (path / "policy.lock").open("a") as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX)
+                with patch.object(policy, "STATE_DIR", path), patch.object(policy, "CONFIG", config), \
+                     patch("sys.argv", ["vpn-policy", "check"]), patch.object(policy, "Host") as host, patch.object(policy, "log"):
+                    policy.main()
+                    host.assert_not_called()
+            self.assertFalse((path / "state.json").exists())
+
     def test_time_window_uses_copenhagen_in_winter_and_summer(self):
         for month in (1, 7):
             local = dt.datetime(2026, month, 10, 4, 30, tzinfo=ZoneInfo("Europe/Copenhagen"))
@@ -181,14 +205,23 @@ class HostTests(unittest.TestCase):
     def test_wrong_country_cannot_be_accepted(self):
         host = policy.Host()
         with patch.object(policy, "command", side_effect=[(0, ""), (0, "Login state: Logged in\nConnect state: Disconnected"), (0, "")]), \
-             patch.object(policy.time, "sleep"), patch.object(policy.time, "monotonic", side_effect=[0, 0, 100]), \
+             patch.object(policy.time, "sleep"), patch.object(policy.time, "monotonic", side_effect=[0, 0, 0, 100]), \
              patch.object(host, "health", return_value=("healthy", "Stockholm - Test")):
             self.assertFalse(host.connect("DK", {"Copenhagen - Test"}))
 
     def test_timed_out_disconnect_does_not_queue_connect(self):
-        with patch.object(policy, "command", return_value=(124, "")) as cmd, patch.object(policy, "log"):
+        with patch.object(policy, "command", return_value=(124, "")) as cmd, patch.object(policy, "log"), \
+             patch.object(policy.time, "monotonic", side_effect=[0, 11]):
             self.assertIsNone(policy.Host().connect("DK", {"Test"}))
-            self.assertEqual(cmd.call_count, 1)
+            self.assertEqual(cmd.call_count, 2)
+
+    def test_disconnect_can_settle_after_cli_timeout(self):
+        host = policy.Host()
+        replies = [(124, ""), (0, "Login state: Logged in\nConnect state: Disconnecting"),
+                   (0, "Login state: Logged in\nConnect state: Disconnected"), (0, "")]
+        with patch.object(policy, "command", side_effect=replies), patch.object(policy.time, "sleep"), \
+             patch.object(host, "health", return_value=("healthy", "Test")):
+            self.assertTrue(host.connect("DK", {"Test"}))
 
 
 if __name__ == "__main__":

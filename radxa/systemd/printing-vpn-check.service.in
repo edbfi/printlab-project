@@ -12,4 +12,4 @@ StateDirectory=printing-station/vpn-policy
 StateDirectoryMode=0700
 UMask=0077
 NoNewPrivileges=true
-TimeoutStartSec=7min
+TimeoutStartSec=12min

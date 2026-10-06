@@ -37,17 +37,25 @@ def command(args, timeout=10):
 
 
 def parse_status(text):
-    fields = dict(line.split(": ", 1) for line in text.splitlines() if ": " in line)
-    if "Login state" not in fields or "Connect state" not in fields:
+    # v2.24.13 marks a pending native tunnel test with '*Connect state'. Our
+    # independent HTTPS probe still decides whether that connection is usable.
+    fields = dict(line.lstrip("*").split(": ", 1) for line in text.splitlines() if ": " in line)
+    if "Login state" not in fields:
         return "unknown", ""
     if fields["Login state"] != "Logged in":
         return "logged-out", ""
+    if "Connect state" not in fields:
+        return "unknown", ""
     connection = fields["Connect state"]
     if connection.startswith("Connected: "):
         if fields.get("Protocol", "").lower() != PROTOCOL:
             return "wrong-protocol", ""
-        return "connected", connection.removeprefix("Connected: ")
-    if connection == "Disconnected":
+        return "connected", connection.removeprefix("Connected: ").removesuffix(" [Network interference]")
+    if connection.startswith("Error: You are out of data, or your account has been disabled"):
+        return "account-blocked", ""
+    # Upstream emits Error: ... only for CONNECT_STATE_DISCONNECTED. A disabled
+    # datacenter must permit the next country, not be mistaken for unknown CLI output.
+    if connection == "Disconnected" or connection.startswith("Error: "):
         return "disconnected", ""
     if connection.startswith(("Connecting", "Reconnecting", "Disconnecting")):
         return "transitional", ""
@@ -69,7 +77,7 @@ class Host:
     def health(self):
         rc, text = command([CLI, "status"])
         state, location = parse_status(text) if rc == 0 else ("unknown", "")
-        if state in ("unknown", "logged-out"):
+        if state in ("unknown", "logged-out", "account-blocked"):
             return state, location
         if state != "connected":
             return "failed", location
@@ -144,7 +152,7 @@ class Host:
             state, location = self.health()
             if state == "healthy" and location in allowed_locations:
                 return True
-            if state in ("unknown", "logged-out"):
+            if state in ("unknown", "logged-out", "account-blocked"):
                 return None
         return False
 
@@ -164,9 +172,9 @@ def run_policy(host, state, config, mode, now, save, dry_run=False):
         log("Deferred: school uplink or Windscribe service unavailable")
         return
     health, previous_location = host.health()
-    if health in ("unknown", "logged-out"):
+    if health in ("unknown", "logged-out", "account-blocked"):
         state["failures"] = 0
-        log("Deferred: CLI state unavailable or login required; no reconnect attempted")
+        log("Deferred: CLI state unavailable or account needs attention; no reconnect attempted")
         return
     daily = mode == "refresh"
     date = dt.datetime.fromtimestamp(now, ZoneInfo("Europe/Copenhagen")).date().isoformat()

@@ -91,7 +91,7 @@ class PolicyTests(unittest.TestCase):
         self.assertEqual(state["failures"], 0)
 
     def test_unknown_status_and_missing_login_do_not_churn(self):
-        for health in ("unknown", "logged-out"):
+        for health in ("unknown", "logged-out", "account-blocked"):
             host = FakeHost(health=health, results=())
             self.run_case(host, {"failures": 2})
             self.assertEqual(host.attempts, [])
@@ -171,6 +171,25 @@ class PolicyTests(unittest.TestCase):
 
 
 class HostTests(unittest.TestCase):
+    def test_unavailable_location_is_a_disconnected_state(self):
+        text = "Login state: Logged in\nConnect state: Error: Location does not exist or is disabled"
+        self.assertEqual(policy.parse_status(text), ("disconnected", ""))
+        host = policy.Host()
+        with patch.object(policy, "command", side_effect=[(0, "Already disconnected"), (0, text), (0, "")]), \
+             patch.object(policy.time, "sleep"), patch.object(host, "health", return_value=("healthy", "Test")):
+            self.assertTrue(host.connect("SE", {"Test"}))
+
+    def test_native_tunnel_test_markers_do_not_hide_location(self):
+        pending = "Login state: Logged in\n*Connect state: Connected: Stockholm - Test\nProtocol: Stealth:443"
+        interference = pending.replace("*Connect", "Connect").replace("Stockholm - Test", "Stockholm - Test [Network interference]")
+        self.assertEqual(policy.parse_status(pending), ("connected", "Stockholm - Test"))
+        self.assertEqual(policy.parse_status(interference), ("connected", "Stockholm - Test"))
+
+    def test_account_attention_states_are_not_reconnect_failures(self):
+        self.assertEqual(policy.parse_status("Login state: Logged out"), ("logged-out", ""))
+        text = "Login state: Logged in\nConnect state: Error: You are out of data, or your account has been disabled. Upgrade to Pro to continue using Windscribe"
+        self.assertEqual(policy.parse_status(text), ("account-blocked", ""))
+
     def test_real_posix_package_lock_defers_refresh(self):
         # Hold an unrelated temporary file lock, mapping only its metadata to a
         # package lock path. This never opens or locks the machine's package DB.

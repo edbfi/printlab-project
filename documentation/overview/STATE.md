@@ -1,24 +1,27 @@
 # Current state
 
-Updated 2026-10-06 after documentation/history review and non-disruptive checks. **Partially complete. Radxa router active on isolated test segment; physical cutover pending.** Operator now authorizes continuation of the approved migration. Preserve live PC gateway and cable layout through isolated Radxa preparation/tests.
+Updated 2026-10-06 after isolated Radxa implementation and recovery tests. **Radxa prepared and tested; physical migration is not complete.** PC still serves the AP/printers and the agent connection. Both cables remain unchanged.
 
-## Active work — Radxa reboot checkpoint 2026-10-06 09:34 UTC
+## Current checkpoint — awaiting physical handoff
 
-Real isolated-client baseline, VPN loss/reconnect, Windscribe main-process crash recovery, school-WLAN loss/recovery, Docker restart, scoped isolation and gateway stop/reload passed. Source PC still serves AP/printers and agent transport. Namespace `radxa-test` retains spare adapter/client `.139`; school SSH `.35`; source adapter restoration timer remains armed until 12:10:52 CEST.
+Radxa now independently authenticates to Ishoj Kommune (`10.113.130.35/20`), runs Windscribe CLI 2.24.13 Stealth/443, Control D p2 DNS, DHCP and printer firewall on enp1s0 `.77.1`. Docker active; no persistent workload added. RTC corrected and NTP synchronized. Latest verified target exit `146.70.242.142`; PC exit remains `.173`.
 
-Prepared target late-uplink reboot: disable only target wpa_supplicant before reboot, persistent `radxa-lateboot-restore.timer` enables it at boot+60s, independent fallback at +180s, restricted observer log. Units/copies/scripts and `lateboot.armed` in target migration backup; current-boot 90-second failsafe covers failed reboot dispatch. Preboot ID `c2133876-e2d5-4280-929e-568e6f989d62`. Observe local client access before uplink return, then DHCP/DNS/HTTPS/SSH/Docker and NTP/RTC after new boot. Cancel fallback only on functional recovery, remove test units/marker and verify again. If school SSH is unavailable, use namespace client SSH to `.1`; source restore script `/var/lib/printing-station/tests/radxa-restore-test-link-20261006.sh` restores direct IPv6 administration.
+Actual isolated client passed DHCP/SSH/DNS/HTTPS, VPN-loss blocking/recovery, main-process recovery, school-uplink loss/recovery, Docker restart, scoped private/reverse/spoof/IPv6 isolation, and gateway stop/reload. Actual Radxa reboot with WLAN unavailable through boot+60s recovered automatically after restore at +61s; fresh client DHCP/DNS/HTTPS and both SSH paths passed. Fallback did not run. Limits/evidence in TESTS.
+
+Test namespace removed and spare adapter restored to `Radxa direct`. Target boot-test units/marker removed, temporary container/image and bootstrap proxies stopped/removed. No migration test/recovery timers remain; operator sudo expiry timers deliberately retained. Redundant secret/package staging moved to root-only recovery storage (not deleted); live credentials and verified snapshot preserved. Post-cleanup source and target service/DNS/HTTPS/SSH checks pass.
+
+Operator was asked whether both printers are idle with no print/firmware operation and whether they are ready for AP cable instructions. **Await this physical checkpoint; do not move cables or retire source VPN/gateway yet.** The Chromebook's current VPN preserves Codex connectivity during Radxa work.
 
 ## Intended division of roles
 
 Operator reconfirmed October 6: Radxa takes over `Ishoj Kommune` school Wi-Fi, Windscribe, DHCP/DNS and printer routing; the Chromebook is the Studio/touch kiosk. Printer networking must work with the Chromebook disconnected/off. Latest operator direction: the Chromebook should ultimately retire its own VPN functionality and use Radxa-provided VPN/DNS through 3D-Printere; keep its current VPN until verified cutover. Existing Docker remains on Radxa, which may also serve future personal development workloads. That future use does not yet specify additional services, public exposure or virtualization work.
 
-## Immediate checkpoint
+## Access and current authorization
 
-- Radxa direct SSH and renewed `sudo -n true` pass. Grant and active removal timer both expire **2026-10-06 16:21:33 CEST / 14:21:33 UTC**. Recheck before root work; do not modify authorization deadlines.
-- Radxa RTC corrected and NTP synchronized (October 6 target check). Original interrupted `clock-correct.py` remains diagnostic only; do not rerun.
-- Chromebook `sudo -n true` now passes (08:39 UTC), superseding the initial recap failure. Active removal timer targets **2026-10-06 16:38:02 CEST**; effective root NOPASSWD entry has no embedded NOTAFTER. Recheck when resuming.
-- Radxa school Wi-Fi `.35`, independent Stealth/443 tunnel, Control D DNS and printer gateway active on the isolated cable. Docker active. Real namespace client DHCP/DNS/SSH/HTTPS and target VPN-loss/process-recovery checks pass. AP/printers still use PC.
-- Full migration plan, artifact permissions, package digest, recovery limitations and next steps: [RADXA-MIGRATION.md](../network/RADXA-MIGRATION.md).
+- `ssh radxa`: restored direct IPv6 link-local management. `ssh radxa-school`: verified school DHCP path `.35`, using the existing pinned host key. School DHCP can change.
+- Target sudo permission/removal timer expire **2026-10-06 16:21:33 CEST / 14:21:33 UTC**; source removal timer **16:38:02 CEST**. Both pass now; recheck before later work. Never alter deadlines.
+- RTC/NTP recovery is complete for observed system/reboot behavior. Do not rerun historical `clock-correct.py`.
+- Canonical handoff and recovery: [RADXA-MIGRATION](../network/RADXA-MIGRATION.md). Full original approved plan preserved separately with later VPN-retirement amendment.
 
 ## Working system
 
@@ -39,28 +42,28 @@ Fresh host-side checks on October 6: gateway/DHCP/helper/user VPN services activ
 | Both printers | Association passed | Confirmed identities, fresh DHCP reservation ACKs, LAN Only Off, dedicated-account binding and Studio visibility; no transfer/print proof |
 | Studio | In progress | 2.8.2.61 AppImage, GUI import/render and A1 mini 0.4 mm/Textured PEI profile; actual filament, slicing/preview/transfer and profile/session persistence pending |
 | Kiosk/optional interface | Deferred | Mixed prepared-job/new-model workflow; no kiosk users, custom UI, Bambuddy or Android stack created |
-| Radxa migration | Isolated testing | Real school SSH, DHCP/DNS/HTTPS, VPN loss/recovery and main-process recovery passed; further isolation/Docker/uplink/boot tests and physical handoff pending |
+| Radxa migration | Prepared and tested | Actual isolated-client, recovery, Docker/isolation and delayed-uplink reboot checks passed; physical AP/client/printer acceptance and PC retirement pending |
 | Complete station acceptance | Incomplete | Physical prints require explicit readiness; final cleanup follows verified completion |
 
 Detailed dated evidence is in [TESTS](../worklog/TESTS.md), verified changes in [CHANGES](../worklog/CHANGES.md), faults/remaining side effects in [ISSUES](../worklog/ISSUES.md). Historical entries describe their observation time; current subject documents supersede old pending instructions.
 
 ## Recovered approved plan
 
-The full [October 5 Plan Mode plan](../network/RADXA-PLAN.md) was recovered from `~/.codex/sessions/`, along with the operator's “Implement the plan.” message and explicit optional-client/keep-Docker-active decisions. It adds detail omitted from the condensed checkpoint: bounded performance comparisons, school-uplink/process recovery, delayed-uplink target reboot, preserving PC applications (the original personal-VPN retention requirement is superseded by the latest retirement direction), and joining 3D-Printere as an ordinary DHCP client after handoff. Plan retrieval is complete; latest clarification updates the final Chromebook VPN role. No activation or VPN retirement performed.
+The full [October 5 Plan Mode plan](../network/RADXA-PLAN.md) was recovered from `~/.codex/sessions/`, along with the operator's “Implement the plan.” message and explicit optional-client/keep-Docker-active decisions. It adds detail omitted from the condensed checkpoint: bounded performance comparisons, school-uplink/process recovery, delayed-uplink target reboot, preserving PC applications (the original personal-VPN retention requirement is superseded by the latest retirement direction), and joining 3D-Printere as an ordinary DHCP client after handoff. Isolated activation/testing is now complete; source VPN retirement remains pending verified handoff.
 
-## Next work after the recap
+## Next work — operator cable handoff
 
-1. Resume Radxa clock recovery with available authorized sudo; verify RTC/time-sync behavior and expiry timer separately. Confirm source privilege before source-dependent tests.
-2. Review staged scripts, authenticate Radxa school Wi-Fi with independent timed rollback, and verify school-side key-only SSH before canceling rollback.
-3. Install/stage VPN/DNS/router using the tested temporary reverse-SOCKS bootstrap path. Wait for functional VPN/DNS readiness; saved-token portability and rollback behavior remain untested.
-4. Test real target DHCP/DNS/egress, VPN loss/recovery, isolation, Docker restart and reboot on the isolated direct cable. Preserve the working printer segment.
-5. Operator moves the AP cable only at handoff; verify real clients/printers and operation without the PC. Verify Chromebook client access through Radxa without a local tunnel, then retire PC gateway and local VPN functionality with rollback retained; recheck ordinary client DNS/reconnect/reboot and VPN-loss behavior.
-6. Return to Studio slicing/preview/transfer and explicit print readiness. Keep optional kiosk/account design deferred until its decision checkpoint.
+1. Confirm both printers idle/no firmware update and operator ready. Refresh source DHCP lease snapshot and preserve source service/profile/VPN state before handoff.
+2. Operator removes the direct PC cable from Radxa enp1s0 and plugs the AP's Ethernet cable into that port instead, leaving AP power/settings unchanged. Use `radxa-school` during this change; preserve source school Wi-Fi/VPN.
+3. Announce `.77.1` on Radxa Ethernet, verify AP and both physical printer identities/addresses, fresh DHCP, actual-client DNS/VPN egress and SSH from both networks. Verify Studio visibility without printer controls.
+4. On failure, return AP cable to original PC adapter and restore saved PC gateway/profile state. Never join both active `.1` gateways to the same LAN.
+5. Only after successful handoff, retire source gateway/old address profiles; switch Chromebook to 3D-Printere as ordinary DHCP client and verify Radxa-provided access without its own tunnel. Retire redundant source VPN/DNS/firewall functionality in recoverable steps while accounting for Codex connectivity. Update `ssh radxa` to `.1`, preserve applications and rollback material, test client reconnect/reboot.
+6. Verify printer network with PC disconnected before claiming migration complete. Resume kiosk/Studio workflow afterward; no physical print without readiness confirmation.
 
 ## Recovery, Git and cleanup
 
 - Root-only migration snapshots on both machines: `/var/lib/printing-station/rollback/20261005/radxa-migration/`. Never blindly restore complete archives containing old sudo/system files.
-- Restricted staging: source `.work/radxa-migration/`, target `/home/<gateway-user>/.cache/printing-station-migration/`. Keep until migration/recovery is verified; secret files must remain outside Git.
+- Remaining nonsecret migration scripts/config proposals: source `.work/radxa-migration/`, target `/home/<gateway-user>/.cache/printing-station-migration/`. These are historical installation artifacts, not instructions to rerun. Source/target secret staging moved to each root migration backup `retired-staging/`. Target verified live snapshot `verified-router-20261006.tar` and ARM64 installer retained root-only. Source test helpers archived at `/var/lib/printing-station/tests/radxa-20261006/`.
 - Tested DNS rollback: `/var/lib/printing-station/rollback/20260928/controld-p2/rollback.sh`. Host-DNS, printer reservations, original network/GUI VPN and audio backups remain under dated rollback directories. Exact procedures and limits: [OPERATIONS](../operations/OPERATIONS.md).
-- AP preconfiguration backup and unresolved diagnostics remain restricted. Keep known-good rollback material; remove only identified, unnecessary task artifacts after relevant verification. No root-level cleanup in this recap.
+- AP preconfiguration backup and unresolved diagnostics remain restricted. Keep known-good rollback material; remove only identified, unnecessary task artifacts after relevant verification. October 6 isolated-stage cleanup removed active test infrastructure; recovery artifacts retained.
 - Local Git on `main`, no remote. Use focused Conventional Commits, review staged files for secrets, and keep subject documents current rather than appending competing checkpoints. October 6 cleanup consolidated superseded documentation; historical versions remain in Git and evidence in worklogs. The obsolete temporary handoff was removed.

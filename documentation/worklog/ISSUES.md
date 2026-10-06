@@ -4,17 +4,19 @@ Reconciled 2026-10-06. Current unresolved items are separated from resolved hist
 
 ## 2026-10-06 — Target uplink test PATH failure, corrected
 
-Initial test service exited 127 before interruption because `rfkill` was unavailable in its explicit system-service PATH. Wi-Fi remained connected; successful client requests from that interval are not outage evidence. Same dependency removed from fallback immediately; corrected test stops/starts the installed wpa_supplicant service and explicitly changes link state. Retry and behavioral verification required. No PC network changes or remaining radio block.
+Initial test service exited 127 before interruption because `rfkill` was unavailable in its explicit system-service PATH. Wi-Fi remained connected; successful client requests from that interval are not outage evidence. Same dependency removed from fallback immediately; corrected test stops/starts the installed wpa_supplicant service and explicitly changes link state. Corrected retry verified 25 seconds of actual WLAN downtime, preserved local SSH and automatic internet/DNS recovery; fallback canceled. No PC network changes or remaining radio block.
 
-## Open — Radxa clock recovery and migration prerequisites
+## Resolved — Radxa clock/WLAN/bootstrap; physical handoff remains
 
-October 5 clock correction rebased grant comment/cleanup calendar but missed embedded `NOTAFTER`, expiring effective sudo. Missing `hwclock` then stopped the script before time-sync/timer restart. No broadened privilege was created; no Radxa WLAN/VPN/gateway activation occurred.
+October 5 clock correction missed embedded sudo NOTAFTER and then failed on absent hwclock, leaving time sync stopped. Operator renewed sudo. October 6 timedatectl corrected RTC, NTP synchronized through independent target VPN, and correct RTC/automatic NTP survived reboot. Grant/removal deadlines unchanged. Never rerun old clock script or blindly restore archived sudo files.
 
-October 6 operator renewal verified: remote sudo passes; embedded expiry and active removal timer both target 14:21:33 UTC / 16:21:33 CEST. RTC was subsequently corrected using timedatectl and now matches system UTC; timesyncd is active/enabled. External synchronization is still pending. Original interrupted clock script must not be rerun.
+School WLAN initially scanned without association because staged configuration omitted AP-required PMF. Adding ieee80211w=2 resolved it; PEAP/MSCHAPv2, CA and exact server-name checks preserved. School/direct key SSH and DHCP passed; no credential reentry needed.
 
-School association/DHCP and school-side SSH now pass. Initial WLAN scan rejection was missing required PMF; fixed with ieee80211w=2, retaining PEAP/CA/server validation. Router/Windscribe installation is now in progress under timed rollback. Restricted packages/settings/scripts and root snapshots remain for continuation. Saved VPN-token portability, actual target routing/Docker coexistence and rollback behavior are untested. Script review found package installation precedes the router rollback timer; scoped rollback can retain packages/files/linger and assumes prior service/power state. Re-review these boundaries before execution. See [RADXA-MIGRATION](../network/RADXA-MIGRATION.md).
+Initial Windscribe API requests timed out on school network. Temporary source-VPN HTTP bootstrap completed login/server-data retrieval; preferences restored to no proxy and all forwarding/proxy services closed. Actual independent tunnel, reconnect, process recovery and delayed-uplink reboot passed. Saved-token portability is now verified for this migration, not universally. Source login preserved.
 
-Chromebook passwordless sudo initially failed in the recap but passes at 08:39 UTC after operator renewal. Its removal timer is active for 16:38:02 CEST; no embedded deadline appears in the effective NOPASSWD rule. No policy changes or password collection by this task. Both grants must be rechecked when setup resumes.
+Physical AP/client/printer acceptance and source VPN retirement remain pending. Scoped restore-router.sh is reviewed but not exercised end-to-end; it retains school WLAN/packages and archives new client state. Root originals/verified snapshot retained. Target 16:21:33 CEST and source 16:38:02 CEST sudo cleanup deadlines require recheck when continuing; no policy changes by this task.
+
+Cleanup command containing explicit file deletions was rejected by automatic command review before execution. Used a safer reversible alternative: retired secret/package staging moved to root-only recovery storage and diagnostic helper scripts archived, preserving recovery material. Active test units, namespace, proxy services and task container/image were successfully removed/stopped through their scoped cleanup procedures; no task recovery timers remain.
 
 ## Open — remaining station acceptance
 

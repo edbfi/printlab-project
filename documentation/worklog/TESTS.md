@@ -2,6 +2,14 @@
 
 Dated historical evidence follows; later results supersede earlier pending observations. The current acceptance summary is in [STATE](../overview/STATE.md). Do not rerun completed tests solely because an older entry says pending.
 
+## 2026-10-06 — Radxa reboot acceptance and isolated-stage cleanup
+
+New target boot `c9bd8584-b915-4424-815e-0c136d61aa6a` differs from saved preboot ID. Local SSH/gateway/DHCP worked around boot+13s with wlan0 down; client internet/DNS failed while unavailable. Timed WLAN restore began +60.8s, target VPN HTTPS observed shortly afterward; actual namespace client HTTPS/DNS recovered automatically, fresh DHCP `.139`/12h renewed. School SSH, Docker, NTP and RTC passed. Independent +180s fallback never started. No bootstrap proxy or manual VPN/login repair used after reboot.
+
+Disabled/removed temporary boot units/marker after preserving root observer log/unit copies; source namespace removed and spare adapter's Radxa direct profile restored, recovery timer canceled. Removed temporary Busybox container/image, preserved unrelated images. Root target verified-router-20261006.tar (0600) and original snapshots retained. Secret/package staging moved into root-only recovery storage on both hosts; source diagnostic helpers archived. Explicit deletion command was rejected before execution, so reversible archival used instead. No temporary proxies/test/recovery timers remain; operator expiry timers retained.
+
+Added/verified persistent `ssh radxa-school` using school DHCP `.35` and existing pinned host key; user SSH-config backup retained 0600. After cleanup: direct/school SSH, target VPN HTTPS/services/NTP, source gateway/DNS and AP/both printer pings pass. Small target DNS samples 55/2/1 ms (cold/cached); no throughput guarantee. Physical handoff still pending idle-printer/operator readiness; no printer controls or source VPN retirement performed.
+
 ## 2026-10-06 — Radxa isolation, uplink and Docker tests; reboot staged
 
 Corrected uplink test stopped supplicant/link from 09:30:31 to 09:30:56 UTC. At 09:30:35 target wlan0 DOWN/no address, local client SSH/gateway services available; explicit-IP HTTPS timed out. Automatic target VPN/client HTTPS recovered 09:31:04, exit `146.70.242.134`; DNS and school SSH passed. Fallback canceled without execution. Initial PATH-failed attempt remains invalid (ISSUES).

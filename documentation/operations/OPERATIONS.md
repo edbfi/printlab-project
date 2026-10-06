@@ -1,6 +1,14 @@
 # Operations and recovery
 
-Current procedures reconciled 2026-10-06. **PC remains gateway; migration and complete printing workflow are unfinished.** Start from [STATE](../overview/STATE.md). Detailed staged Radxa procedure and unfinished time/RTC recovery are in [RADXA-MIGRATION](../network/RADXA-MIGRATION.md); do not run its clock-correction script again.
+Current procedures reconciled 2026-10-06. **PC remains gateway; migration and complete printing workflow are unfinished.** Start from [STATE](../overview/STATE.md). Verified isolated Radxa setup, remaining physical handoff and recovery are in [RADXA-MIGRATION](../network/RADXA-MIGRATION.md); do not run its clock-correction script again.
+
+## Radxa ready for handoff — 2026-10-06
+
+Radxa gateway is active on its currently isolated Ethernet port; AP/printers remain served by PC. Direct `ssh radxa` restored after tests. Added `ssh radxa-school` at DHCP `10.113.130.35`, using the same pinned host key; SSH config backup `~/.ssh/config.before-radxa-school-20261006` (0600). Address can change. Do not move cables before idle-printer/readiness confirmation.
+
+On Radxa, check `systemctl is-active printing-gateway printing-dhcp docker`, `systemctl --user is-active windscribe`, CLI status, `curl --interface tun0 https://api.ipify.org`, and `timedatectl show -p NTPSynchronized`. Target RTC/NTP, actual client access, recovery and delayed-uplink reboot passed. Its gateway/DNS address duplicates PC `.1` only because the cables are separate; never join both active gateways on one LAN.
+
+Root target backup `/var/lib/printing-station/rollback/20261005/radxa-migration/verified-router-20261006.tar` contains verified configuration/credentials; original snapshot and scoped rollback remain alongside it. Secret/package staging retired to root-only backup storage; installers should not be rerun. No active temporary proxy/test namespace/boot units/timers remain. Operator sudo-expiry timers remain intentionally active. Detailed physical handoff and rollback: [RADXA-MIGRATION](../network/RADXA-MIGRATION.md).
 
 ## Everyday network
 
@@ -65,6 +73,6 @@ Additional backups:
 - `/var/lib/printing-station/rollback/20260924/printer-reservations/dnsmasq.before-366.conf` and `dnsmasq.before-581.conf`: pre-reservation configurations. Restoring either reverses later entries too; review before restoring/restarting printing-dhcp.
 - `/var/lib/printing-station/rollback/20261005/radxa-migration/` on both hosts: restricted migration snapshots, not full-archive restoration recipes. Old sudo/system files must not be blindly restored.
 - Restricted diagnostic scripts/logs under `/var/lib/printing-station/tests/`; no source printing/radxa test timers were listed October 6. Radxa's operator-created sudo expiry timer is deliberately active and must be preserved.
-- `.work/radxa-migration/` and target `/home/<gateway-user>/.cache/printing-station-migration/`: unfinished migration stage; retain until accepted. Secret directories/files remain 0700/0600.
+- `.work/radxa-migration/` and target `/home/<gateway-user>/.cache/printing-station-migration/`: remaining historical nonsecret migration artifacts. Secret staging moved to each host's root migration backup `retired-staging/` (0700/0600); source diagnostic helpers archived under `/var/lib/printing-station/tests/radxa-20261006/`. Root verified snapshot and installers retained until physical migration/recovery complete.
 
 Known-good rollback and unresolved diagnostics are required recovery material. Clean disposable task artifacts after the relevant success checks, then recheck operation. Git tracks documentation, not `/etc`, credentials or root backups. Historical tests and failures remain in worklogs; current procedures supersede the removed temporary handoff.

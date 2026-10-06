@@ -1,6 +1,6 @@
 # Network topology
 
-Current design reconciled 2026-10-06. The Chromebook remains the live gateway; Radxa is a staged replacement, not an active router. Latest host-side health check passed; historical downstream/outage evidence is in [TESTS](../worklog/TESTS.md).
+Current design reconciled 2026-10-06. The Chromebook remains the live AP/printer gateway; Radxa is active and tested on the separate direct cable, awaiting physical handoff. Latest host-side health check passed; historical downstream/outage evidence is in [TESTS](../worklog/TESTS.md).
 
 ## Active topology
 
@@ -53,4 +53,4 @@ Second USB Ethernet `enx00e04c5835c8` (RTL8153/r8152, MAC `00:e0:4c:58:35:c8`) c
 
 `ssh radxa` logs into `<gateway-user>` on TCP 22 using the existing encrypted id_ed25519. Host `radxa-dragon-q6a`, Radxa Dragon Q6A, aarch64, Armbian 26.8.3 / Ubuntu 26.04. ED25519 host fingerprint `SHA256:iKC7f3TUsa3p3T5ErWF2UKdSexfJR1/e0ki6sO5HhXQ` was first accepted over the direct cable; no independent prior comparison. Direct login works October 6; effective sshd policy is key-only, no root/password/keyboard-interactive login. Reboot/cable-reconnect persistence untested.
 
-October 6 activation: Radxa school WLAN authenticated with protected PEAP and required PMF, DHCP `10.113.130.35/20`; actual school-side key SSH verified. RTC corrected, timesyncd active (external synchronization pending). Router/VPN installation is in progress; no real target forwarding acceptance yet. Docker remains active. [RADXA-MIGRATION](RADXA-MIGRATION.md) is the canonical preparation/recovery record. Planned cutover preserves subnet, AP and reservations, keeps Docker active, and makes the PC an ordinary optional client only after independent target and physical-client acceptance.
+October 6: Radxa school WLAN authenticated with protected PEAP and required PMF, DHCP `10.113.130.35/20`; `ssh radxa-school` verified with pinned key. RTC/NTP and delayed-uplink reboot passed. Radxa now runs enp1s0 `.77.1`, independent Windscribe Stealth/443, p2 DNS and DHCP/firewall with Docker active. Real isolated client, recovery and scoped isolation tests passed; test namespace removed and direct management restored. AP/printers remain on the source PC. Latest target exit `146.70.242.142`, separate from source `.173`. [RADXA-MIGRATION](RADXA-MIGRATION.md) is the canonical preparation/recovery record. Planned cutover preserves subnet, AP and reservations, keeps Docker active, and makes the PC an ordinary optional client only after independent target and physical-client acceptance.

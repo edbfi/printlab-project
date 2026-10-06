@@ -1,6 +1,6 @@
 # Current operational status
 
-Printer-LAN access is restored after a scoped USB Ethernet driver reattach; recurring USB reset warnings remain under investigation. Radxa provides the school uplink, VPN and printer LAN services; the Lubuntu Chromebook is an ordinary Wi-Fi client running Bambu Studio. Printer networking is independent of the Chromebook's power, login and applications.
+Printer-LAN access works with Radxa's USB Ethernet adapter connected through USB 2.0; bounded connectivity checks pass. Radxa provides the school uplink, VPN and printer LAN services; the Lubuntu Chromebook is an ordinary Wi-Fi client running Bambu Studio. Printer networking is independent of the Chromebook's power, login and applications.
 
 The operator confirms the printing workflow, including slicing and transfer, works. Existing evidence also establishes current-user Studio login and both online printer/status views after application restart and a full Chromebook reboot. This does not establish another user's session or automatic kiosk startup.
 
@@ -13,12 +13,8 @@ The operator confirms the printing workflow, including slicing and transfer, wor
 
 Chromebook kiosk mode is planned for later and is not implemented. Its agreed direction, open interface/account decisions and future acceptance requirements are in [kiosk configuration](../kiosk/CONFIGURATION.md). Touch/scaling, physical power behavior and audio audibility have the limits recorded in [inventory](../system/INVENTORY.md); they are not blockers to the confirmed printing workflow.
 
-## USB Ethernet recovery and remaining risk
+## USB Ethernet reliability
 
-Radxa's printer USB Ethernet driver was reattached with operator authorization. AP/both printer reachability and an actual Chromebook Wi-Fi client check pass, including a fresh DHCP ACK, DNS and HTTPS matching Radxa's VPN. School-side SSH and gateway/DHCP/Windscribe/Docker services remain available. No permanent gateway configuration was changed.
-
-USB-controller warnings and automatic adapter resets recur after the driver recovery. A bounded function trace identifies one reset as `usb_reset_device` called from `hub_event`; the trace instance is removed. Seventeen client checks over eight minutes pass despite those resets. The Chromebook remains on `3D-Printere`; temporary recovery/check units and the fallback timer are removed.
-
-The operator moves the same adapter to a USB 2.0 port with no print/update running. Live inspection confirms 480 Mb/s USB, the same LAN address, AP/both printer access and client DNS/HTTPS. A bounded observation is in progress to check whether resets recur on this path. The cause is not established; do not mark long-term reliability fixed. Update [ISSUES](../worklog/ISSUES.md) and [TESTS](../worklog/TESTS.md) with the observation result.
+Keep the adapter on USB 2.0. Seventeen AP/both-printer/client DNS/HTTPS checks over eight minutes pass without further USB resets after attachment. The Chromebook remains on `3D-Printere`; school-side SSH is available for recovery. Long-term reliability and the underlying USB fault remain unconfirmed in [ISSUES](../worklog/ISSUES.md); [TESTS](../worklog/TESTS.md) records the scope. No persistent gateway configuration changes are made. Temporary recovery/check units, fallback timers and tracing are removed.
 
 The approved download cleanup is complete; retained recovery snapshots/installers are intact. Useful recovery material remains listed in [operations](../operations/OPERATIONS.md).

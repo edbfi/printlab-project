@@ -32,6 +32,8 @@ Radxa Dragon Q6A
 | Chromebook `wlp0s20f3` | NetworkManager profile `3D-Printere client`; autoconnect, IPv4 DHCP, IPv6 disabled |
 | Radxa `docker0` | Docker bridge `172.17.0.1/16`; Docker manages unrelated container forwarding |
 
+The USB Ethernet adapter is connected to a Radxa USB 2.0 port and enumerates at 480 Mb/s. Its interface name and LAN address are unchanged by the port choice. Keep this connection while the USB reliability issue in [ISSUES](../worklog/ISSUES.md) is monitored; `enp1s0` remains unused.
+
 Observed on 2026-10-06: Radxa school address `10.113.128.131/20`; Chromebook address `192.168.77.179/24`. Both are DHCP observations, not reservations. Discover them with `ip -4 address show dev wlan0` on Radxa and `ip -4 address show dev wlp0s20f3` on the Chromebook. VPN tunnel and public exit addresses are also transient.
 
 Radxa is the sole DHCP authority on the printer LAN: pool `192.168.77.100–192.168.77.199`, 12-hour leases, gateway and DNS `192.168.77.1`. dnsmasq binds to the USB printer interface. Its AP reservation matches the AP's static address; the AP itself has DHCP disabled.

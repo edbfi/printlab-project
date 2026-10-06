@@ -24,7 +24,7 @@ The Chromebook has no local Windscribe installation or router/DHCP role. Current
 | Identity | `radxa-dragon-q6a`, administrator/VPN user `<gateway-user>`; Radxa Dragon Q6A, aarch64 |
 | OS | Armbian 26.8.3 / Ubuntu 26.04 (recorded identification); kernel `6.18.2-current-qcs6490` |
 | Resources | Approximately 11 GiB RAM, 5.7 GiB swap and 457 GiB root filesystem in recorded inventory; not a workload benchmark |
-| Printer Ethernet | TP-Link UE300 reported by operator; Realtek RTL8153, USB ID `0bda:8153`, r8152 driver; USB interface serves the AP |
+| Printer Ethernet | TP-Link UE300 reported by operator; Realtek RTL8153, USB ID `0bda:8153`, r8152 driver; connected through USB 2.0 at 480 Mb/s, serving the AP. USB bus speed is not measured network throughput |
 | Network software | systemd-networkd, wpa_supplicant, dnsmasq, nftables, systemd-resolved; Windscribe CLI `2.24.13` ARM64 |
 | Docker | Docker Engine `29.8.2`, active; preserve existing data/images and service integration |
 | Other resolver | Unbound `1.24.2-1ubuntu2.2` installed, disabled |

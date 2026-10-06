@@ -74,7 +74,7 @@ For a missing printer, match its label against the reservation in [topology](../
 The following commands change connection state; use them only to recover the named fault. Allow automatic recovery first and protect ongoing work before deliberate interruptions.
 
 - Chromebook disconnected: on **Chromebook as `<workstation-user>`**, `nmcli connection up '3D-Printere client'`. Keep the gateway/AP cabling on Radxa.
-- Radxa VPN not recovering after school Wi-Fi is available: on **Radxa as `<gateway-user>`**, inspect the two Windscribe services and CLI status, then use `/opt/windscribe/windscribe-cli connect Stockholm stealth:443` if a manual reconnect is needed. Check client DNS/HTTPS afterward; CLI completion alone is not readiness.
+- Radxa VPN not recovering after school Wi-Fi is available: inspect Windscribe service state and the VPN-policy journal below. Allow the bounded country recovery pass/cooldown to operate. For deliberate manual intervention, pause the policy first; `/opt/windscribe/windscribe-cli connect DK stealth:443` on **Radxa as `<gateway-user>`** selects Denmark. Follow the country order in topology and verify client DNS/HTTPS; CLI completion alone is not readiness.
 - Studio application failure: on **Chromebook as `<workstation-user>`**, preserve any unsaved model/project work, close and reopen the installed AppImage, then check both device views. Current-user login persistence is established; no automatic kiosk recovery is configured.
 
 `printing-gateway` start/reload loads its own rules and Docker allowances. Its stop action blocks printer internet forwarding while retaining local services and unrelated Docker forwarding. Do not flush the whole firewall, disable Docker or introduce another network manager to recover printer access. A school uplink outage can leave local networking available while cloud functions fail.
@@ -89,6 +89,43 @@ On **Radxa as `<gateway-user>`**, check `networkctl status enp1s0`, `ip -4 addre
 
 The unused USB adapter has no IPv4/DHCP role and is not a fallback gateway. Its reliability limitation is in [issues](../worklog/ISSUES.md); moving the AP cable to it alone does not restore service. Any future reassignment needs matching networkd, DHCP, firewall and Docker configuration plus client verification.
 
+## VPN policy administration
+
+The country order and health/refresh behavior are authoritative in [topology](../network/TOPOLOGY.md). The policy runs as `<gateway-user>` in system services, using the existing Windscribe session; it needs no stored password or ongoing sudo grant. Units and scripts are root-owned. Runtime state is under `/var/lib/printing-station/vpn-policy/` (0700, owned by `<gateway-user>`), with a 0600 state file containing failure/cooldown/refresh bookkeeping, not credentials.
+
+Read-only checks on **Radxa as `<gateway-user>`**:
+
+```sh
+systemctl list-timers printing-vpn-check.timer printing-vpn-refresh.timer
+systemctl show printing-vpn-check.service printing-vpn-refresh.service -p Result -p ExecMainStatus
+sudo -n journalctl -u printing-vpn-check.service -u printing-vpn-refresh.service --since today
+/usr/bin/python3 /usr/local/libexec/printing-station/vpn-policy.py check --dry-run
+```
+
+`--dry-run` makes no VPN or persisted-state change. Normal runs log decisions and country results without exporting CLI account/IP output. A green unit result can mean a deliberate skip; read the decision line. Unexpected CLI output or a logged-out state needs administrator attention; it does not trigger login attempts or speculative service restarts.
+
+To pause **only the planned daily reconnect** for an exceptional overnight job, run on **Radxa with administrative privileges**:
+
+```sh
+sudo systemctl stop printing-vpn-refresh.timer printing-vpn-refresh.service
+# Resume the schedule after the overnight work.
+sudo systemctl start printing-vpn-refresh.timer
+```
+
+This temporary stop does not disable next-boot activation. For a deliberate manual VPN change, stop both policy timers and both policy services first; restart both timers afterward. Stopping the policy leaves Windscribe's own service/autoconnect in place. Do not run a manual connect concurrently with an active policy pass.
+
+### Update and reboot coordination
+
+The existing Radxa schedule uses `apt-daily.timer` at 06:00/18:00 with up to 12 hours of random delay, and `apt-daily-upgrade.timer` at 06:00 with up to one hour of random delay. Unattended-upgrades permits automatic reboot, including with users logged in, at 02:00 host-local time. These settings are inspected, not changed by the VPN policy. The host zone is Europe/Berlin; the VPN timer explicitly uses Europe/Copenhagen.
+
+The refresh service orders itself before queued APT daily jobs and skips if those jobs are already active, a package lock is held, a reboot is required/scheduled, or the host has just booted. It does not kill or restart package management. This avoids deliberate healthy refreshes competing with scheduled updates; it does not claim a global lock against arbitrary administrator-started maintenance. Fault recovery can still run when the VPN is already broken. The refresh has no daytime catch-up and does not query printer activity; the agreed quiet window is an operational requirement.
+
+### Policy source and recovery
+
+Reviewed source is in [radxa/](../../radxa/README.md), with deterministic tests in [tests/test_vpn_policy.py](../../tests/test_vpn_policy.py). Deployment maps `vpn-policy.py` to `/usr/local/libexec/printing-station/`, `vpn-policy.json` to `/etc/printing-station/`, and the four units to `/etc/systemd/system/`. Code is mode 0755, nonsecret JSON/units 0644, all root-owned. Validate source/tests and `systemd-analyze verify`, reload systemd after unit edits, and compare installed files before accepting a deployment. The JSON refresh time and calendar timer must agree; editing this checkout alone changes nothing on Radxa.
+
+Restricted `/var/lib/printing-station/rollback/20261006/vpn-policy/` contains the pre-install manifest, reviewed uninstall `rollback.sh` and `verified-policy.tar` snapshot of the six installed files. The rollback stops/disables only these policy units and removes their installed files; it retains runtime state and existing Windscribe/network configuration. It does not restore a particular VPN location or constitute a full-system restore. Pause the policy before reviewing or applying recovery material.
+
 ## Live configuration ownership
 
 | Host / owner | Paths and purpose |
@@ -99,6 +136,7 @@ The unused USB adapter has no IPv4/DHCP role and is not a fallback gateway. Its 
 | Radxa / gateway helpers | `/usr/local/libexec/printing-station/gateway-control`, `docker-forwarding`; Docker integration at `/etc/systemd/system/docker.service.d/printing-station.conf` |
 | Radxa / resolver | `/etc/systemd/resolved.conf.d/printing-station.conf`; loopback Windscribe proxy and printer dnsmasq have the separate paths shown in topology |
 | Radxa / Windscribe | System `windscribe-helper.service`; `<gateway-user>` user `windscribe.service` with linger and `/home/<gateway-user>/.config/systemd/user/windscribe.service.d/printing-station.conf` |
+| Radxa / VPN policy | `/usr/local/libexec/printing-station/vpn-policy.py`, `/etc/printing-station/vpn-policy.json`; `printing-vpn-check.service/.timer` and `printing-vpn-refresh.service/.timer` under `/etc/systemd/system/` |
 | Chromebook / NetworkManager | `3D-Printere client` profile and restricted Netplan file above; DHCP client only |
 
 ## Credentials and recovery material
@@ -111,6 +149,7 @@ Both hosts retain the restricted base directory `/var/lib/printing-station/rollb
 
 | Host | Useful retained material |
 |---|---|
+| Radxa | `/var/lib/printing-station/rollback/20261006/vpn-policy/`: installed policy snapshot, pre-install manifest and scoped uninstall script, as described above |
 | Radxa | `/var/lib/printing-station/rollback/20261006/builtin-ethernet/verified-config.tar`: current built-in Ethernet snapshot of 11 selected network/service/helper/resolver files; no full-system or credential backup |
 | Radxa | `before.tar` and `rollback.sh` in that same `20261006/builtin-ethernet/` directory: scoped recovery for the port change; restoring it requires the AP cable on USB Ethernet. No rollback timer is active |
 | Radxa | `verified-usb-router-20261006.tar` under the older base: retained USB gateway configuration, units, credentials and leases; its interface assignments are not current |

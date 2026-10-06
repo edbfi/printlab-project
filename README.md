@@ -14,13 +14,14 @@ Start with [current status](documentation/overview/STATE.md). For daily printing
 - [Network topology, addresses and service boundaries](documentation/network/TOPOLOGY.md)
 - [Hardware and software inventory](documentation/system/INVENTORY.md)
 - [Planned kiosk requirements and open decisions](documentation/kiosk/CONFIGURATION.md)
+- [Radxa VPN policy source and tests](radxa/README.md)
 - [Verified changes](documentation/worklog/CHANGES.md), [validation and limits](documentation/worklog/TESTS.md), [current issues](documentation/worklog/ISSUES.md)
 
 ## Local version control
 
 Use focused Conventional Commits. Git history holds superseded documentation; the active tree describes current operation and clearly marked future work. This repository has no remote configured.
 
-Git tracks documentation, not live system configuration or recovery backups. `.work/`, credentials, private inventory, logs and generated print jobs are ignored. Review staged files before committing; ignore rules cannot detect every secret. Preserve restricted recovery material at the locations documented in operations.
+Git tracks documentation and the reviewed Radxa VPN-policy deployment sources. Live credentials, runtime state and recovery backups remain on the machines. `.work/`, credentials, private inventory, logs and generated print jobs are ignored. Review staged files before committing; ignore rules cannot detect every secret. Preserve restricted recovery material at the locations documented in operations.
 
 ## License
 

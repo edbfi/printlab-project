@@ -27,4 +27,6 @@ Current-user Studio login, both online device indicators and both printer/status
 
 Radxa provides the school/VPN/DNS path. Chromebook shutdown or Studio exit does not stop printer networking. Loss of Radxa's VPN blocks downstream internet while local networking remains available; do not assume cloud-dependent login, transfer or status features work offline. Keep normal cloud-enabled mode unless the operator deliberately chooses a different mode after reviewing its consequences.
 
+A daily VPN refresh is scheduled for the agreed 04:30 Copenhagen quiet window, with no overnight prints or printer firmware updates. If an exceptional overnight job is needed, an administrator should pause the planned refresh using [operations](../operations/OPERATIONS.md); cloud access can pause during a reconnect.
+
 If a device is missing, follow [operations diagnostics](../operations/OPERATIONS.md) before changing settings. Do not use printer motion, heating, firmware changes or a new print as an incidental connectivity check. Routine printing is already confirmed working; there is no outstanding slicing/transfer acceptance blocker.

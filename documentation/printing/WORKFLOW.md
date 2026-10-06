@@ -1,6 +1,6 @@
 # Printing workflow
 
-Current status reconciled 2026-10-06: both printers are associated, identified, reserved and visible in Studio based on September 24 acceptance. October 6 post-migration pings to both pass, and Studio reopened with both devices online. **Slicing, preview, transfer and physical printing remain unverified.** Router migration is the current priority; application work stays on the Chromebook.
+Current status reconciled 2026-10-06: both printers are associated, identified, reserved and visible in Studio based on September 24 acceptance. October 6 post-migration pings to both pass, and Studio reopened with both devices online before and after full Chromebook reboot. **Slicing, preview, transfer and physical printing remain unverified.** Router migration is complete; application work stays on the Chromebook.
 
 ## Printers and addressing
 
@@ -29,7 +29,7 @@ CLI slicing failed because bundled GLFW attempted Wayland initialization on X11;
 
 Normal cloud-enabled operation with official Studio is the agreed initial baseline. Research on September 24 used the [official LAN Only guide](https://wiki.bambulab.com/en/knowledge-sharing/enable-lan-mode) and [A1 mini firmware history](https://wiki.bambulab.com/en/a1-mini/manual/a1-mini-firmware-release-history): LAN Only restricts Handy/off-site/history features; cloud functions depend on internet/VPN and can send job data through Bambu services. No Developer Mode requirement established or change performed. Revisit actual-firmware implications before any future mode change.
 
-Operator created the dedicated account and reported local LibreWolf/Studio logins. Actual Studio device recognition was observed; October 6 application restart retained the account/device view; logout/reboot and separate kiosk-user persistence remain untested. Future separate kiosk-user authentication is a distinct acceptance check; preserve existing sessions. See [kiosk configuration](../kiosk/CONFIGURATION.md).
+Operator created the dedicated account and reported local LibreWolf/Studio logins. Actual Studio device recognition was observed; October 6 application restart and full Chromebook reboot retained the current-user account/device view without new credentials; separate logout-only and future kiosk-user persistence remain untested. Future separate kiosk-user authentication is a distinct acceptance check; preserve existing sessions. See [kiosk configuration](../kiosk/CONFIGURATION.md).
 
 Mixed prepared-job/new-model workflow, no operator-supplied kiosk code. Optional interface, Bambuddy and Android/Waydroid are explicitly deferred; no optional stack installed. The Chromebook is intended for Studio/kiosk while Radxa provides networking independently.
 
@@ -37,6 +37,6 @@ Remaining printing acceptance:
 
 - Confirm actual filament on each printer and select matching presets.
 - Import, slice and inspect toolpaths in the GUI; verify transfer separately to both printers.
-- Verify profile/account persistence across application restart and the eventual kiosk login/reboot.
+- Verify full slicing-profile persistence and the eventual kiosk user’s own login/reboot behavior; current-user Studio login/device access survived application restart and full reboot.
 - Before physical printing, obtain explicit selected-printer, clear plate, loaded filament and readiness confirmation. No incidental motion/heating tests.
 - Verify the complete cloud/printing workflow under Control D p2; address filtering only if observed behavior justifies it.

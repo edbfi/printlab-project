@@ -2,6 +2,10 @@
 
 Dated history of verified outcomes. Earlier pending limitations describe that checkpoint; use [STATE](../overview/STATE.md) and the latest subject documents for current work. Read-only October 6 recap findings are recorded in TESTS and subject documents.
 
+## 2026-10-06 — Migration accepted after full Chromebook reboot
+
+Final client configuration survived a full reboot: automatic 3D-Printere DHCP .179/gatewayDNS.1, Control D identity/filtering, HTTPS matching Radxa79.142.77.67, AP/both printer access. No local tun0/Windscribe package/router services/nftables tables returned; forwarding remained0. Radxa retained its existing boot/services/NTP. Both pinned Radxa aliases passed after operator locally unlocked the encrypted administrator key. Manually reopened Studio retained current-user login and both online device/status views without new credentials. Network migration accepted; printing/kiosk acceptance remains separate. Current documentation reconciled, original rollback preserved.
+
 ## 2026-10-06 — Final migration staging cleanup
 
 Saved restricted final target `verified-usb-router-20261006.tar` and source `chromebook-client-20261006/verified-client.tar`. Moved obsolete user staging into root migration `retired-staging/nonsecret-target-stage/` and `nonsecret-chromebook-stage/`; preserved earlier tested rollback, installer, credentials and diagnostic/UI evidence. Fresh client DNS/HTTPS and target gateway/DHCP/Docker/NTP passed after archival. Only operator sudo-expiry timers remain among task-related timers. Full source reboot acceptance remains pending.

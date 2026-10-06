@@ -2,6 +2,14 @@
 
 Dated historical evidence follows; later results supersede earlier pending observations. The current acceptance summary is in [STATE](../overview/STATE.md). Do not rerun completed tests solely because an older entry says pending.
 
+## 2026-10-06 — Full Chromebook reboot acceptance
+
+Operator-authorized reboot changed source boot ID888223d2-1a24-441b-82f4-1c78de092511 to49d42619-55f8-484f-97ca-8a3ce32049b6. Boot journal records automatic 3D-Printere client activation and DHCP192.168.77.179. DNS/gateway192.168.77.1; no tun0, no Windscribe CLI package, old gateway/DHCP/helper/user services inactive, nft list tables empty, IPv4/IPv6 forwarding0 and no failed system units. System and TCP gateway DNS verify.controld.com→147.185.34.1, doubleclick.net→0.0.0.0; validated HTTPS79.142.77.67, APHTTP200, each printer ping2/2.
+
+Initial Radxa SSH authentication failed because the post-reboot SSH agent had no identities. Operator ran ssh-add locally; both pinned aliases then authenticated successfully, without changing SSH policy/credentials. Radxa boot ID remained afbcb66d-97e9-4fb2-b04d-7f117648ded5, gateway/DHCP/Docker active, NTP synchronized, host HTTPS matched client. Built-in Ethernet still disconnected/no IPv4, USB .1 and school .131 unchanged.
+
+Studio manually launched after desktop login: existing account/device access retained without new credentials, both online My Device indicators and both selected status views/temperature data observed, heater targets0. No motion/heat/firmware/print control issued. This is current-user reboot/session evidence, not automatic kiosk launch, future kiosk-user acceptance, slicing-profile proof or physical printing. Restricted screenshot/log evidence archived root-only under source migration retired-staging/post-reboot-check/.
+
 ## 2026-10-06 — Final migration staging cleanup
 
 Saved restricted final target `verified-usb-router-20261006.tar` and source `chromebook-client-20261006/verified-client.tar`. Moved obsolete user staging into root migration `retired-staging/nonsecret-target-stage/` and `nonsecret-chromebook-stage/`; preserved earlier tested rollback, installer, credentials and diagnostic/UI evidence. Fresh client DNS/HTTPS and target gateway/DHCP/Docker/NTP passed after archival. Only operator sudo-expiry timers remain among task-related timers. Full source reboot acceptance remains pending.

@@ -1,8 +1,8 @@
 # Kiosk configuration
 
-Architecture clarified 2026-10-06: this Lubuntu Chromebook is the intended Studio/touch kiosk; Radxa takes over the school Wi-Fi/Windscribe router role. Networking must remain available with the Chromebook off. Router migration currently takes priority and now serves the physical AP/printers; Chromebook is now an ordinary 3D-Printere client with its local VPN/router role retired.
+Architecture clarified 2026-10-06: this Lubuntu Chromebook is the intended Studio/touch kiosk; Radxa takes over the school Wi-Fi/Windscribe router role. Networking must remain available with the Chromebook off. Router migration is complete and serves the physical AP/printers; Chromebook is now an ordinary 3D-Printere client with its local VPN/router role retired.
 
-Status: **deferred by operator**; interface and lockdown level undecided. Finish printer association and the Studio baseline first. Do not create kiosk users, install a credential helper or redesign the interface during this stage.
+Status: **deferred by operator**; interface and lockdown level undecided. Printer association is complete; finish the Studio workflow baseline first. Do not create kiosk users, install a credential helper or redesign the interface during this stage.
 
 Required outcome: touch-friendly daily use, dedicated non-administrative account, deliberate administrator exit and application recovery. Network services must survive kiosk restarts and not require its login.
 
@@ -18,10 +18,12 @@ Prefer testing the applications' existing session persistence before introducing
 
 `age` via Homebrew was suggested as an optional future tool, not selected or installed. Any encrypted-at-rest design must account for automatic unlocking and key custody; a manual passphrase prompt at each boot would fail the stated usability requirement. Defer that choice until testing identifies an actual need. Preserve existing sessions while continuing printer setup.
 
+October 6 current-user acceptance: manually reopened Studio after full Chromebook reboot with retained login, both devices online and both status views loaded. Ordinary network access recovered independently of Studio/login. This does not establish kiosk autostart, future kiosk-account access or browser-session persistence.
+
 ## Deferred acceptance checks
 
-- Studio restart and current-user logout/login retain usable account/printer access, with no routine credential entry.
-- Reboot restores the intended daily workflow and account access after network/VPN readiness; delayed internet must recover gracefully.
+- Separate logout-only behavior and future kiosk-user login retain usable account/printer access; current-user restart/full-reboot checks passed.
+- Automatic kiosk launch restores the intended daily workflow; delayed application internet readiness must recover gracefully. Manual current-user Studio launch after reboot already passed.
 - Under the future kiosk user, establish and test that user's own authorized Studio session; do not assume admin browser/app sessions transfer.
 - Staff can recover from expired/revoked sessions through a documented administrator path; distinguish exceptional reauthentication from routine boot behavior.
 - Network services remain independent of kiosk login/process, and administrator access/recovery remains available.

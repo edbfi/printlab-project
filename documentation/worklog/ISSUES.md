@@ -18,7 +18,7 @@ School WLAN initially scanned without association because staged configuration o
 
 Initial Windscribe API requests timed out on school network. Temporary source-VPN HTTP bootstrap completed login/server-data retrieval; preferences restored to no proxy and all forwarding/proxy services closed. Actual independent tunnel, reconnect, process recovery and delayed-uplink reboot passed. Saved-token portability is now verified for this migration, not universally. Source login preserved.
 
-Physical USB handoff, real Wi-Fi clients, source VPN retirement and target USB reboot now pass. Full source client reboot remains. Scoped restore-router.sh is reviewed but not exercised end-to-end; it retains school WLAN/packages and archives new client state. Root originals/verified snapshot retained. Target 16:21:33 CEST and source 16:38:02 CEST sudo cleanup deadlines require recheck when continuing; no policy changes by this task.
+Physical USB handoff, real Wi-Fi clients, source VPN retirement and target USB reboot now pass. Full source client reboot and retained Studio login/device views now pass. Scoped restore-router.sh is reviewed but not exercised end-to-end; it retains school WLAN/packages and archives new client state. Root originals/verified snapshot retained. Target 16:21:33 CEST and source 16:09:26 CEST after operator renewal sudo cleanup deadlines require recheck when continuing; no policy changes by this task.
 
 Cleanup command containing explicit file deletions was rejected by automatic command review before execution. Used a safer reversible alternative: retired secret/package staging moved to root-only recovery storage and diagnostic helper scripts archived, preserving recovery material. Active test units, namespace, proxy services and task container/image were successfully removed/stopped through their scoped cleanup procedures; no task recovery timers remain.
 
@@ -28,7 +28,7 @@ Cleanup command containing explicit file deletions was rejected by automatic com
 - Audio repair restored HiFi speaker/headphone/microphone profiles; audibility and post-reboot functional checks unconfirmed. Do not repeat the installer based on obsolete Dummy Output notes.
 - Physical touch/scaling/lid/power, account/profile persistence, kiosk startup and actual filament remain unresolved/deferred as documented in their subject files.
 - School `.local` lookup/access timed out; numeric school DHCP SSH works. Stable school naming needs school administration; no cause assigned to the multicast failure.
-- Full Chromebook reboot in final client role, physical browser p2 check, complete cloud-printing workflow and broader isolation/helper-crash cases remain untested. Radxa actual USB-client and reboot acceptance passed; scope is in TESTS.
+- Physical browser p2 check, complete cloud-printing workflow and broader isolation/helper-crash cases remain untested. Actual USB/client and both host reboot acceptance passed; scope is in TESTS.
 
 ## Resolved — October 5 direct Radxa access
 

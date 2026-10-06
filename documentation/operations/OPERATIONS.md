@@ -1,6 +1,6 @@
 # Operations and recovery
 
-Current procedures reconciled after USB handoff on 2026-10-06. **Radxa serves the physical printer LAN; Chromebook is now an ordinary Wi-Fi client; only its full reboot acceptance remains.** Start from [STATE](../overview/STATE.md). Canonical migration/recovery: [RADXA-MIGRATION](../network/RADXA-MIGRATION.md).
+Current procedures reconciled after USB handoff on 2026-10-06. **Radxa serves the physical printer LAN; Chromebook is now an ordinary Wi-Fi client; full client reboot acceptance passed.** Start from [STATE](../overview/STATE.md). Canonical migration/recovery: [RADXA-MIGRATION](../network/RADXA-MIGRATION.md).
 
 ## Everyday network and access
 
@@ -9,7 +9,7 @@ Current procedures reconciled after USB handoff on 2026-10-06. **Radxa serves th
 - Use `ssh radxa` at `.1` (normal client path), or `ssh radxa-school` at observed school DHCP `10.113.128.131`; user <gateway-user>, key-only TCP22 with original pinned key. School DHCP may change. Unlock the existing private key with `ssh-add ~/.ssh/id_ed25519` locally if needed.
 - Chromebook uses ordinary DHCP `192.168.77.179` on 3D-Printere, gateway/DNS `.1`, with no own VPN or gateway. Public-key-only TCP2222 is reachable from Radxa; new external key login remains untested. Old `.1:2222` and school `.33` addresses are obsolete. `.local` failed previously on school Wi-Fi; do not invent static school addresses.
 - Wi-Fi/AP credentials stay in mode0600 files under `~/.config/printing-station/credentials/` (0700). Never print them in logs/chat/docs.
-- Target sudo expiry is 16:21:33 CEST October 6; Chromebook timer is 16:38:02 CEST. Recheck before privileged work and never alter deadlines.
+- Target sudo expiry is 16:21:33 CEST October 6; Chromebook timer is 16:09:26 CEST after operator renewal following reboot. Recheck before privileged work and never alter deadlines.
 
 ## Diagnose Radxa
 
@@ -29,7 +29,7 @@ Physical fallback returns the **USB adapter with AP cable** to Chromebook. First
 
 Source `chromebook-client-20261006/` holds pre-change and Netplan snapshots, matching Windscribe CLI AMD64 installer, retired config/units/account state and `restore-client.sh`. The pre-removal automatic rollback was exercised successfully. The script's later package reinstall/config/profile restoration extension is prepared and syntax-checked, not behaviorally tested. It restores school Wi-Fi/VPN and former gateway role, interrupting current client access. Use only for deliberate recovery; the AP adapter remains on Radxa until physically reversed separately. A source package reinstall can start its helper, so follow the scoped procedure rather than installing the package casually.
 
-Client persistence lives under `/etc/netplan/90-NM-9baf8d4d-a12c-4ae6-b94f-573a6f7ddeda.yaml`, mode0600, managed through NetworkManager. Use `nmcli connection up '3D-Printere client'` for normal reconnection. School profile has autoconnect off; no direct-school VPN remains installed. Reboot acceptance must check client networking and absence of local tun0/router services after reopening Codex in this project. Radxa/AP remain powered and need no cable changes.
+Client persistence lives under `/etc/netplan/90-NM-9baf8d4d-a12c-4ae6-b94f-573a6f7ddeda.yaml`, mode0600, managed through NetworkManager. Use `nmcli connection up '3D-Printere client'` for normal reconnection. School profile has autoconnect off; no direct-school VPN remains installed. October 6 full reboot verified automatic client DHCP/DNS/HTTPS, no local tun0/router services, Radxa SSH and manually reopened Studio with retained login/both online devices. The encrypted administrator SSH key must be unlocked locally after reboot with ssh-add; kiosk networking does not depend on it. Radxa/AP remain powered and need no cable changes.
 
 No active migration test/proxy/boot timers remain; operator sudo-expiry timers remain deliberately active. Historical staging scripts have outdated preconditions and must not be rerun, especially clock-correct.py. Secret/package duplicates were archived root-only; detailed acceptance limits remain in TESTS.
 
@@ -45,7 +45,7 @@ Root-only directory: `/var/lib/printing-station/rollback/20260922/`.
 
 ## Power and retained recovery material
 
-Sleep/suspend/hibernate/hybrid/suspend-then-hibernate targets remain masked (rechecked October 6); display blanking is separate. Physical lid/power-loss behavior is untested. Restore suspend capability only deliberately with `sudo -n systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target`; on Radxa, suspend interrupts the gateway; Chromebook power policy can be revisited after client transition.
+Sleep/suspend/hibernate/hybrid/suspend-then-hibernate targets remain masked (rechecked October 6); display blanking is separate. Physical lid/power-loss behavior is untested. Restore suspend capability only deliberately with `sudo -n systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target`; on Radxa, suspend interrupts the gateway; Chromebook power policy can now be revisited during kiosk setup.
 
 PC ED25519 host fingerprint verified previously by operator: `SHA256:5bUw2EUigkD1ebMQOUMeQ6U3dFRhY5pzg47unG5wdyM`.
 

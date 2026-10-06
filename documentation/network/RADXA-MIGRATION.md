@@ -1,14 +1,14 @@
 # Radxa router migration
 
-## Status — operational migration; Chromebook reboot acceptance remains
+## Status — network migration complete, 2026-10-06
 
 Radxa now serves the real AP/printers through USB `enx00e04c5a5518` / `00:e0:4c:5a:55:18`. Operator reserves built-in `enp1s0` for a possible future school Ethernet uplink; it has no IPv4/DHCP and no cable. School Wi-Fi remains the only configured uplink. School DHCP changed after final reboot to `10.113.128.131/20`; aliases updated.
 
 Mac and Chromebook real Wi-Fi clients passed Radxa VPN HTTPS. Chromebook now has `.77.179`, gateway/DNS `.1`, no local tunnel, no Windscribe package and no active router/DHCP/firewall role. Obsolete router/VPN configuration and profiles archived/removed; applications preserved. Original school profile remains disabled for autoconnect, available for deliberate recovery.
 
-Final USB VPN-loss blocking/local reachability/reconnect, actual Radxa reboot with automatic services/Docker/NTP/client recovery, Chromebook disconnected independence observation and ordinary-client reconnect all passed. Latest exit `79.142.77.67` matches both hosts. Studio reopened and both printers appear online. Full Chromebook reboot is the remaining network checkpoint; no physical print or transfer acceptance claimed.
+Final USB VPN-loss blocking/local reachability/reconnect, actual Radxa reboot with automatic services/Docker/NTP/client recovery, Chromebook disconnected independence observation and ordinary-client reconnect all passed. Latest exit `79.142.77.67` matches both hosts. Studio reopened and both printers appear online. Full Chromebook reboot also passed: ordinary Wi-Fi/DHCP/DNS/HTTPS, retired local services, Radxa SSH and retained Studio login/both online devices. No physical print or transfer acceptance claimed.
 
-Use `ssh radxa` at `.1` or school alias at current DHCP `.131`, with original pinned key. Source/target restricted recovery is preserved; no active task test/rollback timers remain. Target sudo expires 16:21:33 CEST October 6; source timer 16:38:02 CEST. Never alter deadlines.
+Use `ssh radxa` at `.1` or school alias at current DHCP `.131`, with original pinned key. Source/target restricted recovery is preserved; no active task test/rollback timers remain. Target sudo expires 16:21:33 CEST October 6; source timer 16:09:26 CEST after operator renewal. Never alter deadlines.
 
 ## Intended outcome — operator reconfirmed 2026-10-06
 
@@ -36,11 +36,13 @@ Root-only snapshots on both hosts: `/var/lib/printing-station/rollback/20261005/
 
 All historical migration staging is now archived root-only: `retired-staging/nonsecret-chromebook-stage/` on source (including restricted GUI evidence) and `nonsecret-target-stage/` on target. Source `.work/radxa-migration/` and target `/home/<gateway-user>/.cache/printing-station-migration/` no longer contain active work. Secret/package duplicates are separately retained under retired-staging. Do not rerun old installers/clock scripts: their preconditions no longer apply. Source helper archive `/var/lib/printing-station/tests/radxa-20261006/` and target observer logs remain recovery evidence. No temporary proxies, containers/images or recovery/test timers remain. Final source client configuration snapshot is `chromebook-client-20261006/verified-client.tar`; DNS/HTTPS/target services/NTP rechecked after archival.
 
-## Remaining network checkpoint
+## Completed final checkpoint and remaining station work
 
-A full Chromebook reboot would close the current local Codex session. Preserve work, reopen the same project/session after boot and verify ordinary DHCP/DNS/HTTPS, Radxa SSH and Studio/session persistence with no local VPN/router services. Client disconnect/reconnect already passed but is not reboot evidence. Printing/kiosk acceptance remains separate; no motion/heating/firmware/print is authorized by network testing.
+Chromebook reboot changed its boot ID to `49d42619-55f8-484f-97ca-8a3ce32049b6`. It automatically rejoined 3D-Printere as `.179`, gateway/DNS `.1`; DNS filtering and HTTPS matched Radxa without local VPN/router services. Both pinned SSH aliases worked after the operator unlocked the encrypted local key with ssh-add. Studio manually reopened with existing login and both printer status views. Radxa retained its boot ID/services/NTP through the Chromebook reboot.
 
-Final USB-specific evidence is in TESTS: real Mac/Chromebook egress, VPN outage/no-fallback, Radxa reboot, source package retirement and about 30 seconds of Chromebook disconnection while Radxa/AP/printers continued working. Earlier built-in-port isolated tests below remain historical supplemental evidence.
+Network migration acceptance is complete. Printing/kiosk acceptance remains separate: slicing/preview/transfer/physical prints, physical usability and future kiosk-account/startup behavior are not established by these checks. No printer controls were issued.
+
+Final evidence is in TESTS: real clients, VPN outage/no-fallback, both host reboots, source retirement and Chromebook-disconnection independence. Earlier built-in-port isolated tests below remain historical supplemental evidence.
 
 ## Real isolated acceptance — 2026-10-06
 

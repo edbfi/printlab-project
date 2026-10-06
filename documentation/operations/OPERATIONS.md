@@ -119,11 +119,11 @@ Sizes are rounded disk usage. Inspection covers the project recovery directories
 
 | Host / location | Size / contents |
 |---|---|
-| Chromebook `/var/lib/printing-station/rollback/` | 82 MiB: dated configuration snapshots, restore scripts, saved Windscribe packages/settings and 1.4 MiB audio recovery material |
+| Chromebook `/var/lib/printing-station/rollback/` | 60 MiB: dated configuration snapshots, restore scripts, saved Windscribe packages/settings and 1.4 MiB audio recovery material |
 | Chromebook `/var/lib/printing-station/tests/` | 216 KiB of retained diagnostics |
-| Chromebook project `.work/` | 35 MiB: setup downloads/checkouts, a printer test-model directory and restricted AP backup |
+| Chromebook project `.work/` | 2.6 MiB: setup checkouts, a printer test-model directory and restricted AP backup |
 | Radxa `/var/lib/printing-station/rollback/` | 24 MiB: configuration snapshots, restore/diagnostic material and the ARM64 Windscribe installer |
 
 The current Radxa snapshot is about 350 KiB and the Chromebook client snapshot is 10 KiB. Archive member names show selected configuration files: these are not full-machine backups. The Chromebook snapshot covers Netplan/SSH settings and does not include Studio projects or its application session. Credentials are present in restricted configuration archives; keep those archives private.
 
-Two installer duplicates are confirmed by SHA-256 comparison: Chromebook `.work/setup/windscribe-cli.deb` matches its retained `chromebook-client-20261006/windscribe-cli_2.24.13_amd64.deb` (21.4 MiB); the Chromebook backup base's `retired-staging/windscribe-cli_2.24.13_arm64.deb` matches Radxa's installer at its backup base (21.7 MiB). `.work/setup/tl-wr902ac-guide.pdf` adds 11.0 MiB. The saved GUI installer under `rollback/20260922/windscribe/` is a different version, 33.3 MiB, not a duplicate. No backup or setup artifact is removed by this inventory.
+One CLI installer copy is retained per architecture: AMD64 in the Chromebook backup base's `chromebook-client-20261006/windscribe-cli_2.24.13_amd64.deb` (21.4 MiB), ARM64 in Radxa's backup base as `windscribe-cli_2.24.13_arm64.deb` (21.7 MiB). The saved GUI installer under Chromebook `rollback/20260922/windscribe/` is a different version, 33.3 MiB. Current sizes reflect the operator-approved removal of the two redundant CLI installer copies and downloaded AP manual; configuration snapshots, audio/AP recovery material and other files remain retained.

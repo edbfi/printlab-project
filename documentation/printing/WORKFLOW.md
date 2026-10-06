@@ -1,61 +1,42 @@
 # Printing workflow
 
-## Both reservations verified; A1 mini profile selected — 2026-09-24
+Current status reconciled 2026-10-06: both printers are associated, identified, reserved and visible in Studio based on September 24 acceptance. October 6 host pings to both pass. **Slicing, preview, transfer and physical printing remain unverified.** Router migration is the current priority; application work stays on the Chromebook.
 
-Operator confirms second printer remains .145 after Wi-Fi reconnect. Fresh DHCPREQUEST/ACK at 15:58:48 verifies e0:72:a1:a4:e4:6c → 192.168.77.145/a1mini-581 after reservation load; ping 2/2. Both printers now have verified reservations (.115/366, .145/581), confirmed identities and Studio visibility. Preserve both pre-reservation backups.
+## Printers and addressing
 
-Studio Prepare had default X1 Carbon. Added official A1 mini system preset without removing existing X1 preset; current UI confirms Bambu Lab A1 mini, 0.4 mm nozzle, Standard flow, Textured PEI Plate and 0.20mm Standard @BBL A1M. Plate empty. Current PLA Basic selection is provisional; asked operator for physically loaded material/brand/colour on each printer before filament-specific slicing. No transfer, motion, heating or print. Profile restart persistence not yet tested.
+| Printer | Reserved address | MAC / lease name | Firmware last confirmed in Studio |
+|---|---|---|---|
+| 3DP-030-366 | 192.168.77.115 | ac:a7:04:12:be:58 / a1mini-366 | 01.08.01.00 |
+| 3DP-030-581 | 192.168.77.145 | e0:72:a1:a4:e4:6c / a1mini-581 | 01.08.01.00 |
 
+Both A1 minis use **3D-Printere**, LAN Only **Off**, and the dedicated Bambu account (operator confirmed binding; both appeared under My Device). September 24 fresh post-load DHCP ACKs verified `.115` at 15:37:42/15:41:14 and `.145` at 15:58:48; operator confirmed display/address after reconnect. Reserve existing addresses through the Radxa migration.
 
-## Second printer confirmed; reservation loaded — 2026-09-24 15:57
+Operator-confirmed hardware: stainless-steel 0.4 mm nozzles, Bambu Textured PEI Plates, no AMS Lite. Reported printing times at inventory: 33 hours/366 and 44 hours/581. Physically loaded filament material/brand/colour is still unknown. Full serials, previous SSID and account identifier remain in ignored mode-0600 `PRINTERS.private.md`; never force-add it. No printer access codes belong in tracked records.
 
-Operator confirms 3DP-030-581 at 192.168.77.145, LAN Only Off and new-account binding successful. Studio lists both under My Device; selected second printer details match private serial, A1 mini and firmware 01.08.01.00. DHCP ACK 15:54:11 maps e0:72:a1:a4:e4:6c to .145; ping passes. Reservation `e0:72:a1:a4:e4:6c,192.168.77.145,a1mini-581,12h` syntax-checked and loaded by printing-dhcp restart at 15:57. Gateway/DHCP active, DNS via .1 and second-printer ping pass after load. Fresh post-load DHCP ACK still pending: operator to reconnect only 581 Wi-Fi, no reset or print. Backup `/var/lib/printing-station/rollback/20260924/printer-reservations/dnsmasq.before-581.conf` retained. No firmware changes, motion, heating or transfer performed on second printer. Physical filament details and Studio slicing/transfer still pending for both.
+First printer originally reported 01.03.30.01, independently confirmed in Studio. An operator-initiated update failed at 32% with code 301; operator restart/retry succeeded and Studio confirmed 01.08.01.00 / Updating successful / 100%. Cause of the first download failure remains unknown. No update was performed on the second printer by this task. No agent-initiated movement/heating/calibration/print.
 
+Pre-reservation dnsmasq backups remain at `/var/lib/printing-station/rollback/20260924/printer-reservations/dnsmasq.before-366.conf` and `dnsmasq.before-581.conf`.
 
-## First printer recovery verified — 2026-09-24
+## Studio baseline
 
-After operator-initiated update initially failed at 32% with code 301, operator restart/retry succeeded. Studio reports first printer 3DP-030-366 Idle, **01.08.01.00**, Updating successful / 100%. Operator confirms .115; fresh DHCP ACKs at 15:37:42 and 15:41:14 verify loaded reservation for ac:a7:04:12:be:58/a1mini-366, ping 2/2. Second association/binding and both printing workflows remain pending. Historical initial-association notes below are superseded by this checkpoint.
+Official Bambu Studio **2.8.2.61** Ubuntu 24.04 AppImage at `~/Applications/BambuStudio-2.8.2.61.AppImage`; published SHA-256 verified at installation. Distribution WebKit runtime installed. GUI launches under Ubuntu 26.04/X11 with accelerated Intel graphics; generated 20 mm cube imported/rendered (12 triangles/8000 mm³).
 
+Official A1 mini preset added September 24 without removing X1 Carbon preset. Selected UI: Bambu Lab A1 mini, 0.4 mm, Standard flow, Textured PEI Plate, `0.20mm Standard @BBL A1M`. PLA Basic is provisional until actual filament is confirmed. Plate was empty. Profile restart persistence remains untested. Studio was not reopened for the October 6 recap.
 
-## Association checkpoint — 2026-09-24 15:19
+CLI slicing failed because bundled GLFW attempted Wayland initialization on X11; exit 0 produced no slice output. Continue the GUI baseline; do not infer slicing success from CLI exit/help output or replace the desktop stack for this incidental test. Homebrew's Studio cask required macOS when researched; the installed Linux AppImage is the established baseline.
 
-Follow-up: operator confirms `.115`, LAN Only Off and account binding for 366. Studio directly recognizes device/status and read-only details confirm A1 mini, matching private serial and firmware 01.03.30.01. No second binding performed; no firmware update selected. UI external-spool setting is PLA, not a physical filament confirmation. Reservation `.115`/MAC above loaded with hostname a1mini-366/12h lease; fresh reconnect/ACK pending. Backup in rollback/20260924/printer-reservations. No control/transfer/printing tested.
+## Chosen mode and deferred work
 
-Operator reports first printer **3DP-030-366** joined 3D-Printere. A new client MAC `ac:a7:04:12:be:58` received `.115` at 15:17:45; host ping 3/3 (1.2–2.3 ms), neighbor entry and Ethernet-only route verified. This is the candidate first printer; confirm its displayed IP before DHCP reservation. LAN Only Off and Bambu account binding not yet confirmed. Do not infer either from Wi-Fi association. Second printer remains pending.
+Normal cloud-enabled operation with official Studio is the agreed initial baseline. Research on September 24 used the [official LAN Only guide](https://wiki.bambulab.com/en/knowledge-sharing/enable-lan-mode) and [A1 mini firmware history](https://wiki.bambulab.com/en/a1-mini/manual/a1-mini-firmware-release-history): LAN Only restricts Handy/off-site/history features; cloud functions depend on internet/VPN and can send job data through Bambu services. No Developer Mode requirement established or change performed. Revisit actual-firmware implications before any future mode change.
 
-## Printer inventory — operator report, 2026-09-24
+Operator created the dedicated account and reported local LibreWolf/Studio logins. Actual Studio device recognition was observed; routine restart/logout/reboot session persistence remains untested. Future separate kiosk-user authentication is a distinct acceptance check; preserve existing sessions. See [kiosk configuration](../kiosk/CONFIGURATION.md).
 
-| Printer / device name | Firmware | Printing time | AMS Lite | Existing LAN Only mode |
-|---|---|---|---|---|
-| First: 3DP-030-366 | 01.08.01.00 (Studio confirmed after update) | 33 hours | None | Off (operator confirmed) |
-| Second: 3DP-030-581 | 01.08.01.00 (Studio confirmed) | 44 hours | None | Off (operator confirmed) |
+Mixed prepared-job/new-model workflow, no operator-supplied kiosk code. Optional interface, Bambuddy and Android/Waydroid are explicitly deferred; no optional stack installed. The Chromebook is intended for Studio/kiosk while Radxa provides networking independently.
 
-At initial inventory both A1 minis were on the operator's testing Wi-Fi; first-printer association progress is recorded above. Both have **stainless-steel 0.4 mm nozzles** and **Bambu Textured PEI Plates**, confirmed by operator. Loaded filament remains unknown. These are operator observations, not station-discovered identities. Do not assume the two firmware versions have identical Studio/LAN requirements.
+Remaining printing acceptance:
 
-Operator clarification: LAN Only is the last reported printer mode, not a desired constraint. Following the explanation of cloud/Handy/account implications, operator created the dedicated Bambu account and completed logins for the normal cloud-enabled baseline. Actual printer mode change/binding remains to be confirmed during one-at-a-time setup. No firmware update or Developer Mode requested. Previous preserve-mode wording applied during inventory/network checks, not as a permanent workflow choice.
-
-Mode research (official wiki read 2026-09-24): [LAN Only guide](https://wiki.bambulab.com/en/knowledge-sharing/enable-lan-mode) confirms local Studio operation without internet, but no Bambu Handy, off-site remote printing or print history. Initial baseline is normal cloud-enabled mode with official Studio and the dedicated Bambu account; cloud operations need working VPN/internet and can send job data through Bambu services. Operator previously reported Account Disabled on both printers; binding remains unverified. No mode change performed by agent.
-
-Account setup: operator reports dedicated account created and signed in across the intended services, including local LibreWolf and Studio. Account identifier retained only in the ignored private inventory. These are operator-reported successful logins; Studio restart/reboot persistence and printer binding are not yet tested. Seamless daily authentication and future separate kiosk-user design are recorded in [kiosk/CONFIGURATION.md](../kiosk/CONFIGURATION.md); defer credential tooling/user creation while finishing printers and Studio.
-
-[A1 mini firmware history](https://wiki.bambulab.com/en/a1-mini/manual/a1-mini-firmware-release-history) lists 01.08.01.00 and introduces authorization controls/optional Developer Mode in 01.05.00.00. Official Studio is the intended baseline; no reason established to enable Developer Mode. Exact operator-reported 01.03.30.01 is not listed in that history (nearby listed versions include 01.03.01.00/01.03.01.02); retain report as supplied and recheck on the first printer before drawing version-specific conclusions. No firmware update required or performed by this research.
-
-Subsequent local Studio inspection confirms first printer actually reports 01.03.30.01; no correction to operator inventory needed. Upgrade to 01.08.01.00 is offered in UI but not requested or performed.
-
-Full serials and previous SSID are retained locally in `documentation/printing/PRINTERS.private.md` (0600, explicitly Git-ignored). It is not backed up by Git; do not force-add it. Printer access codes/passwords belong in restricted credentials storage. Associate first printer before the second so lease/address identity can be confirmed reliably.
-
-Status: in progress; first printer association under verification, second pending.
-
-Baseline requirement: Bambu Studio, tested with both A1 minis. Operator prefers Homebrew, but the [Bambu Studio cask](https://formulae.brew.sh/cask/bambu-studio) requires macOS; choose and validate an appropriate upstream Linux build.
-
-Before choosing an optional interface, establish whether colleagues use prepared jobs or import new models, and inspect any operator-provided kiosk code. Evaluate Bambuddy against firmware compatibility, slicing needs and resource use.
-
-Pending: printer identities/firmware, operating modes, nozzle/plate/filament details, workflow choice and operator-approved physical prints. Do not enable LAN Only/Developer Mode or start heating/motion/prints without the brief's checkpoints.
-
-## Baseline application progress
-
-Upstream Bambu Studio 2.8.2.61 Ubuntu 24.04 AppImage installed and verified against GitHub SHA-256; distribution WebKit dependency installed. GUI launches under X11 with accelerated Intel graphics. Generated virtual 20 mm cube imports and renders (12 triangles/8000 mm³). Current default profile was X1 Carbon, so A1 mini setup and slicing remain pending; no physical printer profile assumptions should be treated as confirmed.
-
-CLI slicing attempt failed because bundled GLFW attempted Wayland initialization on X11; returned 0 without output. Baseline is the GUI application. No model transferred or print started. Networking plugin files appeared following the initial GUI wizard session; actual printer connections not validated.
-
-Operator confirms mixed prepared-job/new-model workflow, no supplied kiosk code, and explicitly defers optional interface decision until much later. No Bambuddy/Android/custom kiosk stack installed.
+- Confirm actual filament on each printer and select matching presets.
+- Import, slice and inspect toolpaths in the GUI; verify transfer separately to both printers.
+- Verify profile/account persistence across application restart and the eventual kiosk login/reboot.
+- Before physical printing, obtain explicit selected-printer, clear plate, loaded filament and readiness confirmation. No incidental motion/heating tests.
+- Verify the complete cloud/printing workflow under Control D p2; address filtering only if observed behavior justifies it.

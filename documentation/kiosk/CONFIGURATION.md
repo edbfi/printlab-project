@@ -1,5 +1,7 @@
 # Kiosk configuration
 
+Architecture clarified 2026-10-06: this Lubuntu Chromebook is the intended Studio/touch kiosk; Radxa takes over the school Wi-Fi/Windscribe router role. Networking must remain available with the Chromebook off. Router migration currently takes priority and is not yet active.
+
 Status: **deferred by operator**; interface and lockdown level undecided. Finish printer association and the Studio baseline first. Do not create kiosk users, install a credential helper or redesign the interface during this stage.
 
 Required outcome: touch-friendly daily use, dedicated non-administrative account, deliberate administrator exit and application recovery. Network services must survive kiosk restarts and not require its login.

@@ -2,14 +2,14 @@
 
 Bambu Studio on the Lubuntu Chromebook is the working interface for **3DP-030-366** and **3DP-030-581**. The operator confirms the printing workflow, including slicing and transfer, works. This confirmation supplies the workflow status; it is not an agent-performed printing test and does not supply per-printer measurements, materials or job timestamps.
 
-Both A1 minis use the dedicated Bambu account and normal cloud-enabled operation, with **LAN Only off**. They connect to the printer WLAN; [topology](../network/TOPOLOGY.md) owns their reserved addresses. The [inventory](../system/INVENTORY.md) records firmware and the fitted hardware: both have 0.4 mm stainless-steel nozzles, Bambu Textured PEI Plates and no AMS Lite.
+Both A1 minis use the dedicated Bambu account and normal cloud-enabled operation, with **LAN Only off**. They connect to the printer WLAN; [topology](../network/TOPOLOGY.md) owns their reserved addresses. The [printer inventory](PRINTERS.md) records firmware and the fitted hardware: both have 0.4 mm stainless-steel nozzles, Bambu Textured PEI Plates and no AMS Lite.
 
 ## Everyday use on the Chromebook
 
 Use the current `<workstation-user>` desktop session. Open the installed Bambu Studio AppImage:
 
 ```sh
-# Chromebook, <workstation-user>, from the graphical desktop session.
+# Chromebook, workstation administrator, from the graphical desktop session.
 ~/Applications/BambuStudio-2.8.2.61.AppImage
 ```
 

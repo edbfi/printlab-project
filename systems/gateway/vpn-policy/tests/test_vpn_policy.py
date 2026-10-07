@@ -12,7 +12,7 @@ import unittest
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
-spec = importlib.util.spec_from_file_location("vpn_policy", Path(__file__).parents[1] / "radxa/vpn-policy.py")
+spec = importlib.util.spec_from_file_location("vpn_policy", Path(__file__).parents[1] / "vpn-policy.py")
 policy = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(policy)
 NOW = dt.datetime(2026, 10, 7, 4, 30, tzinfo=ZoneInfo("Europe/Copenhagen")).timestamp()

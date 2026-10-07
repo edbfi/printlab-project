@@ -1,8 +1,8 @@
-# Project brief: Lubuntu printing station
+# Project brief: printlab-project
 
-The project supports everyday printing on two Bambu Lab A1 minis. Radxa supplies school Wi-Fi connectivity, Windscribe VPN, firewall, DHCP and DNS, with its built-in Ethernet port serving the printer LAN. The Lubuntu Chromebook runs Bambu Studio as an ordinary printer-WLAN client. The operator confirms the printing workflow, including slicing and transfer, works.
+printlab-project contains the network infrastructure, workstation setup and planned kiosk tooling for a shared 3D printing environment. The current deployment supports everyday printing on two Bambu Lab A1 minis. Radxa supplies school Wi-Fi connectivity, Windscribe VPN, firewall, DHCP and DNS, with its built-in Ethernet port serving the printer LAN. The Lubuntu Chromebook runs Bambu Studio as an ordinary printer-WLAN client. The operator confirms the printing workflow, including slicing and transfer, works.
 
-Chromebook kiosk mode is a separate planned feature for later: a touch-friendly interface for colleagues using prepared jobs and new models, a non-administrative account, appropriate automatic/fullscreen startup, dependable login, recovery and an administrator exit. Keep `<workstation-user>` as administrator. Interface, account name, lockdown, launch details and optional software remain undecided; [kiosk configuration](../kiosk/CONFIGURATION.md) owns these requirements.
+Chromebook kiosk mode is a separate planned feature for later: a touch-friendly interface for colleagues using prepared jobs and new models, a non-administrative account, appropriate automatic/fullscreen startup, dependable login, recovery and an administrator exit. Keep the existing administrator account. Interface, account name, lockdown, launch details and optional software remain undecided; [kiosk configuration](../kiosk/CONFIGURATION.md) owns these requirements.
 
 ## Current scope and boundaries
 
@@ -12,7 +12,7 @@ Preserve unrelated networking, firewall rules, services, accounts, permissions p
 
 ## Working safeguards
 
-Follow [AGENTS.md](../../AGENTS.md), applicable `.agents/rules/*.md` and the operator's current request. Use `/home/<workstation-user>/kiosk-mode` as the persistent project root. Existing documentation is reference material, not standing authorization to implement future work.
+Follow [AGENTS.md](../../AGENTS.md), applicable `.agents/rules/*.md` and the operator's current request. Use this checkout as the persistent project root; obtain its absolute path with `git rev-parse --show-toplevel`. Existing documentation is reference material, not standing authorization to implement future work.
 
 - Establish configuration ownership and preserve the administration path before any later authorized system change. Back up affected files with appropriate permissions and arrange scoped recovery for changes that could disconnect access.
 - Keep exactly one DHCP authority on the printer LAN, school Wi-Fi separate from that LAN, and certificate validation intact. Preserve the AP's security/radio settings, key-only SSH and Docker integration.
@@ -22,7 +22,7 @@ Follow [AGENTS.md](../../AGENTS.md), applicable `.agents/rules/*.md` and the ope
 
 ## Documentation and completion
 
-[STATE](STATE.md) gives current status and outstanding work. [Topology](../network/TOPOLOGY.md) owns networking; [inventory](../system/INVENTORY.md) owns hardware/software; [workflow](../printing/WORKFLOW.md) owns daily printing; [operations](../operations/OPERATIONS.md) owns administration and recovery locations. The [root index](../../README.md) links all subjects.
+[STATE](STATE.md) gives current status and outstanding work. [Topology](../network/TOPOLOGY.md) owns networking; [network hardware](../network/HARDWARE.md), [workstation inventory](../workstation/INVENTORY.md) and [printer inventory](../printing/PRINTERS.md) own their respective hardware/software; [workflow](../printing/WORKFLOW.md) owns daily printing; [operations](../operations/OPERATIONS.md) owns administration and recovery locations. The [root index](../../README.md) links all subjects.
 
 Record only verified successful changes in [CHANGES](../worklog/CHANGES.md), evidence and limits in [TESTS](../worklog/TESTS.md), and current faults/remaining side effects in [ISSUES](../worklog/ISSUES.md). Keep proposed/unverified changes and recovery pointers in STATE until resolved. Read-only findings belong in the relevant subject reference. Update records at stage boundaries or before possible disconnection.
 

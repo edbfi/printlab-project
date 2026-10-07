@@ -1,5 +1,7 @@
 # Operations and recovery
 
+Account placeholders such as `<gateway-user>` and `<workstation-user>` must be replaced privately with the appropriate local account; they are not literal usernames.
+
 Use [printing workflow](../printing/WORKFLOW.md) for daily Studio work and [topology](../network/TOPOLOGY.md) for addresses, interface roles and DNS/isolation behavior. Keep Radxa and the AP powered. Chromebook power, login and applications do not provide printer networking.
 
 ## Administration
@@ -7,7 +9,7 @@ Use [printing workflow](../printing/WORKFLOW.md) for daily Studio work and [topo
 On the Chromebook as `<workstation-user>`, use `ssh radxa` for normal gateway administration. `ssh radxa-school` is an alternative using an observed school DHCP address; confirm that address on Radxa before relying on it. Both aliases preserve the existing pinned host key. If the encrypted key is unavailable after login/reboot, unlock it locally:
 
 ```sh
-# Chromebook, <workstation-user>; enter the passphrase only in the local prompt.
+# Chromebook, workstation administrator; enter the passphrase only in the local prompt.
 ssh-add ~/.ssh/id_ed25519
 ssh radxa
 ```
@@ -122,7 +124,7 @@ The refresh service orders itself before queued APT daily jobs and skips if thos
 
 ### Policy source and recovery
 
-Reviewed source is in [radxa/](../../radxa/README.md), with deterministic tests in [tests/test_vpn_policy.py](../../tests/test_vpn_policy.py). Deployment maps `vpn-policy.py` to `/usr/local/libexec/printing-station/`, `vpn-policy.json` to `/etc/printing-station/`, and the four units to `/etc/systemd/system/`. Code is mode 0755, nonsecret JSON/units 0644, all root-owned. Validate source/tests and `systemd-analyze verify`, reload systemd after unit edits, and compare installed files before accepting a deployment. The JSON refresh time and calendar timer must agree; editing this checkout alone changes nothing on Radxa.
+Reviewed source is in [VPN policy component](../../systems/gateway/vpn-policy/README.md), with deterministic tests in [component tests](../../systems/gateway/vpn-policy/tests/test_vpn_policy.py). The public service templates omit account identifiers: substitute the tokens described in the component README and remove their `.in` suffix before validation or installation. Keep rendered units outside tracked content. Deployment maps `vpn-policy.py` to `/usr/local/libexec/printing-station/`, `vpn-policy.json` to `/etc/printing-station/`, and the four units to `/etc/systemd/system/`. Code is mode 0755, nonsecret JSON/units 0644, all root-owned. Validate source/tests and `systemd-analyze verify`, reload systemd after unit edits, and compare installed files before accepting a deployment. The JSON refresh time and calendar timer must agree; editing this checkout alone changes nothing on Radxa.
 
 Restricted `/var/lib/printing-station/rollback/20261006/vpn-policy/` contains the pre-install manifest, reviewed uninstall `rollback.sh` and `verified-policy.tar` snapshot of the six installed files. The rollback stops/disables only these policy units and removes their installed files; it retains runtime state and existing Windscribe/network configuration. It does not restore a particular VPN location or constitute a full-system restore. Pause the policy before reviewing or applying recovery material.
 
@@ -156,7 +158,7 @@ Both hosts retain the restricted base directory `/var/lib/printing-station/rollb
 | Chromebook | `chromebook-client-20261006/verified-client.tar` under that base: snapshot of the working ordinary-client configuration |
 | Both | Additional restricted snapshots, installers and scoped restore scripts under the same base; retained for administrator review |
 | Chromebook | `/var/lib/printing-station/rollback/20260922/audio/ucm-before.tar` and saved ALSA state: audio recovery material |
-| Chromebook | `/home/<workstation-user>/kiosk-mode/.work/setup/router-backups/before-ap-config.bin`: restricted AP backup; it does not represent current station settings |
+| Chromebook | `.work/setup/router-backups/before-ap-config.bin` relative to this checkout: restricted AP backup; it does not represent current station settings |
 | Chromebook | Restricted diagnostics under `/var/lib/printing-station/tests/`; Studio reboot evidence under the backup base's `retired-staging/post-reboot-check/` |
 | Both | Additional retained diagnostic/staging material under the backup base's `retired-staging/`; Radxa has no `/var/lib/printing-station/tests/` directory at this inspection |
 
@@ -175,4 +177,8 @@ Sizes are rounded disk usage. Inspection covers the project recovery directories
 
 The current Radxa selected-configuration snapshot is 30 KiB; the retained USB gateway archive is about 350 KiB, and the Chromebook client snapshot is 10 KiB. Archive member names show selected configuration files: these are not full-machine backups. The Chromebook snapshot covers Netplan/SSH settings and does not include Studio projects or its application session. Some older restricted configuration archives contain credentials; keep all recovery archives private. The current Radxa selected-configuration snapshot excludes school/Windscribe authentication, leases and user data; it supplements the retained material.
 
-One CLI installer copy is retained per architecture: AMD64 in the Chromebook backup base's `chromebook-client-20261006/windscribe-cli_2.24.13_amd64.deb` (21.4 MiB), ARM64 in Radxa's backup base as `windscribe-cli_2.24.13_arm64.deb` (21.7 MiB). The saved GUI installer under Chromebook `rollback/20260922/windscribe/` is a different version, 33.3 MiB. Current sizes reflect the operator-approved removal of the two redundant CLI installer copies and downloaded AP manual; configuration snapshots, audio/AP recovery material and other files remain retained.
+One CLI installer copy is retained per architecture: AMD64 in the Chromebook backup base's `chromebook-client-20261006/windscribe-cli_2.24.13_amd64.deb` (21.4 MiB), ARM64 in Radxa's backup base as `windscribe-cli_2.24.13_arm64.deb` (21.7 MiB). The saved GUI installer under Chromebook `rollback/20260922/windscribe/` is a different version, 33.3 MiB. Configuration snapshots, audio/AP recovery material and other files remain retained.
+
+## Private pre-publication Git history
+
+The original local Git metadata is retained at `.work/publication-backup/20261007/git/` relative to this checkout, under a private parent directory. It contains the original 68 pre-publication commits and account-bearing historical documentation; this unredacted copy must never be pushed or copied into the public repository. Inspect it locally with `git --git-dir=.work/publication-backup/20261007/git log`. The public repository retains redacted versions of all 68 commits, preserving their sequence, messages, and dates with `edbfi` attribution. Redaction changes commit hashes. `public-snapshot.bundle` alongside the saved Git directory preserves the initial one-commit publication for rollback; it is superseded by the restored development history.

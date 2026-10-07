@@ -8,8 +8,8 @@
 !.env.example
 credentials/
 secrets/
-# Local hardware identifiers; keep sanitized printer inventory in WORKFLOW.md.
-/documentation/printing/PRINTERS.private.md
+# Private inventory; tracked hardware details live in documentation/printing/PRINTERS.md.
+*.private.md
 *.key
 *.pem
 *.p12
@@ -36,3 +36,6 @@ Thumbs.db
 
 # Python policy/test bytecode.
 __pycache__/
+
+# Rendered service files contain private deployment account identifiers.
+/systems/gateway/vpn-policy/systemd/*.service

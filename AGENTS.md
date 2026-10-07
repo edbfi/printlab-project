@@ -8,4 +8,4 @@ Only put verified successful changes in `documentation/worklog/CHANGES.md`. Trac
 
 After complete and verified success, remove unnecessary task-created artifacts and temporary configuration, preserve known-good rollback material and required files, and verify operation after cleanup. Follow the brief's cleanup rules; do not remove unrelated user data.
 
-Use Conventional Commits if committing. Do not include credentials in documentation or commits.
+Use Conventional Commits if committing. Do not include passwords, machine-account names, or credentials in documentation or commits. Use the `edbfi` GitHub identity for commit attribution; that public identity is allowed. Use role placeholders and account-independent service templates; Wi-Fi names may be documented.

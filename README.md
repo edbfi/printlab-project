@@ -1,28 +1,56 @@
-# Lubuntu printing station
+# printlab-project
 
-A Bambu Studio station for two Bambu Lab A1 mini printers. Radxa Dragon Q6A supplies the school uplink, Windscribe VPN and printer network services. The Lubuntu Chromebook is an ordinary Wi-Fi client. The operator confirms the printing workflow, including slicing and transfer, works.
+Network infrastructure, workstation setup, and planned kiosk tooling for a shared 3D printing environment.
 
-Radxa uses its built-in Ethernet port for the printer LAN and school Wi-Fi for the uplink. Current client connectivity checks pass; see [STATE](documentation/overview/STATE.md).
+The current deployment uses a Radxa Dragon Q6A as a gateway between school Wi-Fi and a dedicated printer network. A TP-Link access point connects two Bambu Lab A1 minis and a Lubuntu Chromebook running Bambu Studio. Printer networking operates independently of the Chromebook.
 
-Chromebook kiosk mode is planned for later and is not implemented.
+The operator confirms that slicing and transfer work. **Kiosk mode is planned and has not been implemented.** See [current status](documentation/overview/STATE.md) for the verified baseline and remaining work.
 
-Start with [current status](documentation/overview/STATE.md). For daily printing, use the [workflow](documentation/printing/WORKFLOW.md); for administration, use [operations](documentation/operations/OPERATIONS.md).
+## Repository layout
 
-## Documentation
+```text
+systems/
+  gateway/
+    vpn-policy/          VPN policy, configuration, systemd templates, and tests
+  printing-station/
+    kiosk/               Placeholder for future kiosk implementation
+documentation/
+  overview/              Scope, current status, and repository conventions
+  network/               Topology and gateway/access-point hardware
+  printing/              Daily workflow and printer inventory
+  workstation/           Workstation hardware and software
+  kiosk/                 Planned requirements and acceptance criteria
+  operations/            Administration, diagnostics, and recovery
+  worklog/               Current verification, limitations, and checkpoints
+```
 
-- [Project brief and scope](documentation/overview/SETUP-BRIEF.md)
-- [Network topology, addresses and service boundaries](documentation/network/TOPOLOGY.md)
-- [Hardware and software inventory](documentation/system/INVENTORY.md)
-- [Planned kiosk requirements and open decisions](documentation/kiosk/CONFIGURATION.md)
-- [Radxa VPN policy source and tests](radxa/README.md)
-- [Verified changes](documentation/worklog/CHANGES.md), [validation and limits](documentation/worklog/TESTS.md), [current issues](documentation/worklog/ISSUES.md)
+Implementation folders follow system roles rather than hardware brands. Keep each component's source, configuration, service units, and tests together. Add subfolders when they have actual content; the kiosk placeholder explicitly marks the planned component.
 
-## Local version control
+## Start here
 
-Use focused Conventional Commits. Git history holds superseded documentation; the active tree describes current operation and clearly marked future work. This repository has no remote configured.
+- [Project scope and safeguards](documentation/overview/SETUP-BRIEF.md)
+- [Daily printing](documentation/printing/WORKFLOW.md)
+- [Network topology](documentation/network/TOPOLOGY.md)
+- [Administration and recovery](documentation/operations/OPERATIONS.md)
+- [Gateway implementation](systems/gateway/README.md)
+- [Printing station and future kiosk](systems/printing-station/README.md)
+- [Documentation ownership](documentation/overview/REPOSITORY.md)
+- [Validation](documentation/worklog/TESTS.md), [current limitations](documentation/worklog/ISSUES.md), and [verified checkpoints](documentation/worklog/CHANGES.md)
 
-Git tracks documentation and the reviewed Radxa VPN-policy deployment sources. Live credentials, runtime state and recovery backups remain on the machines. `.work/`, credentials, private inventory, logs and generated print jobs are ignored. Review staged files before committing; ignore rules cannot detect every secret. Preserve restricted recovery material at the locations documented in operations.
+## Development
+
+Run the VPN policy's deterministic tests from the repository root:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s systems/gateway/vpn-policy/tests -v
+```
+
+Tests simulate VPN failures and never connect or disconnect a real VPN. Editing this checkout does not deploy changes to the gateway. The repository currently contains the VPN policy sources; the rest of the installed gateway and workstation configuration is documented, not packaged as a complete installer.
+
+Documentation describes the current local deployment. Account names and passwords are omitted; placeholders identify account-dependent paths, and service templates require local substitution. Review interface names, addresses, and the maintenance window before reuse. See [AGENTS.md](AGENTS.md) for maintenance instructions and use Conventional Commits.
+
+Keep credentials, private inventory, application sessions, runtime state, generated jobs, and recovery archives outside Git. `.work/` and `*.private.md` are ignored. Review staged files before publishing; ignore rules cannot detect every secret. The public history preserves the earlier development commits with machine-account identifiers redacted. Commits use the `edbfi` GitHub identity. The original unredacted history is retained privately for recovery. Keep superseded documentation in Git rather than an active archive.
 
 ## License
 
-Project material is licensed under GNU AGPL-3.0-only; see [LICENSE](LICENSE). Third-party software and retained downloads keep their own licenses.
+Project material is licensed under GNU AGPL-3.0-only; see [LICENSE](LICENSE). Third-party software retains its own licenses.

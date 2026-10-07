@@ -4,7 +4,7 @@ Kiosk mode is **planned for later and not implemented**. Bambu Studio currently 
 
 ## Agreed direction
 
-Provide colleagues with a touch-friendly printing interface for prepared jobs and new models. Use a separate non-administrative kiosk account; retain `<workstation-user>` as the administrator unless the operator later decides otherwise. `<workstation-host>` is the Chromebook hostname, not an account name.
+Provide colleagues with a touch-friendly printing interface for prepared jobs and new models. Use a separate non-administrative kiosk account; retain the existing administrator account unless the operator later decides otherwise.
 
 The kiosk needs appropriate automatic/fullscreen startup, application recovery, dependable application login and a deliberate administrator exit. Radxa continues to supply printer networking independently of the Chromebook and its users. Preserve current application sessions and the administrator's key-only SSH access.
 

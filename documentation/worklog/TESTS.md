@@ -1,10 +1,10 @@
 # Validation and evidence limits
 
-This is a concise evidence reference for the current system. Configuration details belong in [topology](../network/TOPOLOGY.md), [inventory](../system/INVENTORY.md) and [operations](../operations/OPERATIONS.md). Earlier detailed records remain in Git and restricted on-disk diagnostics; no disruptive tests are required merely to maintain these documents.
+This is a concise evidence reference for the current system. Configuration details belong in [topology](../network/TOPOLOGY.md), [workstation inventory](../workstation/INVENTORY.md), [network hardware](../network/HARDWARE.md), [printer inventory](../printing/PRINTERS.md) and [operations](../operations/OPERATIONS.md). Earlier development records remain in redacted public history and restricted on-disk diagnostics; no disruptive tests are required merely to maintain these documents.
 
 ## Working printing workflow
 
-**Operator confirmation in the current documentation request:** the printing workflow, including slicing and transfer, works. It is accepted as operator-confirmed, not an agent-performed test. No detailed job results, materials, per-printer measurements or print timestamps were supplied. The [workflow](../printing/WORKFLOW.md) has no pending routine slicing/transfer acceptance requirement.
+**Operator confirmation recorded in the existing baseline:** the printing workflow, including slicing and transfer, works. It is accepted as operator-confirmed, not an agent-performed test. No detailed job results, materials, per-printer measurements or print timestamps were supplied. The [workflow](../printing/WORKFLOW.md) has no pending routine slicing/transfer acceptance requirement.
 
 **Existing observed evidence, 2026-10-06:** manually reopening Studio and reopening it after a full Chromebook reboot retain `<workstation-user>`'s account, both online devices and both selected printer/status views without new credentials. These checks establish current-user session persistence. They do not establish automatic launch, another account's access or future kiosk behavior.
 
@@ -28,7 +28,7 @@ No printer controls, print, VPN disconnection, reboot, package/firmware update o
 
 ## Existing policy and recovery evidence
 
-These retained checks support the VPN/DNS/firewall and service design. They have their original scope; the built-in Ethernet assignment is covered by the current checks above. Detailed historical records remain in Git and restricted diagnostics.
+These retained checks support the VPN/DNS/firewall and service design. They have their original scope; the built-in Ethernet assignment is covered by the current checks above. Detailed development records remain in redacted public history and restricted diagnostics.
 
 | Check / scope | Established result |
 |---|---|
@@ -51,14 +51,30 @@ Targeted live inspection confirms configuration owners, interface/resolver paths
 
 Restricted recovery files exist and selected snapshot contents match live files; no end-to-end restore is performed. The spare USB adapter's bounded test and unresolved reliability are summarized in [ISSUES](ISSUES.md), without accepting it for a future uplink.
 
-Documentation validation covers local links, balanced code fences, shell-example syntax, stale-reference scans, diff whitespace, host ownership, unsupported claims and secret disclosure. Private inventory/AP backups remain Git-ignored; AGENTS.md is unchanged. Future kiosk validation belongs in [planned kiosk requirements](../kiosk/CONFIGURATION.md); physical usability/audio limitations are in [issues](ISSUES.md).
+Documentation validation covers local links, balanced code fences, shell-example syntax, stale-reference scans, diff whitespace, host ownership, unsupported claims and secret disclosure. Private inventory/AP backups remain Git-ignored. Future kiosk validation belongs in [planned kiosk requirements](../kiosk/CONFIGURATION.md); physical usability/audio limitations are in [issues](ISSUES.md).
 
 ## VPN country policy verification, 2026-10-06
 
 Twenty-seven deterministic tests pass on the Chromebook and Radxa. They cover the installed CLI version's unavailable-location and tunnel-test status forms, account-attention handling, consecutive-failure debounce, DK→SE→NL order, cooldown, missing countries, healthy-connection preservation, missing login/unknown CLI state, delayed disconnect acknowledgment, country/protocol verification, previous-location recovery, time-window/DST behavior, daily once-only handling, dry-run safety and shared-lock exclusion. A child process holding an unrelated temporary POSIX lock verifies the package-lock guard without touching package databases. These are simulated VPN failures, not live provider-outage tests.
 
-Live read-only checks find the required services/uplink, a healthy Stealth/443 tunnel, no maintenance conflict and a catalog containing the three countries. Systemd validates the four units. Installed oneshot checks and subsequent timer-triggered checks preserve the working Stockholm connection; invoking the refresh service outside its window skips without disconnecting. Both timers are enabled/active; the calendar resolves to 04:30 Europe/Copenhagen with no persistent catch-up. The first scheduled run is not yet observed.
+Live read-only checks find the required services/uplink, a healthy Stealth/443 tunnel, no maintenance conflict and a catalog containing the three countries. Systemd validates the four units. Installed oneshot checks and subsequent timer-triggered checks preserve the working Stockholm connection; invoking the refresh service outside its window skips without disconnecting. Both timers are enabled/active; the calendar resolves to 04:30 Europe/Copenhagen with no persistent catch-up. The scheduled run now has the separate 2026-10-07 evidence below.
 
 All six installed files match reviewed source and the restricted policy snapshot. Seven existing network/helper/Windscribe-preference files are byte-identical to the pre-install manifest. Deployment/test staging is removed. After cleanup, client gateway/DNS, Control D identity, AP HTTP and HTTPS pass; gateway/DHCP/Windscribe/Docker remain active, and Windscribe reports Always On firewall and Stealth/443. No printer control, real VPN disconnection or reboot occurs during policy installation.
 
-Evidence limits: actual DK/SE/NL connection failures and the scheduled disconnect/reconnect sequence have not been exercised live. The timer does not infer printer idleness; scheduling relies on the operator's quiet-window confirmation. Tests do not establish recovery from an unavailable/logged-out Windscribe application/helper or broken school Wi-Fi, nor exhaustive endpoint/provider failures. The existing firewall policy remains the protection against downstream internet outside the VPN.
+Evidence limits: actual DK/SE/NL connection failures have not been exercised live. The scheduled Denmark refresh now has journal evidence below, without continuous client monitoring during the reconnect. The timer does not infer printer idleness; scheduling relies on the operator's quiet-window confirmation. Tests do not establish recovery from an unavailable/logged-out Windscribe application/helper or broken school Wi-Fi, nor exhaustive endpoint/provider failures. The existing firewall policy remains the protection against downstream internet outside the VPN.
+
+## Scheduled refresh inspection, 2026-10-07
+
+Read-only SSH inspection of the refresh service journal for 04:25–05:00 records the scheduled 04:30 run trying Denmark with Stealth/443, verifying the country/protocol and tunnel HTTPS, and finishing successfully. The timer lists its next run for 2026-10-08 04:30 Europe/Copenhagen. A later policy `check --dry-run` reports a healthy tunnel and keeps the location; gateway, DHCP, Windscribe helper, and the Windscribe user service are active.
+
+This establishes one successful scheduled refresh, not real failure-driven country fallback or uninterrupted printing/client access during the reconnect. No manual connect, print, reboot, or live configuration change was made for this inspection.
+
+## Repository verification, 2026-10-07
+
+All 27 deterministic tests pass from `systems/gateway/vpn-policy/tests/`. All six component files match the installed gateway files after privately substituting service-template account values in memory; no rendered account-bearing files are committed. This comparison establishes template equivalence with the installed policy, not a new deployment.
+
+Local documentation links resolve, code fences are balanced, shell examples pass syntax checks, and diff whitespace checks pass. The public snapshot omits personal account names and passes targeted credential-pattern checks. Public history preserves all 68 earlier commits after account redaction, with original messages/dates and `edbfi` attribution. Unredacted originals remain private. These checks do not establish future kiosk behavior.
+
+## Historical-content verification, 2026-10-07
+
+All 68 earlier commit messages and author/committer dates are preserved in the reconstructed history. Author and committer identities use `edbfi` and its GitHub no-reply address. All 281 distinct redacted historical file versions pass the targeted account-identifier and credential-pattern scans; no private inventory or workspace files are included. The current reorganization follows those commits, and the original unredacted history and commit-ID map remain in the restricted local recovery directory.

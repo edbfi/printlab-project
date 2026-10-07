@@ -12,7 +12,7 @@ Preserve unrelated networking, firewall rules, services, accounts, permissions p
 
 ## Working safeguards
 
-Follow [AGENTS.md](../../AGENTS.md), applicable `.agents/rules/*.md` and the operator's current request. Use this checkout as the persistent project root; obtain its absolute path with `git rev-parse --show-toplevel`. Existing documentation is reference material, not standing authorization to implement future work.
+Follow applicable `.agents/rules/*.md` and the operator's current request. Use this checkout as the persistent project root; obtain its absolute path with `git rev-parse --show-toplevel`. Existing documentation is reference material, not standing authorization to implement future work.
 
 - Establish configuration ownership and preserve the administration path before any later authorized system change. Back up affected files with appropriate permissions and arrange scoped recovery for changes that could disconnect access.
 - Keep exactly one DHCP authority on the printer LAN, school Wi-Fi separate from that LAN, and certificate validation intact. Preserve the AP's security/radio settings, key-only SSH and Docker integration.

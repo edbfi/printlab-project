@@ -47,7 +47,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s systems/gateway/vpn-po
 
 Tests simulate VPN failures and never connect or disconnect a real VPN. Editing this checkout does not deploy changes to the gateway. The repository currently contains the VPN policy sources; the rest of the installed gateway and workstation configuration is documented, not packaged as a complete installer.
 
-Documentation describes the current local deployment. Account names and passwords are omitted; placeholders identify account-dependent paths, and service templates require local substitution. Review interface names, addresses, and the maintenance window before reuse. See [AGENTS.md](AGENTS.md) for maintenance instructions and use Conventional Commits.
+Documentation describes the current local deployment. Account names and passwords are omitted; placeholders identify account-dependent paths, and service templates require local substitution. Review interface names, addresses, and the maintenance window before reuse. Use Conventional Commits.
 
 Keep credentials, private inventory, application sessions, runtime state, generated jobs, and recovery archives outside Git. `.work/` and `*.private.md` are ignored. Review staged files before publishing; ignore rules cannot detect every secret. The public history preserves the earlier development commits with machine-account identifiers redacted. Commits use the `edbfi` GitHub identity. The original unredacted history is retained privately for recovery. Keep superseded documentation in Git rather than an active archive.
 

@@ -45,6 +45,8 @@ Run the VPN policy's deterministic tests from the repository root:
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s systems/gateway/vpn-policy/tests -v
 ```
 
+CI runs these tests and the repository checks in `.pre-commit-config.yaml` with `prek run --all-files --hook-stage manual`.
+
 Tests simulate VPN failures and never connect or disconnect a real VPN. Editing this checkout does not deploy changes to the gateway. The repository currently contains the VPN policy sources; the rest of the installed gateway and workstation configuration is documented, not packaged as a complete installer.
 
 Documentation describes the current local deployment. Account names and passwords are omitted; placeholders identify account-dependent paths, and service templates require local substitution. Review interface names, addresses, and the maintenance window before reuse. Use Conventional Commits.

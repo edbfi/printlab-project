@@ -11,6 +11,8 @@ The operator confirms that slicing and transfer work. **Kiosk mode is planned an
 ```text
 systems/
   gateway/
+    dns/                 Printer-LAN resolver, DNS check, and tests
+    firewall/            Gateway nftables table
     vpn-policy/          VPN policy, configuration, systemd templates, and tests
   printing-station/
     kiosk/               Placeholder for future kiosk implementation
@@ -43,6 +45,7 @@ Run the VPN policy's deterministic tests from the repository root:
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s systems/gateway/vpn-policy/tests -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s systems/gateway/dns/tests -v
 ```
 
 CI runs these tests and the repository checks in `.pre-commit-config.yaml` with `prek run --all-files --hook-stage manual`.

@@ -52,10 +52,13 @@ class DecideTests(unittest.TestCase):
         _, state = decide("ok", state={"failures": 4, "last_repair": "flush-infra"})
         self.assertNotIn("last_repair", state)
 
-    def test_tunnel_down_never_repairs_upstream(self):
-        repair, state = decide("silent", "upstream-down", tunnel=False, state={"failures": 5})
+    def test_tunnel_down_never_repairs_upstream_or_counts(self):
+        repair, state = decide("silent", "upstream-down", tunnel=False,
+                               state={"failures": 5, "last_repair": "flush-infra"})
         self.assertIsNone(repair)
+        self.assertEqual(state["failures"], 0)
         self.assertNotIn("repair_after", state)
+        self.assertNotIn("last_repair", state)
 
     def test_stuck_unbound_restarts_even_with_tunnel_down(self):
         self.assertEqual(decide("silent", "silent", tunnel=False, state={"failures": 2})[0], "restart-unbound")
@@ -100,6 +103,11 @@ class MainTests(unittest.TestCase):
         run.assert_not_called()
         self.assertEqual(calls.count((check.LAN_DNS, None)), 2)
         self.assertEqual(save.call_args.args[0]["failures"], 0)
+
+    def test_dnsmasq_failing_twice_is_restarted(self):
+        run, _, _ = self.run_main({(check.LAN_DNS, None): ["silent", "silent"], (check.RESOLVER, None): "ok"},
+                                  {"failures": 2})
+        self.assertEqual(run.call_args.args[0], check.REPAIRS["restart-dnsmasq"])
 
     def test_healthy_check_does_not_rewrite_state(self):
         _, save, calls = self.run_main({(check.LAN_DNS, None): "ok"}, {"failures": 0})

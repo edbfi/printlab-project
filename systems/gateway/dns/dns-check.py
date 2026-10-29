@@ -67,6 +67,13 @@ def decide(lan, resolver, tunnel, state, now):
         state["failures"] = 0
         state.pop("last_repair", None)
         return None
+    if resolver == "upstream-down" and not tunnel:
+        # Unbound is fine but cannot reach Control D without the tunnel. Count
+        # afresh once tun0 is back; VPN recovery belongs to Windscribe and the VPN policy.
+        log("Printer DNS down while tun0 is down; waiting for the VPN", 3)
+        state["failures"] = 0
+        state.pop("last_repair", None)
+        return None
     state["failures"] = state.get("failures", 0) + 1
     log(f"Printer DNS failed ({state['failures']}/{FAILURES_REQUIRED}): "
         f"dnsmasq {lan}, unbound {resolver}, tun0 {'up' if tunnel else 'down'}", 3)
@@ -77,9 +84,6 @@ def decide(lan, resolver, tunnel, state, now):
     elif resolver != "upstream-down":
         # Not even its built-in localhost answers: unbound itself is stuck.
         repair = "restart-unbound"
-    elif not tunnel:
-        log("Tunnel down; leaving recovery to Windscribe and the VPN policy")
-        return None
     elif state.get("last_repair") == "flush-infra":
         # Flushing did not help; a restart also drops stuck DoT connections.
         repair = "restart-unbound"

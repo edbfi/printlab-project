@@ -22,14 +22,14 @@ def log(message, priority=6):
     print(f"<{priority}>{message}", flush=True)
 
 
-def query(server, timeout=3):
-    """Ask for a fresh random name so no cache can hide a dead upstream.
+def query(server, name=None, timeout=3):
+    """By default ask for a fresh random name so no cache can hide a dead upstream.
 
     Returns "ok" for NOERROR/NXDOMAIN, "servfail" for any other DNS answer and
     "silent" when nothing answers.
     """
     qid = secrets.randbits(16)
-    name = secrets.token_hex(8) + ".example.com"
+    name = name or secrets.token_hex(8) + ".example.com"
     packet = struct.pack(">HHHHHH", qid, 0x0100, 1, 0, 0, 0)
     packet += b"".join(bytes([len(label)]) + label.encode() for label in name.split("."))
     packet += b"\0" + struct.pack(">HH", 1, 1)
@@ -75,7 +75,7 @@ def decide(lan, resolver, tunnel, state, now):
     elif not tunnel:
         log("Tunnel down; leaving recovery to Windscribe and the VPN policy")
         return None
-    elif resolver == "servfail":
+    elif resolver == "upstream-down":
         repair = "flush-infra"
     else:
         repair = "restart-unbound"
@@ -111,6 +111,10 @@ def main():
     state = load_state()
     lan = query(LAN_DNS)
     resolver = query(RESOLVER) if lan != "ok" else "ok"
+    # Unbound drops queries it cannot answer upstream (discard-timeout), so
+    # silence alone does not mean it hung. Its built-in localhost needs no upstream.
+    if resolver != "ok" and query(RESOLVER, "localhost") == "ok":
+        resolver = "upstream-down"
     repair = decide(lan, resolver, tunnel_up(), state, time.time())
     save_state(state)
     if repair:

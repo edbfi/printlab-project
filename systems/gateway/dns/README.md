@@ -36,8 +36,8 @@ Until 2026-10-29, dnsmasq forwarded to Windscribe's bundled `ctrld` proxy on `12
 | dnsmasq | unbound direct | `tun0` | Repair |
 |---|---|---|---|
 | fails | answers | any | Restart `printing-dhcp` |
-| fails | SERVFAIL | up | `unbound-control flush_infra all` (keeps the cache) |
-| fails | silent | up | Restart `unbound` |
+| fails | fails, but answers its built-in `localhost.` | up | `unbound-control flush_infra all` (keeps the cache) |
+| fails | fails, `localhost.` too | up | Restart `unbound` |
 | fails | fails | down | None; VPN recovery belongs to Windscribe and the VPN policy |
 
 Failures and repairs are logged at priority `err` in the `printing-dns-check` journal. It never touches Windscribe or the VPN.

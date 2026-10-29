@@ -39,10 +39,13 @@ class DecideTests(unittest.TestCase):
         self.assertEqual(decide("silent", "silent", state={"failures": 2})[0], "restart-unbound")
 
     def test_failing_upstream_flushes_infra_cache(self):
-        self.assertEqual(decide("servfail", "servfail", state={"failures": 2})[0], "flush-infra")
+        self.assertEqual(decide("silent", "upstream-down", state={"failures": 2})[0], "flush-infra")
+
+    def test_servfail_without_local_answer_restarts_unbound(self):
+        self.assertEqual(decide("servfail", "servfail", state={"failures": 2})[0], "restart-unbound")
 
     def test_tunnel_down_never_repairs(self):
-        repair, state = decide("silent", "servfail", tunnel=False, state={"failures": 5})
+        repair, state = decide("silent", "upstream-down", tunnel=False, state={"failures": 5})
         self.assertIsNone(repair)
         self.assertNotIn("repair_after", state)
 
@@ -77,6 +80,13 @@ class QueryTests(unittest.TestCase):
 
     def test_no_answer_is_silent(self):
         self.assertEqual(check.query(self.serve(None), timeout=0.3), "silent")
+
+    def test_named_query_is_sent(self):
+        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server.bind(("127.0.0.1", 0))
+        self.addCleanup(server.close)
+        check.query(server.getsockname(), "localhost", timeout=0.1)
+        self.assertIn(b"\x09localhost\x00", server.recvfrom(512)[0])
 
 
 if __name__ == "__main__":

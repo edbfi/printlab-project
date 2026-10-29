@@ -76,7 +76,7 @@ For a missing printer, match its label against the reservation in [topology](../
 The following commands change connection state; use them only to recover the named fault. Allow automatic recovery first and protect ongoing work before deliberate interruptions.
 
 - Chromebook disconnected: on **Chromebook as `<workstation-user>`**, `nmcli connection up '3D-Printere client'`. Keep the gateway/AP cabling on Radxa.
-- Radxa VPN not recovering after school Wi-Fi is available: inspect Windscribe service state and the VPN-policy journal below. Allow the bounded country recovery pass/cooldown to operate. For deliberate manual intervention, pause the policy first; `/opt/windscribe/windscribe-cli connect DK stealth:443` on **Radxa as `<gateway-user>`** selects Denmark. Follow the country order in topology and verify client DNS/HTTPS; CLI completion alone is not readiness.
+- Radxa VPN not recovering after school Wi-Fi is available: inspect Windscribe service state and the VPN-policy journal below. Allow the bounded recovery pass/cooldown to operate. For deliberate manual intervention, pause the policy first; on **Radxa as `<gateway-user>`**, `/opt/windscribe/windscribe-cli connect static <static-ip> stealth:443` selects the static IP and `/opt/windscribe/windscribe-cli connect DK stealth:443` selects Denmark. Follow the static-first, then DK → SE → NL order in topology and verify client DNS/HTTPS; CLI completion alone is not readiness.
 - Studio application failure: on **Chromebook as `<workstation-user>`**, preserve any unsaved model/project work, close and reopen the installed AppImage, then check both device views. Current-user login persistence is established; no automatic kiosk recovery is configured.
 
 `printing-gateway` start/reload loads its own rules and Docker allowances. Its stop action blocks printer internet forwarding while retaining local services and unrelated Docker forwarding. Do not flush the whole firewall, disable Docker or introduce another network manager to recover printer access. A school uplink outage can leave local networking available while cloud functions fail.
@@ -93,7 +93,7 @@ The unused USB adapter has no IPv4/DHCP role and is not a fallback gateway. Its 
 
 ## VPN policy administration
 
-The country order and health/refresh behavior are authoritative in [topology](../network/TOPOLOGY.md). The policy runs as `<gateway-user>` in system services, using the existing Windscribe session; it needs no stored password or ongoing sudo grant. Units and scripts are root-owned. Runtime state is under `/var/lib/printing-station/vpn-policy/` (0700, owned by `<gateway-user>`), with a 0600 state file containing failure/cooldown/refresh bookkeeping, not credentials.
+The static-IP preference, DK → SE → NL fallback order and health/refresh behavior are authoritative in [topology](../network/TOPOLOGY.md). The policy runs as `<gateway-user>` in system services, using the existing Windscribe session; it needs no stored password or ongoing sudo grant. Units and scripts are root-owned. Runtime state is under `/var/lib/printing-station/vpn-policy/` (0700, owned by `<gateway-user>`), with a 0600 state file containing failure/cooldown/static-retry/refresh bookkeeping, not credentials.
 
 Read-only checks on **Radxa as `<gateway-user>`**:
 
@@ -104,7 +104,7 @@ sudo -n journalctl -u printing-vpn-check.service -u printing-vpn-refresh.service
 /usr/bin/python3 /usr/local/libexec/printing-station/vpn-policy.py check --dry-run
 ```
 
-`--dry-run` makes no VPN or persisted-state change. Normal runs log decisions and country results without exporting CLI account/IP output. A green unit result can mean a deliberate skip; read the decision line. Unexpected CLI output or a logged-out state needs administrator attention; it does not trigger login attempts or speculative service restarts.
+`--dry-run` makes no VPN or persisted-state change. Normal runs log decisions and location results without exporting CLI account/IP output; the static location is logged as `static`. A green unit result can mean a deliberate skip; read the decision line. Unexpected CLI output or a logged-out state needs administrator attention; it does not trigger login attempts or speculative service restarts.
 
 To pause **only the planned daily reconnect** for an exceptional overnight job, run on **Radxa with administrative privileges**:
 
@@ -126,7 +126,9 @@ The refresh service orders itself before queued APT daily jobs and skips if thos
 
 Reviewed source is in [VPN policy component](../../systems/gateway/vpn-policy/README.md), with deterministic tests in [component tests](../../systems/gateway/vpn-policy/tests/test_vpn_policy.py). The public service templates omit account identifiers: substitute the tokens described in the component README and remove their `.in` suffix before validation or installation. Keep rendered units outside tracked content. Deployment maps `vpn-policy.py` to `/usr/local/libexec/printing-station/`, `vpn-policy.json` to `/etc/printing-station/`, and the four units to `/etc/systemd/system/`. Code is mode 0755, nonsecret JSON/units 0644, all root-owned. Validate source/tests and `systemd-analyze verify`, reload systemd after unit edits, and compare installed files before accepting a deployment. The JSON refresh time and calendar timer must agree; editing this checkout alone changes nothing on Radxa.
 
-Restricted `/var/lib/printing-station/rollback/20261006/vpn-policy/` contains the pre-install manifest, reviewed uninstall `rollback.sh` and `verified-policy.tar` snapshot of the six installed files. The rollback stops/disables only these policy units and removes their installed files; it retains runtime state and existing Windscribe/network configuration. It does not restore a particular VPN location or constitute a full-system restore. Pause the policy before reviewing or applying recovery material.
+The template's `static_ip` is empty, which disables the static preference. Set the purchased static address only in the installed `/etc/printing-station/vpn-policy.json` on Radxa, for example `"static_ip": "<static-ip>"`, and preserve it when deploying the template; never commit it. `/opt/windscribe/windscribe-cli locations static` on **Radxa as `<gateway-user>`** lists the account's static locations and addresses. Each policy run reads and validates it as IPv4, so no service restart is needed. Afterward, `check --dry-run` reports `Healthy Stealth/443 tunnel; keeping current location` on a healthy static tunnel and `Would try static IP -> DK -> SE -> NL` when a recovery or static retry is due.
+
+Restricted `/var/lib/printing-station/rollback/20261006/vpn-policy/` contains the pre-install manifest, reviewed uninstall `rollback.sh` and `verified-policy.tar` snapshot of the six installed files. The rollback stops/disables only these policy units and removes their installed files; it retains runtime state and existing Windscribe/network configuration. It does not restore a particular VPN location or constitute a full-system restore. The snapshot predates the static-IP preference installed on 2026-10-07, so restoring its files returns the policy to country order only. Pause the policy before reviewing or applying recovery material.
 
 ## Live configuration ownership
 

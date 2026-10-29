@@ -4,7 +4,7 @@ The gateway supplies the uplink, VPN, firewall, DHCP, and DNS for the printer ne
 
 ## Components
 
-- [VPN policy](vpn-policy/README.md): country-priority recovery, scheduled maintenance, systemd templates, and deterministic tests.
+- [VPN policy](vpn-policy/README.md): static-IP-first recovery with country fallback, scheduled maintenance, systemd templates, and deterministic tests.
 
 Other gateway configuration is installed on the host and documented in [operations](../../documentation/operations/OPERATIONS.md). It is not yet provided here as deployable source. Add reviewed configuration components alongside `vpn-policy/` when brought into version control.
 

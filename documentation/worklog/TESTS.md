@@ -78,3 +78,13 @@ Local documentation links resolve, code fences are balanced, shell examples pass
 ## Historical-content verification, 2026-10-07
 
 All 68 earlier commit messages and author/committer dates are preserved in the reconstructed history. Author and committer identities use `edbfi` and its GitHub no-reply address. All 281 distinct redacted historical file versions pass the targeted account-identifier and credential-pattern scans; no private inventory or workspace files are included. The current reorganization follows those commits, and the original unredacted history and commit-ID map remain in the restricted local recovery directory.
+
+## Static-IP preference verification, 2026-10-29
+
+The installed policy prefers the operator's Windscribe static IP and falls back to DK → SE → NL; it was installed on 2026-10-07 but the repository still described country order only. Repository source now matches the installed `vpn-policy.py` byte for byte. The installed JSON differs from the template only by its private `static_ip` value, which the template leaves empty. The four units match after private in-memory substitution of the service-template tokens.
+
+Thirty-six deterministic tests pass from `systems/gateway/vpn-policy/tests/`. The nine new tests cover keeping a healthy static tunnel and skipping its daily reconnect, static-first recovery, fallback to the country order when the static IP is absent or fails, static retry from a healthy fallback only after its cooldown, restoring the healthy fallback location after a failed retry, keeping the fallback when the static IP is absent or maintenance is active, static-catalog parsing, and rejecting a static connection whose reported VPN IP or `tun0` HTTPS egress is not the static address. The tests use documentation addresses and simulated VPN behavior.
+
+Read-only inspection on Radxa finds Windscribe connected to the configured static location over Stealth/443, with the reported VPN IP and `tun0` HTTPS egress both equal to the configured address. The journal, retained from 2026-10-27, records healthy-tunnel checks and the 04:30 refreshes on 2026-10-28 and 2026-10-29 logging `Healthy static tunnel; skipping unnecessary daily reconnect`. Three isolated `Failed check 1/3` entries recovered natively without a policy recovery pass.
+
+Evidence limits: static unavailability, country fallback and static retry from a fallback have not been observed live. No VPN reconnect, service restart or live configuration change was made for this verification.

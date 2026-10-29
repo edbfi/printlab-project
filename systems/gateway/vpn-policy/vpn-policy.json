@@ -1,4 +1,5 @@
 {
+  "static_ip": "",
   "refresh_enabled": true,
   "refresh_time": "04:30"
 }

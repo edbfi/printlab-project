@@ -8,7 +8,7 @@ Radxa supplies the school Wi-Fi uplink, VPN, DHCP, DNS, and firewall. Its built-
 
 The operator confirms the printing workflow, including slicing and transfer, works. Existing checks establish current-user Studio login and both online printer/status views after application restart and a full Chromebook reboot. This does not establish another account's access or automatic kiosk startup.
 
-The VPN country policy and both timers are installed and enabled. The 2026-10-07 04:30 Copenhagen refresh journal records a successful Denmark connection over Stealth/443 with tunnel HTTPS verification. A later read-only health check finds a healthy tunnel. Simulated failure tests pass; actual country-failure recovery remains unobserved. [Validation](../worklog/TESTS.md) records dates, scope, and limits.
+The VPN policy and both timers are installed and enabled. The policy prefers the operator's Windscribe static IP and falls back to Denmark → Sweden → Netherlands, always over Stealth/443. Radxa currently uses the static IP; on a healthy static tunnel the daily 04:30 Copenhagen refresh keeps the connection instead of reconnecting, as the 2026-10-28 and 2026-10-29 journals record. Simulated failure tests pass; actual fallback to the countries remains unobserved. [Validation](../worklog/TESTS.md) records dates, scope, and limits.
 
 ## Outstanding work
 

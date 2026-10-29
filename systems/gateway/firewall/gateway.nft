@@ -1,0 +1,56 @@
+add table inet printer_gateway
+flush table inet printer_gateway
+
+table inet printer_gateway {
+  set nonpublic_v4 {
+    type ipv4_addr
+    flags interval
+    elements = { 0.0.0.0/8, 10.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8,
+      169.254.0.0/16, 172.16.0.0/12, 192.0.0.0/24, 192.0.2.0/24,
+      192.168.0.0/16, 198.18.0.0/15, 198.51.100.0/24, 203.0.113.0/24,
+      224.0.0.0/4, 240.0.0.0/4 }
+  }
+  chain route_enabled {
+    oifname "tun0" counter accept
+  }
+  chain return_enabled {
+    iifname "tun0" ip daddr 192.168.77.0/24 ct state established,related counter accept
+  }
+  chain from_printers {
+    meta nfproto ipv6 counter drop
+    ip saddr != 192.168.77.0/24 counter drop
+    ip daddr @nonpublic_v4 counter drop
+    jump route_enabled
+    counter drop
+  }
+  chain to_printers {
+    meta nfproto ipv6 counter drop
+    jump return_enabled
+    counter drop
+  }
+  chain forward {
+    type filter hook forward priority -5; policy accept;
+    iifname "enp1s0" ct state invalid counter drop
+    oifname "enp1s0" ct state invalid counter drop
+    iifname "enp1s0" jump from_printers
+    oifname "enp1s0" jump to_printers
+    # Other forwarding remains governed by Docker's own chains/default policy.
+  }
+  chain management {
+    type filter hook input priority -15; policy accept;
+    iifname != { "lo", "enp1s0", "wlan0", "tun0" } tcp dport 22 counter drop
+    iifname != { "lo", "enp1s0" } meta l4proto { tcp, udp } th dport 53 counter drop
+    iifname != "enp1s0" udp dport 67 counter drop
+  }
+  chain dns_guard {
+    type filter hook output priority -25; policy accept;
+    meta skuid "systemd-resolve" oifname != { "lo", "tun0" } meta l4proto { tcp, udp } th dport 53 counter drop comment "Host resolver must use VPN"
+    ip daddr 10.255.255.1 oifname != "tun0" counter drop
+    ip daddr { 76.76.2.11, 76.76.10.11 } oifname != "tun0" counter drop comment "Control D secure DNS must use VPN"
+    ip6 daddr { 2606:1a40::11, 2606:1a40:1::11 } oifname != "tun0" counter drop comment "Control D secure DNS must use VPN"
+  }
+  chain postrouting {
+    type nat hook postrouting priority srcnat; policy accept;
+    oifname "tun0" ip saddr 192.168.77.0/24 counter masquerade
+  }
+}

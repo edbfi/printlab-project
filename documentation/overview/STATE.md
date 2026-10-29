@@ -15,7 +15,7 @@ The VPN policy and both timers are installed and enabled. The policy prefers the
 - **Kiosk mode is planned, not implemented.** [Requirements](../kiosk/CONFIGURATION.md) owns the open interface/account decisions and acceptance criteria; [the implementation placeholder](../../systems/printing-station/kiosk/README.md) reserves its source location.
 - Touch/scaling, physical power behavior, and audio audibility need evaluation for kiosk use. They are not blockers to the confirmed printing workflow.
 - School Ethernet is deferred. The unused USB Ethernet adapter has no active role and needs reliability evaluation before reuse.
-- The repository packages only the VPN policy component; other installed configuration is documented, not available as a complete provisioning system.
+- The repository packages the VPN policy, DNS and firewall components; other installed configuration is documented, not available as a complete provisioning system.
 
 ## References and recovery
 

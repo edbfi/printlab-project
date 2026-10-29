@@ -1,0 +1,15 @@
+[Unit]
+Description=Check printer-LAN DNS end to end and repair local DNS services
+After=printing-dhcp.service unbound.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/libexec/printing-station/dns-check.py
+StateDirectory=printing-station/dns-check
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+TimeoutStartSec=2min

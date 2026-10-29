@@ -14,7 +14,7 @@ Kernel/package and interface details were inspected on 2026-10-06. Hardware and 
 | Network software | systemd-networkd, wpa_supplicant, dnsmasq, nftables, systemd-resolved; Windscribe CLI `2.24.13` ARM64 |
 | VPN policy | Root-owned Python/systemd policy, executed as `<gateway-user>`; country priority and scheduling are documented in topology and operations |
 | Docker | Docker Engine `29.8.2`, active; preserve existing data/images and service integration |
-| Other resolver | Unbound `1.24.2-1ubuntu2.2` installed, disabled |
+| Resolver | Unbound `1.24.2`, printer-LAN and host resolver on `127.0.0.1:5335`; see the [DNS component](../../systems/gateway/dns/README.md) |
 | Administration / power | SSH TCP 22, key-only; sleep and hibernation targets masked |
 
 Personal development/server workloads are a possible future use of Radxa. No additional workload or public hosting is part of this printing station's agreed functionality.

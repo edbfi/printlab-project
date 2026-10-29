@@ -16,7 +16,7 @@ The VPN policy and both timers are installed and enabled. The policy prefers the
 - Touch/scaling, physical power behavior, and audio audibility need evaluation for kiosk use. They are not blockers to the confirmed printing workflow.
 - School Ethernet is deferred. The unused USB Ethernet adapter has no active role and needs reliability evaluation before reuse.
 - The gateway has reset early in boot on several reboots since the fan was wired on 2026-11-09; the cause is open ([issues](../worklog/ISSUES.md)).
-- The repository packages only the VPN policy and fan components; other installed configuration is documented, not available as a complete provisioning system.
+- The repository packages the VPN policy, fan, DNS and firewall components; other installed configuration is documented, not available as a complete provisioning system.
 
 ## References and recovery
 

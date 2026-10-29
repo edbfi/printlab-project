@@ -38,13 +38,14 @@ def query(server, name=None, timeout=3):
         try:
             sock.sendto(packet, server)
             deadline = time.monotonic() + timeout
-            while True:
-                sock.settimeout(max(deadline - time.monotonic(), 0.01))
+            while (remaining := deadline - time.monotonic()) > 0:
+                sock.settimeout(remaining)
                 reply, source = sock.recvfrom(4096)
                 if source == server and len(reply) >= 12 and reply[:2] == packet[:2] and reply[2] & 0x80:
                     return answer_state(reply)
         except OSError:
-            return "silent"
+            pass
+    return "silent"
 
 
 def answer_state(reply):
@@ -64,6 +65,7 @@ def decide(lan, resolver, tunnel, state, now):
         if state.get("failures"):
             log(f"Printer DNS recovered after {state['failures']} failed checks")
         state["failures"] = 0
+        state.pop("last_repair", None)
         return None
     state["failures"] = state.get("failures", 0) + 1
     log(f"Printer DNS failed ({state['failures']}/{FAILURES_REQUIRED}): "
@@ -72,17 +74,24 @@ def decide(lan, resolver, tunnel, state, now):
         return None
     if resolver == "ok":
         repair = "restart-dnsmasq"
+    elif resolver != "upstream-down":
+        # Not even its built-in localhost answers: unbound itself is stuck.
+        repair = "restart-unbound"
     elif not tunnel:
         log("Tunnel down; leaving recovery to Windscribe and the VPN policy")
         return None
-    elif resolver == "upstream-down":
-        repair = "flush-infra"
-    else:
+    elif state.get("last_repair") == "flush-infra":
+        # Flushing did not help; a restart also drops stuck DoT connections.
         repair = "restart-unbound"
-    if now < state.get("repair_after", 0):
+    else:
+        repair = "flush-infra"
+    # The clock can jump backwards at boot before NTP syncs; wait at most one cooldown.
+    state["repair_after"] = min(state.get("repair_after", 0), now + COOLDOWN)
+    if now < state["repair_after"]:
         log("Repair cooldown active; not repairing")
         return None
     state["repair_after"] = now + COOLDOWN
+    state["last_repair"] = repair
     return repair
 
 
@@ -109,14 +118,21 @@ def save_state(state):
 
 def main():
     state = load_state()
+    saved = dict(state)
     lan = query(LAN_DNS)
-    resolver = query(RESOLVER) if lan != "ok" else "ok"
-    # Unbound drops queries it cannot answer upstream (discard-timeout), so
-    # silence alone does not mean it hung. Its built-in localhost needs no upstream.
-    if resolver != "ok" and query(RESOLVER, "localhost") == "ok":
-        resolver = "upstream-down"
+    resolver = "ok"
+    if lan != "ok":
+        resolver = query(RESOLVER)
+        if resolver == "ok":
+            # Unbound may have recovered while dnsmasq's query was in flight.
+            lan = query(LAN_DNS)
+        # Unbound drops queries it cannot answer upstream (discard-timeout), so
+        # silence alone does not mean it hung. Its built-in localhost needs no upstream.
+        elif query(RESOLVER, "localhost") == "ok":
+            resolver = "upstream-down"
     repair = decide(lan, resolver, tunnel_up(), state, time.time())
-    save_state(state)
+    if state != saved:
+        save_state(state)
     if repair:
         log(f"Repairing printer DNS: {repair}", 3)
         try:

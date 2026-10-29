@@ -29,16 +29,16 @@ Until 2026-10-29, dnsmasq forwarded to Windscribe's bundled `ctrld` proxy on `12
 - **Upstream:** `76.76.2.11` and `76.76.10.11` on port 853, TLS name `p2.freedns.controld.com`. Control D validates DNSSEC; unbound runs `module-config: "iterator"` so p2's `0.0.0.0` blocks for signed domains do not become SERVFAIL.
 - **Tunnel down or reconnecting:** unbound's packets are dropped outside `tun0`, so no query leaks. `serve-expired` answers cached names within 1.8 seconds, and `infra-keep-probing` with a 60-second `infra-host-ttl` lets it retry Control D as soon as the tunnel returns, instead of after 15 minutes.
 - **Control D unreachable through a working tunnel:** uncached names fail (fail closed). There is no automatic fallback to an unfiltered resolver.
-- **Boot:** unbound starts after `printing-gateway` has loaded the firewall and needs no `tun0`; dnsmasq starts after unbound. Neither requires the other, so DHCP keeps working if the resolver fails.
+- **Boot:** unbound starts after `printing-gateway` has loaded the firewall and needs no `tun0`; dnsmasq starts after unbound. Neither requires the other, so DHCP keeps working if the resolver fails. If `gateway.nft` fails to load, unbound still starts without its `dns_guard` allowlist; Windscribe's Always On firewall then remains the only block on non-`tun0` egress.
 
 `printing-dns-check.timer` queries `192.168.77.1` for a random name under `example.com` once a minute, so no cache can hide a dead upstream. After three consecutive failures it repairs at most once per 15 minutes:
 
 | dnsmasq | unbound direct | `tun0` | Repair |
 |---|---|---|---|
-| fails | answers | any | Restart `printing-dhcp` |
-| fails | fails, but answers its built-in `localhost.` | up | `unbound-control flush_infra all` (keeps the cache) |
-| fails | fails, `localhost.` too | up | Restart `unbound` |
-| fails | fails | down | None; VPN recovery belongs to Windscribe and the VPN policy |
+| fails twice | answers | any | Restart `printing-dhcp` |
+| fails | fails, `localhost.` too | any | Restart `unbound` (it is stuck) |
+| fails | fails, but answers its built-in `localhost.` | up | `unbound-control flush_infra all` (keeps the cache); restart `unbound` if the next repair is still needed |
+| fails | fails, but answers `localhost.` | down | None; VPN recovery belongs to Windscribe and the VPN policy |
 
 Failures and repairs are logged at priority `err` in the `printing-dns-check` journal. It never touches Windscribe or the VPN.
 
@@ -54,4 +54,9 @@ On Radxa with administrative privileges, from this directory:
 6. Check: install `dns-check.py` (mode 0755) and both units (0644), `systemctl daemon-reload`, `systemctl enable --now printing-dns-check.timer`.
 7. Accept only after a printer-LAN client loads web pages, a VPN reconnect and a reboot each recover without intervention, and `journalctl -u printing-dns-check` shows no failures afterwards.
 
-Rollback restores the saved files, disables `unbound` and `printing-dns-check.timer`, removes the drop-ins and the check, then reloads `printing-gateway` and restarts `printing-dhcp` and `systemd-resolved`. The old path also needs Windscribe's Connected DNS set back to Custom with upstream `https://freedns.controld.com/p2`.
+Rollback, in order:
+
+1. `systemctl disable --now printing-dns-check.timer printing-dns-check.service unbound`, so no repair runs during the rollback.
+2. Remove `/etc/unbound/unbound.conf.d/printing-station.conf`, both drop-ins, `dns-check.py` and the two check units, then `systemctl daemon-reload`.
+3. Restore the saved files, including `controld-dot.conf`, then `systemctl reload printing-gateway` and `systemctl restart printing-dhcp systemd-resolved`.
+4. Set Windscribe's Connected DNS back to Custom with upstream `https://freedns.controld.com/p2`, which the old path needs.

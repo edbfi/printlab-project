@@ -44,6 +44,10 @@ table inet printer_gateway {
   }
   chain dns_guard {
     type filter hook output priority -25; policy accept;
+    meta skuid "unbound" oifname "lo" accept
+    meta skuid "unbound" oifname "tun0" ip daddr { 76.76.2.11, 76.76.10.11 } tcp dport 853 accept
+    meta skuid "unbound" counter drop comment "Printer resolver may only reach Control D through the VPN"
+    meta skuid "dnsmasq" oifname != "lo" meta l4proto { tcp, udp } th dport 53 counter drop comment "Printer DNS must use the local resolver"
     meta skuid "systemd-resolve" oifname != { "lo", "tun0" } meta l4proto { tcp, udp } th dport 53 counter drop comment "Host resolver must use VPN"
     ip daddr 10.255.255.1 oifname != "tun0" counter drop
     ip daddr { 76.76.2.11, 76.76.10.11 } oifname != "tun0" counter drop comment "Control D secure DNS must use VPN"

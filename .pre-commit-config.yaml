@@ -59,3 +59,10 @@ repos:
         language_version: "3.14"
         pass_filenames: false
         always_run: true
+      - id: dns-check-tests
+        name: DNS check tests
+        entry: python3 -B -m unittest discover -s systems/gateway/dns/tests
+        language: python
+        language_version: "3.14"
+        pass_filenames: false
+        always_run: true

@@ -44,12 +44,15 @@ The client profile should autoconnect with IPv4 DHCP, IPv6 disabled and Radxa as
 Run on **Radxa as `<gateway-user>`**, after `ssh radxa`:
 
 ```sh
-systemctl is-active systemd-networkd wpa_supplicant@wlan0 printing-gateway printing-dhcp windscribe-helper docker systemd-resolved
+systemctl is-active systemd-networkd wpa_supplicant@wlan0 printing-gateway printing-dhcp unbound windscribe-helper docker systemd-resolved
 systemctl --user is-active windscribe
 /opt/windscribe/windscribe-cli status
 ip -brief address
 ip -4 route
 resolvectl status
+dig @192.168.77.1 example.com +short
+dig @127.0.0.1 -p 5335 doubleclick.net +short
+sudo -n journalctl -u printing-dns-check.service --since today -p err
 sudo -n cat /var/lib/printing-station/dnsmasq.leases
 sudo -n nft list table inet printer_gateway
 sudo -n iptables -S PRINTING-VPN
@@ -77,6 +80,7 @@ The following commands change connection state; use them only to recover the nam
 
 - Chromebook disconnected: on **Chromebook as `<workstation-user>`**, `nmcli connection up '3D-Printere client'`. Keep the gateway/AP cabling on Radxa.
 - Radxa VPN not recovering after school Wi-Fi is available: inspect Windscribe service state and the VPN-policy journal below. Allow the bounded recovery pass/cooldown to operate. For deliberate manual intervention, pause the policy first; on **Radxa as `<gateway-user>`**, `/opt/windscribe/windscribe-cli connect static <static-ip> stealth:443` selects the static IP and `/opt/windscribe/windscribe-cli connect DK stealth:443` selects Denmark. Follow the static-first, then DK → SE → NL order in topology and verify client DNS/HTTPS; CLI completion alone is not readiness.
+- Clients connect but no web pages load: on **Radxa**, `dig @192.168.77.1 example.com` and `dig @127.0.0.1 -p 5335 example.com` show whether dnsmasq or unbound fails; the `printing-dns-check` journal shows recent repairs. If the tunnel is up and the check's repairs have not helped, `sudo systemctl restart unbound printing-dhcp`. Do not re-enable Windscribe's Custom DNS as a fix; the [DNS component](../../systems/gateway/dns/README.md) explains why.
 - Studio application failure: on **Chromebook as `<workstation-user>`**, preserve any unsaved model/project work, close and reopen the installed AppImage, then check both device views. Current-user login persistence is established; no automatic kiosk recovery is configured.
 
 `printing-gateway` start/reload loads its own rules and Docker allowances. Its stop action blocks printer internet forwarding while retaining local services and unrelated Docker forwarding. Do not flush the whole firewall, disable Docker or introduce another network manager to recover printer access. A school uplink outage can leave local networking available while cloud functions fail.
@@ -138,7 +142,8 @@ Restricted `/var/lib/printing-station/rollback/20261006/vpn-policy/` contains th
 | Radxa / wpa_supplicant | `/etc/wpa_supplicant/wpa_supplicant-wlan0.conf`; `wpa_supplicant@wlan0.service`, with restart override in `/etc/systemd/system/wpa_supplicant@wlan0.service.d/printing-station.conf` |
 | Radxa / printing services | `/etc/printing-station/dnsmasq.conf`, `gateway.nft`; `/etc/systemd/system/printing-dhcp.service`, `printing-gateway.service` |
 | Radxa / gateway helpers | `/usr/local/libexec/printing-station/gateway-control`, `docker-forwarding`; Docker integration at `/etc/systemd/system/docker.service.d/printing-station.conf` |
-| Radxa / resolver | `/etc/systemd/resolved.conf.d/printing-station.conf`; loopback Windscribe proxy and printer dnsmasq have the separate paths shown in topology |
+| Radxa / resolver | `/etc/unbound/unbound.conf.d/printing-station.conf`, `/etc/systemd/resolved.conf.d/printing-station.conf`; drop-ins `/etc/systemd/system/unbound.service.d/` and `printing-dhcp.service.d/printing-station.conf`; source in the [DNS component](../../systems/gateway/dns/README.md) |
+| Radxa / DNS check | `/usr/local/libexec/printing-station/dns-check.py`; `printing-dns-check.service/.timer` under `/etc/systemd/system/`; state in `/var/lib/printing-station/dns-check/` |
 | Radxa / Windscribe | System `windscribe-helper.service`; `<gateway-user>` user `windscribe.service` with linger and `/home/<gateway-user>/.config/systemd/user/windscribe.service.d/printing-station.conf` |
 | Radxa / VPN policy | `/usr/local/libexec/printing-station/vpn-policy.py`, `/etc/printing-station/vpn-policy.json`; `printing-vpn-check.service/.timer` and `printing-vpn-refresh.service/.timer` under `/etc/systemd/system/` |
 | Chromebook / NetworkManager | `3D-Printere client` profile and restricted Netplan file above; DHCP client only |

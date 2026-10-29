@@ -1,10 +1,11 @@
 #!/usr/bin/python3
-"""Bounded country-priority Windscribe recovery; never changes firewall policy."""
+"""Bounded static-IP-first Windscribe recovery; never changes firewall policy."""
 
 import argparse
 import datetime as dt
 import fcntl
 import json
+import ipaddress
 import os
 from pathlib import Path
 import re
@@ -81,6 +82,9 @@ class Host:
             return state, location
         if state != "connected":
             return "failed", location
+        static_address = re.search(r" - (\d+\.\d+\.\d+\.\d+)$", location)
+        if static_address and f"VPN IP: {static_address[1]}" not in text.splitlines():
+            return "failed", location
         # Independent HTTPS destinations avoid rotating VPN for a single-site outage.
         # Bind to tun0 and disable proxy environment settings: no school-side fallback.
         for url in ("https://example.com/", "https://www.cloudflare.com/cdn-cgi/trace"):
@@ -131,7 +135,33 @@ class Host:
                     result[country].add(re.sub(r"\s+\([^)]*\)$", "", location))
         return result
 
-    def connect(self, target, allowed_locations):
+    def static_locations(self):
+        rc, text = command([CLI, "locations", "static"])
+        if rc:
+            return {}
+        result = {}
+        for line in text.splitlines():
+            line = re.sub(r"\x1b\[[0-9;]*m", "", line).strip()
+            location, separator, address = line.rpartition(" - ")
+            if separator:
+                try:
+                    result[str(ipaddress.IPv4Address(address))] = line
+                except ipaddress.AddressValueError:
+                    continue
+        return result
+
+    def static_egress_matches(self, address):
+        for url in ("https://api.ipify.org", "https://ipv4.icanhazip.com"):
+            rc, value = command([
+                "/usr/bin/curl", "--interface", "tun0", "--ipv4", "--noproxy", "*",
+                "--proto", "=https", "--connect-timeout", "4", "--max-time", "8",
+                "--silent", "--fail", url,
+            ], timeout=10)
+            if rc == 0 and value.strip() == address:
+                return True
+        return False
+
+    def connect(self, target, allowed_locations, static=False):
         # Explicit disconnect makes a scheduled refresh real, even if a country
         # request happens to choose the same datacenter. No firewall-off command.
         command([CLI, "disconnect"], timeout=20)
@@ -144,14 +174,15 @@ class Host:
                 log("Disconnected state not confirmed; stopping this recovery pass")
                 return None
             time.sleep(1)
-        if command([CLI, "connect", "-n", target, PROTOCOL], timeout=15)[0] != 0:
+        selection = ["static", target] if static else [target]
+        if command([CLI, "connect", "-n", *selection, PROTOCOL], timeout=15)[0] != 0:
             return False
         deadline = time.monotonic() + ATTEMPT_SECONDS
         while time.monotonic() < deadline:
             time.sleep(5)
             state, location = self.health()
             if state == "healthy" and location in allowed_locations:
-                return True
+                return self.static_egress_matches(target) if static else True
             if state in ("unknown", "logged-out", "account-blocked"):
                 return None
         return False
@@ -177,6 +208,8 @@ def run_policy(host, state, config, mode, now, save, dry_run=False):
         log("Deferred: CLI state unavailable or account needs attention; no reconnect attempted")
         return
     daily = mode == "refresh"
+    static_ip = config.get("static_ip")
+    on_static = bool(static_ip and previous_location.endswith(" - " + static_ip))
     date = dt.datetime.fromtimestamp(now, ZoneInfo("Europe/Copenhagen")).date().isoformat()
     if daily:
         if not refresh_allowed(config, now) or state.get("last_refresh") == date:
@@ -185,11 +218,22 @@ def run_policy(host, state, config, mode, now, save, dry_run=False):
         if host.maintenance_busy():
             log("Daily refresh skipped: package work, reboot or recent startup")
             return
+        if health == "healthy" and on_static:
+            state["last_refresh"] = date
+            log("Healthy static tunnel; skipping unnecessary daily reconnect")
+            return
     elif health == "healthy":
         state["failures"] = 0
         state["retry_after"] = 0
-        log("Healthy Stealth/443 tunnel; keeping current location")
-        return
+        if not static_ip or on_static:
+            log("Healthy Stealth/443 tunnel; keeping current location")
+            return
+        if now < state.get("static_retry_after", 0):
+            log("Healthy fallback tunnel; static retry cooldown active")
+            return
+        if host.maintenance_busy():
+            log("Static retry deferred: package work, reboot or recent startup")
+            return
     else:
         state["failures"] = min(state.get("failures", 0) + 1, FAILURES_REQUIRED)
         if state["failures"] < FAILURES_REQUIRED:
@@ -199,26 +243,37 @@ def run_policy(host, state, config, mode, now, save, dry_run=False):
         log("Recovery cooldown active; leaving native Windscribe recovery available")
         return
     if dry_run:
-        log("Would try DK -> SE -> NL using Stealth/443; dry-run makes no changes")
+        prefix = "static IP -> " if static_ip else ""
+        log(f"Would try {prefix}DK -> SE -> NL using Stealth/443; dry-run makes no changes")
         return
     locations = host.locations()
-    if not any(locations.get(country) for country in COUNTRIES):
-        log("No preferred country in catalog; refusing an unverified selection")
+    static_location = host.static_locations().get(static_ip) if static_ip else None
+    if static_ip:
+        state["static_retry_after"] = now + COOLDOWN
+        if health == "healthy" and not static_location:
+            log("Static location absent from catalog; keeping healthy fallback")
+            return
+    if not static_location and not any(locations.get(country) for country in COUNTRIES):
+        log("No preferred location in catalog; refusing an unverified selection")
         state["retry_after"] = now + COOLDOWN
         return
     previous_country = next((c for c in COUNTRIES if previous_location in locations.get(c, set())), None)
+    targets = []
+    if static_location:
+        targets.append((static_ip, {static_location}, True, "static"))
+        # Restore the known-working fallback promptly if the static retry fails.
+        if health == "healthy" and previous_country:
+            targets.append((previous_location.split(" - ", 1)[-1], {previous_location}, False, previous_country))
+    targets.extend((c, locations[c], False, c) for c in COUNTRIES if locations.get(c))
     # Persist backoff before disconnecting, including if this process is stopped.
     state["retry_after"] = now + COOLDOWN
     save(state)
-    for country in COUNTRIES:
+    for target, allowed, is_static, country in targets:
         if not host.available():
             log("School uplink or Windscribe service became unavailable; stopping this pass")
             break
-        if not locations.get(country):
-            log(f"Skipping {country}: no location in the current catalog")
-            continue
         log(f"Trying {country} with Stealth/443")
-        result = host.connect(country, locations[country])
+        result = host.connect(target, allowed, static=True) if is_static else host.connect(target, allowed)
         if result is True:
             state.update(failures=0, retry_after=0, selected_country=country)
             if daily:
@@ -230,14 +285,14 @@ def run_policy(host, state, config, mode, now, save, dry_run=False):
             return
     # A healthy daily refresh should have a route back to its known-working
     # location if the random datacenter attempts all fail. Stay in approved countries.
-    if daily and health == "healthy" and previous_country and host.available():
+    if daily and not static_location and health == "healthy" and previous_country and host.available():
         nickname = previous_location.split(" - ", 1)[-1]
         log(f"Trying previously healthy location in {previous_country}")
         if host.connect(nickname, {previous_location}) is True:
             state.update(failures=0, retry_after=0, selected_country=previous_country, last_refresh=date)
             log("Previously healthy location restored and verified using Stealth/443")
             return
-    log("No verified country connection; bounded pass ended, cooldown applies")
+    log("No verified preferred connection; bounded pass ended, cooldown applies")
 
 
 def main():
@@ -246,6 +301,8 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     config = json.loads(CONFIG.read_text())
+    if config.get("static_ip"):
+        config["static_ip"] = str(ipaddress.IPv4Address(config["static_ip"]))
     # The systemd unit owns directory creation and access; manual runs use it too.
     with (STATE_DIR / "policy.lock").open("a") as lock:
         try:

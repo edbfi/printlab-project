@@ -17,11 +17,17 @@ policy = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(policy)
 NOW = dt.datetime(2026, 10, 7, 4, 30, tzinfo=ZoneInfo("Europe/Copenhagen")).timestamp()
 CONFIG = {"refresh_enabled": True, "refresh_time": "04:30"}
+STATIC_IP = "192.0.2.10"
+STATIC_LOCATION = "Frankfurt - " + STATIC_IP
+STATIC_CONFIG = dict(CONFIG, static_ip=STATIC_IP)
 
 
 class FakeHost:
-    def __init__(self, health="failed", results=(True,), available=True, busy=False):
+    def __init__(self, health="failed", results=(True,), available=True, busy=False,
+                 location="Stockholm - Test", static=(STATIC_LOCATION,)):
         self.health_value = health
+        self.location = location
+        self.static = static
         self.results = iter(results)
         self.is_available = available
         self.busy = busy
@@ -31,7 +37,7 @@ class FakeHost:
         return self.is_available
 
     def health(self):
-        return self.health_value, "Stockholm - Test"
+        return self.health_value, self.location
 
     def maintenance_busy(self):
         return self.busy
@@ -39,8 +45,11 @@ class FakeHost:
     def locations(self):
         return {country: {country + " - Test"} for country in policy.COUNTRIES}
 
-    def connect(self, country, allowed):
-        self.attempts.append(country)
+    def static_locations(self):
+        return {location.rpartition(" - ")[2]: location for location in self.static}
+
+    def connect(self, target, allowed, static=False):
+        self.attempts.append(("static:" if static else "") + target)
         return next(self.results)
 
 
@@ -149,6 +158,57 @@ class PolicyTests(unittest.TestCase):
         self.assertEqual(host.attempts, ["DK", "SE", "NL", "Test"])
         self.assertEqual(state["selected_country"], "SE")
         self.assertIn("last_refresh", state)
+
+    def test_healthy_static_tunnel_is_kept_and_skips_daily_reconnect(self):
+        host = FakeHost(health="healthy", location=STATIC_LOCATION, results=())
+        state, _ = self.run_case(host, {"failures": 2}, config=STATIC_CONFIG)
+        self.assertEqual(host.attempts, [])
+        self.assertEqual(state["failures"], 0)
+        state, _ = self.run_case(host, mode="refresh", config=STATIC_CONFIG)
+        self.assertEqual(host.attempts, [])
+        self.assertIn("last_refresh", state)
+
+    def test_recovery_tries_static_ip_before_countries(self):
+        host = FakeHost(results=(True,))
+        state, _ = self.run_case(host, {"failures": 2}, config=STATIC_CONFIG)
+        self.assertEqual(host.attempts, ["static:" + STATIC_IP])
+        self.assertEqual(state["selected_country"], "static")
+
+    def test_unavailable_static_ip_falls_back_to_country_order(self):
+        missing = FakeHost(results=(True,), static=())
+        state, _ = self.run_case(missing, {"failures": 2}, config=STATIC_CONFIG)
+        self.assertEqual(missing.attempts, ["DK"])
+        self.assertEqual(state["selected_country"], "DK")
+        failing = FakeHost(results=(False, False, True))
+        state, _ = self.run_case(failing, {"failures": 2}, config=STATIC_CONFIG)
+        self.assertEqual(failing.attempts, ["static:" + STATIC_IP, "DK", "SE"])
+        self.assertEqual(state["selected_country"], "SE")
+
+    def test_healthy_fallback_retries_static_ip_after_cooldown(self):
+        host = FakeHost(health="healthy", results=(True,))
+        state = {"static_retry_after": NOW + 60}
+        self.run_case(host, state, config=STATIC_CONFIG)
+        self.assertEqual(host.attempts, [])
+        state, _ = self.run_case(host, state, now=NOW + 60, config=STATIC_CONFIG)
+        self.assertEqual(host.attempts, ["static:" + STATIC_IP])
+        self.assertEqual(state["selected_country"], "static")
+        self.assertEqual(state["static_retry_after"], NOW + 60 + policy.COOLDOWN)
+
+    def test_failed_static_retry_restores_healthy_fallback_first(self):
+        host = FakeHost(health="healthy", results=(False, True))
+        host.locations = lambda: {"DK": {"Copenhagen - Test"}, "SE": {"Stockholm - Test"}, "NL": {"Amsterdam - Test"}}
+        state, _ = self.run_case(host, config=STATIC_CONFIG)
+        self.assertEqual(host.attempts, ["static:" + STATIC_IP, "Test"])
+        self.assertEqual(state["selected_country"], "SE")
+
+    def test_static_retry_keeps_healthy_fallback_when_static_is_absent_or_busy(self):
+        absent = FakeHost(health="healthy", results=(), static=())
+        state, _ = self.run_case(absent, config=STATIC_CONFIG)
+        self.assertEqual(absent.attempts, [])
+        self.assertEqual(state["static_retry_after"], NOW + policy.COOLDOWN)
+        busy = FakeHost(health="healthy", busy=True, results=())
+        self.run_case(busy, config=STATIC_CONFIG)
+        self.assertEqual(busy.attempts, [])
 
     def test_lock_prevents_overlapping_run_from_probing_or_connecting(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -259,6 +319,33 @@ class HostTests(unittest.TestCase):
             self.assertTrue(host.connect("DK", {"Copenhagen - Test"}))
         self.assertEqual(commands[-1], [policy.CLI, "connect", "-n", "DK", "stealth:443"])
         self.assertFalse(any("firewall" in args for args in commands))
+
+    def test_static_connect_requires_matching_tunnel_egress(self):
+        commands = []
+        def fake(args, timeout=10):
+            commands.append(args)
+            if args[-1] == "status":
+                return 0, "Login state: Logged in\nConnect state: Disconnected"
+            return (0, "192.0.2.99") if args[0] == "/usr/bin/curl" else (0, "")
+        host = policy.Host()
+        with patch.object(policy, "command", side_effect=fake), patch.object(policy.time, "sleep"), \
+             patch.object(host, "health", return_value=("healthy", STATIC_LOCATION)):
+            self.assertFalse(host.connect(STATIC_IP, {STATIC_LOCATION}, static=True))
+        self.assertIn([policy.CLI, "connect", "-n", "static", STATIC_IP, "stealth:443"], commands)
+        for args in commands:
+            if args[0] == "/usr/bin/curl":
+                self.assertEqual(args[args.index("--interface") + 1], "tun0")
+
+    def test_static_status_with_mismatched_vpn_ip_is_unhealthy(self):
+        status = f"Login state: Logged in\nConnect state: Connected: {STATIC_LOCATION}\nProtocol: Stealth:443\nVPN IP: 192.0.2.99"
+        with patch.object(policy, "command", return_value=(0, status)) as cmd:
+            self.assertEqual(policy.Host().health(), ("failed", STATIC_LOCATION))
+            cmd.assert_called_once()
+
+    def test_static_catalog_is_keyed_by_address(self):
+        catalog = f"\x1b[1m{STATIC_LOCATION}\x1b[0m\nnot a static line\nOdd - 999.0.0.1"
+        with patch.object(policy, "command", return_value=(0, catalog)):
+            self.assertEqual(policy.Host().static_locations(), {STATIC_IP: STATIC_LOCATION})
 
     def test_wrong_country_cannot_be_accepted(self):
         host = policy.Host()

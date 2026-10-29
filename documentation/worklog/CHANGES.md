@@ -6,7 +6,7 @@ Only verified successful changes belong here. [TESTS](TESTS.md) records evidence
 |---|---|
 | Gateway LAN | Built-in Ethernet serves the printer access point. Client DHCP, local devices, DNS, and VPN egress passed checks on 2026-10-06; restricted configuration snapshot retained |
 | Printing workstation | Studio launch/rendering and current-user session persistence through application restart and reboot are established; slicing and transfer are operator-confirmed |
-| VPN policy | Country-priority recovery and both timers are installed; 27 deterministic tests passed on both hosts during installation. The 2026-10-07 scheduled refresh verified Denmark over Stealth/443 and tunnel HTTPS |
+| VPN policy | Static-IP-first recovery with DK → SE → NL fallback and both timers are installed; the static preference was added on 2026-10-07 after the original 27-test country-only installation. The repository source matches it, with 36 deterministic tests. Daily refreshes keep a healthy static tunnel |
 
 Kiosk mode remains planned and is not a completed configuration change.
 

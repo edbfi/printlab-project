@@ -7,6 +7,7 @@ Only verified successful changes belong here. [TESTS](TESTS.md) records evidence
 | Gateway LAN | Built-in Ethernet serves the printer access point. Client DHCP, local devices, DNS, and VPN egress passed checks on 2026-10-06; restricted configuration snapshot retained |
 | Printing workstation | Studio launch/rendering and current-user session persistence through application restart and reboot are established; slicing and transfer are operator-confirmed |
 | VPN policy | Static-IP-first recovery with DK → SE → NL fallback and both timers are installed; the static preference was added on 2026-10-07 after the original 27-test country-only installation. The repository source matches it, with 36 deterministic tests. Daily refreshes keep a healthy static tunnel |
+| Printer DNS | Since 2026-10-29, a local unbound sends DNS-over-TLS to Control D p2 through `tun0` for the printer LAN and Radxa, replacing Windscribe's Connected DNS proxy. A once-a-minute check repairs local DNS services. Installed files match the repository source; from 2026-10-29 15:31 to 2026-11-09 the check ran in 13 boots without a repair |
 
 Kiosk mode remains planned and is not a completed configuration change.
 

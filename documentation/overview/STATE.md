@@ -10,13 +10,15 @@ The operator confirms the printing workflow, including slicing and transfer, wor
 
 The VPN policy and both timers are installed and enabled. The policy prefers the operator's Windscribe static IP and falls back to Denmark → Sweden → Netherlands, always over Stealth/443. Radxa currently uses the static IP; on a healthy static tunnel the daily 04:30 Copenhagen refresh keeps the connection instead of reconnecting, as the 2026-10-28 and 2026-10-29 journals record. Simulated failure tests pass; actual fallback to the countries remains unobserved. [Validation](../worklog/TESTS.md) records dates, scope, and limits.
 
+Since 2026-10-29, printer-LAN and Radxa DNS use a local unbound that sends DNS-over-TLS to Control D p2 through the tunnel, no longer Windscribe's Connected DNS proxy. A once-a-minute check repairs the local DNS services; from 2026-10-29 15:31 to 2026-11-09 it logged two single failures and made no repairs: one cleared on the next check, the other came seconds before a boot ended unexpectedly. See the [DNS component](../../systems/gateway/dns/README.md).
+
 ## Outstanding work
 
 - **Kiosk mode is planned, not implemented.** [Requirements](../kiosk/CONFIGURATION.md) owns the open interface/account decisions and acceptance criteria; [the implementation placeholder](../../systems/printing-station/kiosk/README.md) reserves its source location.
 - Touch/scaling, physical power behavior, and audio audibility need evaluation for kiosk use. They are not blockers to the confirmed printing workflow.
 - School Ethernet is deferred. The unused USB Ethernet adapter has no active role and needs reliability evaluation before reuse.
 - The gateway has reset early in boot on several reboots since the fan was wired on 2026-11-09; the cause is open ([issues](../worklog/ISSUES.md)).
-- The repository packages only the VPN policy and fan components; other installed configuration is documented, not available as a complete provisioning system.
+- The repository packages the VPN policy, fan, DNS and firewall components; other installed configuration is documented, not available as a complete provisioning system.
 
 ## References and recovery
 

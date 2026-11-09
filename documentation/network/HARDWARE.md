@@ -15,7 +15,7 @@ Kernel/package and interface details were inspected on 2026-10-06. Hardware and 
 | VPN policy | Root-owned Python/systemd policy, executed as `<gateway-user>`; country priority and scheduling are documented in topology and operations |
 | Cooling | Noctua NF-A8 5V PWM on the 40-pin header: pin 4 (5V), pin 6 (GND), pin 16 (GPIO26, PWM), pin 18 (GPIO27, tach); kernel-controlled, see [gateway fan](../../systems/gateway/fan/README.md) |
 | Docker | Docker Engine `29.8.2`, active; preserve existing data/images and service integration |
-| Other resolver | Unbound `1.24.2-1ubuntu2.2` installed, disabled |
+| Resolver | Unbound `1.24.2`, printer-LAN and host resolver on `127.0.0.1:5335`; see the [DNS component](../../systems/gateway/dns/README.md) |
 | Administration / power | SSH TCP 22, key-only; sleep and hibernation targets masked |
 
 Personal development/server workloads are a possible future use of Radxa. No additional workload or public hosting is part of this printing station's agreed functionality.

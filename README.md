@@ -11,6 +11,9 @@ The operator confirms that slicing and transfer work. **Kiosk mode is planned an
 ```text
 systems/
   gateway/
+    dns/                 Printer-LAN resolver, DNS check, and tests
+    fan/                 Gateway fan device tree, GRUB entries and udev rule
+    firewall/            Gateway nftables table
     vpn-policy/          VPN policy, configuration, systemd templates, and tests
   printing-station/
     kiosk/               Placeholder for future kiosk implementation
@@ -39,15 +42,16 @@ Implementation folders follow system roles rather than hardware brands. Keep eac
 
 ## Development
 
-Run the VPN policy's deterministic tests from the repository root:
+Run the gateway components' deterministic tests from the repository root:
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s systems/gateway/vpn-policy/tests -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s systems/gateway/dns/tests -v
 ```
 
 CI runs these tests and the repository checks in `.pre-commit-config.yaml` with `prek run --all-files --hook-stage manual`.
 
-Tests simulate VPN failures and never connect or disconnect a real VPN. Editing this checkout does not deploy changes to the gateway. The repository currently contains the VPN policy sources; the rest of the installed gateway and workstation configuration is documented, not packaged as a complete installer.
+Tests simulate VPN and DNS failures and never touch live services or connect or disconnect a real VPN. Editing this checkout does not deploy changes to the gateway. The repository currently contains the VPN policy, fan, DNS and firewall sources; the rest of the installed gateway and workstation configuration is documented, not packaged as a complete installer.
 
 Documentation describes the current local deployment. Account names and passwords are omitted; placeholders identify account-dependent paths, and service templates require local substitution. Review interface names, addresses, and the maintenance window before reuse. Use Conventional Commits.
 

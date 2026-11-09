@@ -66,20 +66,26 @@ Native Windscribe auto-connect remains enabled and uses its [saved last location
 ## DNS paths
 
 ```text
-Radxa applications
-  → systemd-resolved stub
-  → Radxa 127.0.0.1:53 (Windscribe's DNS proxy)
-  → HTTPS https://freedns.controld.com/p2 through tun0
-
 Printer-LAN clients, including the Chromebook
   → Radxa 192.168.77.1:53 (dnsmasq)
-  → Radxa 127.0.0.1:53 (the same Windscribe proxy)
-  → the same encrypted Control D p2 path through tun0
+  → Radxa 127.0.0.1:5335 (unbound)
+  → DNS-over-TLS to Control D p2 (76.76.2.11 / 76.76.10.11:853) through tun0
+
+Radxa applications
+  → systemd-resolved stub
+  → the same unbound, plus Windscribe's tunnel DNS 10.255.255.1 on tun0
+
+Docker containers on docker0
+  → forwarded through tun0 to their own DNS servers; never unbound
+  → Redroid test device: 1.1.1.1 (deliberately unfiltered)
+  → other default-bridge containers: 10.255.255.1 while tun0 is up; Docker's public fallback servers if started without it
 ```
 
-The Chromebook's own systemd-resolved stub uses DHCP DNS `192.168.77.1`. It has no local Windscribe tunnel or Windscribe DNS proxy. Radxa's resolved configuration sets loopback DNS and an empty fallback list; dnsmasq uses `no-resolv` and only `server=127.0.0.1#53@lo`. Unbound is installed on Radxa but disabled.
+The Chromebook's own systemd-resolved stub uses DHCP DNS `192.168.77.1`. dnsmasq uses `no-resolv` and only `server=127.0.0.1#5335@lo`. Radxa's resolved configuration uses `127.0.0.1:5335` with an empty fallback list; Windscribe also sets `10.255.255.1` as `tun0`'s link DNS, which resolved queries alongside it, so Radxa's own lookups are not guaranteed to be p2-filtered.
 
-Radxa's firewall blocks systemd-resolve-owned port-53 traffic outside loopback/tun0 and blocks the configured secure DNS endpoint addresses outside tun0. Windscribe bootstrap DNS is intentionally available. Application/browser DNS overrides are outside this resolver policy; this is not an all-application DNS enforcement claim.
+The printer DNS path does not depend on Windscribe's "Connected DNS" setting; leave it on Auto. The [DNS component](../../systems/gateway/dns/README.md) records why, including the 2026-10-29 outage, and how reconnects, boot and Control D failures behave. Without the tunnel or Control D, uncached names fail; there is no unfiltered fallback. `printing-dns-check.timer` tests the client path once a minute and repairs local DNS services.
+
+Radxa's firewall restricts unbound to loopback and DoT to the two Control D addresses on `tun0`, stops dnsmasq from sending DNS anywhere but loopback, blocks systemd-resolve-owned port-53 traffic outside loopback/tun0, and blocks the Control D addresses outside tun0. Windscribe bootstrap DNS is intentionally available. These rules apply only to traffic Radxa sends itself, not to forwarded container traffic. The Redroid test device used for app patching sets `1.1.1.1` so that p2 cannot hide an app's ad requests; Docker gives other default-bridge containers the servers in resolved's `resolv.conf`, which lists only `10.255.255.1` because it cannot name port 5335; a container started while `tun0` is down gets Docker's public fallback servers. Application, browser and container DNS overrides are outside this resolver policy; this is not an all-application DNS enforcement claim.
 
 ## Forwarding and isolation
 

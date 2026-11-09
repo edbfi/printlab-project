@@ -13,13 +13,15 @@
  *   fan pin 3  tach (green)    -> header pin 18 (GPIO27)
  *   fan pin 4  PWM (blue)      -> header pin 16 (GPIO26)
  *
- * U48's header side is only rated to 3V3 + 0.5V while driving, and Noctua
- * only says the fan pulls its PWM input up to "3,3V/5V" internally (at most
- * 5.25V open circuit, 5mA short circuit). If fan pin 4 measures more than
- * 3.6V against pin 1 with the fan powered and pin 4 unconnected, that is
- * outside the datasheet: either leave pin 4 unconnected (the fan then runs
- * at full speed) or add a buffer. The tach is open collector (at most 5mA),
- * so U48's 10k pull-up to 3V3 is all it needs.
+ * U48's header side tolerates 6.5V as an input; while U48 drives it, the
+ * limit is 3V3 + 0.5V. Noctua only says the fan pulls its PWM input up to
+ * "3,3V/5V" internally (at most 5.25V open circuit, 5mA short circuit).
+ * Owners of Noctua 5V PWM fans measured about 3.7V open circuit, and 3.3V
+ * once a 3V3 GPIO drives it, so in parallel with U48's 10k pull-up to 3V3
+ * the line idles at most slightly above 3V3. A fan whose PWM input idles
+ * near 5V needs a push-pull buffer instead, or pin 4 left unconnected
+ * (the fan then runs at full speed). The tach is open
+ * collector (at most 5mA), so U48's 10k pull-up to 3V3 is all it needs.
  *
  * None of the header pins can mux to a hardware PWM, so pwm-gpio drives
  * GPIO26 from an hrtimer: two timer interrupts per period whenever the fan
@@ -31,7 +33,10 @@
  * are switched to step_wise by /etc/udev/rules.d/60-q6a-fan-thermal.rules.
  * step_wise raises the fan as soon as a trip is crossed, and lowers it one
  * state per falling reading once the temperature is back below a trip
- * minus FAN_HYST.
+ * minus FAN_HYST. Kernel 6.18.2 predates the step_wise fix "Fix stale
+ * mitigation vote with non-zero lower bounds": a cool zone can keep voting
+ * for a fan level until its own temperature next falls, so the fan may
+ * slow down later than these trips suggest.
  *
  * Preprocessed with cpp, then merged into /boot/armbian-dtb-<kver> by
  * /usr/local/sbin/q6a-fan-dtb. Rerun that and reboot after editing.

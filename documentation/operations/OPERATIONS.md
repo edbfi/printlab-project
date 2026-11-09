@@ -44,7 +44,7 @@ The client profile should autoconnect with IPv4 DHCP, IPv6 disabled and Radxa as
 Run on **Radxa as `<gateway-user>`**, after `ssh radxa`:
 
 ```sh
-systemctl is-active systemd-networkd wpa_supplicant@wlan0 printing-gateway printing-dhcp unbound windscribe-helper docker systemd-resolved
+systemctl is-active systemd-networkd wpa_supplicant@wlan0 printing-gateway printing-dhcp unbound printing-dns-check.timer windscribe-helper docker systemd-resolved
 systemctl --user is-active windscribe
 /opt/windscribe/windscribe-cli status
 ip -brief address
@@ -142,7 +142,7 @@ Restricted `/var/lib/printing-station/rollback/20261006/vpn-policy/` contains th
 | Radxa / wpa_supplicant | `/etc/wpa_supplicant/wpa_supplicant-wlan0.conf`; `wpa_supplicant@wlan0.service`, with restart override in `/etc/systemd/system/wpa_supplicant@wlan0.service.d/printing-station.conf` |
 | Radxa / printing services | `/etc/printing-station/dnsmasq.conf`, `gateway.nft`; `/etc/systemd/system/printing-dhcp.service`, `printing-gateway.service` |
 | Radxa / gateway helpers | `/usr/local/libexec/printing-station/gateway-control`, `docker-forwarding`; Docker integration at `/etc/systemd/system/docker.service.d/printing-station.conf` |
-| Radxa / resolver | `/etc/unbound/unbound.conf.d/printing-station.conf`, `/etc/systemd/resolved.conf.d/printing-station.conf`; drop-ins `/etc/systemd/system/unbound.service.d/` and `printing-dhcp.service.d/printing-station.conf`; source in the [DNS component](../../systems/gateway/dns/README.md) |
+| Radxa / resolver | `/etc/unbound/unbound.conf.d/printing-station.conf`, `/etc/systemd/resolved.conf.d/printing-station.conf`; drop-ins `/etc/systemd/system/unbound.service.d/printing-station.conf` and `printing-dhcp.service.d/printing-station.conf`; source in the [DNS component](../../systems/gateway/dns/README.md) |
 | Radxa / DNS check | `/usr/local/libexec/printing-station/dns-check.py`; `printing-dns-check.service/.timer` under `/etc/systemd/system/`; state in `/var/lib/printing-station/dns-check/` |
 | Radxa / Windscribe | System `windscribe-helper.service`; `<gateway-user>` user `windscribe.service` with linger and `/home/<gateway-user>/.config/systemd/user/windscribe.service.d/printing-station.conf` |
 | Radxa / VPN policy | `/usr/local/libexec/printing-station/vpn-policy.py`, `/etc/printing-station/vpn-policy.json`; `printing-vpn-check.service/.timer` and `printing-vpn-refresh.service/.timer` under `/etc/systemd/system/` |
@@ -159,7 +159,8 @@ Both hosts retain the restricted base directory `/var/lib/printing-station/rollb
 | Host | Useful retained material |
 |---|---|
 | Radxa | `/var/lib/printing-station/rollback/20261006/vpn-policy/`: installed policy snapshot, pre-install manifest and scoped uninstall script, as described above |
-| Radxa | `/var/lib/printing-station/rollback/20261006/builtin-ethernet/verified-config.tar`: current built-in Ethernet snapshot of 11 selected network/service/helper/resolver files; no full-system or credential backup |
+| Radxa | `/var/lib/printing-station/rollback/20261006/builtin-ethernet/verified-config.tar`: built-in Ethernet snapshot of 11 selected network/service/helper/resolver files; no full-system or credential backup. Its dnsmasq, firewall and resolved files predate the 2026-10-29 DNS change and would point DNS back at Windscribe's proxy |
+| Radxa | `/var/lib/printing-station/rollback/20261029/dns/`: the four files the DNS change replaced, used by the [DNS component](../../systems/gateway/dns/README.md)'s rollback |
 | Radxa | `before.tar` and `rollback.sh` in that same `20261006/builtin-ethernet/` directory: scoped recovery for the port change; restoring it requires the AP cable on USB Ethernet. No rollback timer is active |
 | Radxa | `verified-usb-router-20261006.tar` under the older base: retained USB gateway configuration, units, credentials and leases; its interface assignments are not current |
 | Chromebook | `chromebook-client-20261006/verified-client.tar` under that base: snapshot of the working ordinary-client configuration |

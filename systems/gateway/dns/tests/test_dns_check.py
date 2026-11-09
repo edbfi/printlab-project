@@ -142,6 +142,7 @@ class QueryTests(unittest.TestCase):
     def test_named_query_is_sent(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         server.bind(("127.0.0.1", 0))
+        server.settimeout(1)
         self.addCleanup(server.close)
         check.query(server.getsockname(), "localhost", timeout=0.1)
         self.assertIn(b"\x09localhost\x00", server.recvfrom(512)[0])

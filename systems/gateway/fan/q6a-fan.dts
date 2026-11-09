@@ -1,23 +1,25 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Radxa Dragon Q6A: Arctic P8 Max (4-pin PWM) on the 40-pin header.
+ * Radxa Dragon Q6A: Noctua NF-A8 5V PWM (4-pin) on the 40-pin header.
  *
  * Wiring. The fan runs from 5V; PWM and tach go straight to the header,
  * since GPIO24-27 pass through U48, a UM3204H open-drain-capable level
  * shifter (1V8 SoC side, 3V3 header side, 10k pull-ups on both sides).
  * The header-side pull-up also makes the fan run at full speed until this
- * driver takes over:
+ * driver takes over (Noctua: full speed without a PWM signal):
  *
- *   fan pin 1  GND        -> header pin 6  (GND)
- *   fan pin 2  +12V       -> header pin 4  (5V)
- *   fan pin 3  tach       -> header pin 18 (GPIO27)
- *   fan pin 4  PWM        -> header pin 16 (GPIO26)
+ *   fan pin 1  GND (black)     -> header pin 6  (GND)
+ *   fan pin 2  +5V (yellow)    -> header pin 4  (5V)
+ *   fan pin 3  tach (green)    -> header pin 18 (GPIO27)
+ *   fan pin 4  PWM (blue)      -> header pin 16 (GPIO26)
  *
- * U48's header side is only rated to 3V3 + 0.5V while driving, and the
- * fan's own PWM pull-up may go to its 5V supply. If fan pin 4 measures
- * more than 3.6V against pin 1 with the fan powered and pin 4 unconnected,
- * that is outside the datasheet: either leave pin 4 unconnected (the fan
- * then runs at full 5V speed) or add an open-drain buffer.
+ * U48's header side is only rated to 3V3 + 0.5V while driving, and Noctua
+ * only says the fan pulls its PWM input up to "3,3V/5V" internally (at most
+ * 5.25V open circuit, 5mA short circuit). If fan pin 4 measures more than
+ * 3.6V against pin 1 with the fan powered and pin 4 unconnected, that is
+ * outside the datasheet: either leave pin 4 unconnected (the fan then runs
+ * at full speed) or add a buffer. The tach is open collector (at most 5mA),
+ * so U48's 10k pull-up to 3V3 is all it needs.
  *
  * None of the header pins can mux to a hardware PWM, so pwm-gpio drives
  * GPIO26 from an hrtimer: two timer interrupts per period whenever the fan
@@ -110,7 +112,8 @@
 		compatible = "pwm-fan";
 		pwms = <&q6a_fan_pwm 0 FAN_PERIOD_NS 0>;
 		/*
-		 * Off, 25%, 40%, 60%, 80%, 100%. The P8 Max stops below 5%.
+		 * Off, 25%, 40%, 60%, 80%, 100%. The NF-A8 stops at 0% and is
+		 * only specified from 20% (400 rpm) to 100% (2200 rpm).
 		 * No fan-stop-to-start-*: in 6.18 pwm-fan applies that kick to
 		 * any change from a duty below it, not only from standstill.
 		 */

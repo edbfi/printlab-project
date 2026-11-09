@@ -59,7 +59,7 @@ sudo q6a-fan-dtb "$(uname -r)" "/boot/armbian-dtb-$(uname -r)-fan"
 sudo grub-reboot q6a-fan-test && sudo reboot
 ```
 
-After the install commands above (skip their last line to do this before the fan test), try the fallback entry once with an HDMI screen and a USB keyboard attached: `sudo grub-reboot q6a-fan-fallback && sudo reboot`. The GRUB menu should show for 3 s, and `/proc/cmdline` afterwards should start with `BOOT_IMAGE=/boot/vmlinuz `. It boots the same kernel with the stock DTB.
+After the install commands above (skip their last line to do this before the fan test), prove the recovery path once. Attach an HDMI screen and a USB keyboard, run a plain `sudo reboot`, and in the 3 s GRUB menu select **Armbian, newest kernel, stock DTB (Q6A fan fallback)** with the arrow keys and Enter. Afterwards `/proc/cmdline` should start with `BOOT_IMAGE=/boot/vmlinuz `. This shows that the screen and keyboard reach GRUB in time; if the screen wakes too slowly to react, raise `GRUB_TIMEOUT` in `99-q6a-fan.cfg`. It boots the same kernel with the stock DTB.
 
 After the test boot, find the fan and its zones. `zones` is an array, so these commands work the same in bash and zsh:
 

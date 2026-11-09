@@ -27,7 +27,7 @@ Hold the board with the Ethernet and USB ports on the right, so the header runs 
 | 3 tach (green) | 18 GPIO27 | 9th |
 | 4 PWM (blue) | 16 GPIO26 | 8th |
 
-On the fan plug, the latch ridge covers pins 1-3; pin 4 (PWM) is the hole outside it. Why the PWM wire may go straight to the header is explained in `q6a-fan.dts`. On this gateway it was connected without measuring the fan's PWM voltage (no meter at hand), as an operator decision. The `gpioset` gate below is the remaining check.
+On the fan plug, the latch ridge covers pins 1-3; pin 4 (PWM) is the hole outside it. Why the PWM wire may go straight to the header is explained in `q6a-fan.dts`. On this gateway it was connected without measuring the fan's PWM voltage (no meter at hand), as an operator decision, accepting the risk described in `q6a-fan.dts`. The `gpioset` gate below only checks that the line can be pulled low; it can't show the idle voltage.
 
 ## Check the wiring with the stock DTB
 
@@ -59,26 +59,25 @@ sudo q6a-fan-dtb "$(uname -r)" "/boot/armbian-dtb-$(uname -r)-fan"
 sudo grub-reboot q6a-fan-test && sudo reboot
 ```
 
-Before or after the fan test, try the fallback entry once with an HDMI screen and a USB keyboard attached: `sudo grub-reboot q6a-fan-fallback && sudo reboot`. The GRUB menu should show for 3 s, and `/proc/cmdline` afterwards should start with `BOOT_IMAGE=/boot/vmlinuz `. It boots the same kernel with the stock DTB.
+After the install commands above (skip their last line to do this before the fan test), try the fallback entry once with an HDMI screen and a USB keyboard attached: `sudo grub-reboot q6a-fan-fallback && sudo reboot`. The GRUB menu should show for 3 s, and `/proc/cmdline` afterwards should start with `BOOT_IMAGE=/boot/vmlinuz `. It boots the same kernel with the stock DTB.
 
-After the test boot, start `bash`: the commands below rely on bash word splitting, and zsh doesn't split `$zones`. Find the fan and its zones:
+After the test boot, find the fan and its zones. `zones` is an array, so these commands work the same in bash and zsh:
 
 ```sh
-bash
 H=$(dirname "$(grep -l '^pwmfan$' /sys/class/hwmon/*/name)")
 cat "$H/fan1_input" "$H/pwm1"                     # rpm and duty (0-255)
 grep -l '^pwm-fan$' /sys/class/thermal/cooling_device*/type
-zones=$(grep -lE '^(cpuss[01]|nspss[01]|ddr)-thermal$' /sys/class/thermal/thermal_zone*/type | xargs -n1 dirname)
-grep . $(printf '%s/policy ' $zones)                # all step_wise
+zones=($(grep -lE '^(cpuss[01]|nspss[01]|ddr)-thermal$' /sys/class/thermal/thermal_zone*/type | xargs -n1 dirname))
+for z in "${zones[@]}"; do grep -H . "$z/policy"; done   # all step_wise
 ```
 
 1. **Speed sweep.** `step_wise` steps a manually set duty back down whenever a zone's temperature falls, so pause it first. `user_space` never touches the fan, and the zones' hot and critical trips still apply:
 
    ```sh
-   for z in $zones; do echo user_space | sudo tee "$z/policy" >/dev/null; done
+   for z in "${zones[@]}"; do echo user_space | sudo tee "$z/policy" >/dev/null; done
    for d in 0 51 64 102 153 204 255; do echo $d | sudo tee "$H/pwm1" >/dev/null; sleep 6; echo "$d $(cat "$H/fan1_input")"; done
    echo 0 | sudo tee "$H/pwm1" >/dev/null
-   for z in $zones; do echo step_wise | sudo tee "$z/policy" >/dev/null; done
+   for z in "${zones[@]}"; do echo step_wise | sudo tee "$z/policy" >/dev/null; done
    ```
 
    Expect 0 rpm at 0, about 400 rpm at 51 (20%), about 2200 rpm at 255, and a steady rise in between. Erratic or too-high readings at middle duties would point to PWM noise on the tach wire.
@@ -113,7 +112,7 @@ Rerun `sudo q6a-fan-dtb "$(uname -r)"` and reboot after you edit the overlay. Af
 ```sh
 sudo chmod -f -x /etc/kernel/postinst.d/armbian-grub-with-dtb-q6a-fan
 sudo install -m 0644 grub/custom-live.cfg /boot/grub/custom.cfg
-sudo rm -f /boot/armbian-dtb-*-fan
+sudo find /boot -maxdepth 1 -name 'armbian-dtb-*-fan' -delete   # no glob: zsh aborts on no matches
 for f in /boot/armbian-dtb-*; do
 	k=${f#/boot/armbian-dtb-}
 	[ -f "/usr/lib/linux-image-$k/qcom/qcs6490-radxa-dragon-q6a.dtb" ] &&

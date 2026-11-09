@@ -1,0 +1,4 @@
+# Q6A fan (/etc/q6a-fan/q6a-fan.dts): the default power_allocator governor
+# ignores cooling devices without a power model, such as pwm-fan, so the
+# zones the fan is bound to use step_wise. None of them has other cooling maps.
+ACTION=="add|change", SUBSYSTEM=="thermal", KERNEL=="thermal_zone*", ATTR{type}=="cpuss[01]-thermal|nspss[01]-thermal|ddr-thermal", ATTR{policy}!="step_wise", ATTR{policy}="step_wise"

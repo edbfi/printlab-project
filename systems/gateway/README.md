@@ -5,6 +5,7 @@ The gateway supplies the uplink, VPN, firewall, DHCP, and DNS for the printer ne
 ## Components
 
 - [VPN policy](vpn-policy/README.md): static-IP-first recovery with country fallback, scheduled maintenance, systemd templates, and deterministic tests.
+- [Fan](fan/README.md): Noctua 5V PWM fan on the 40-pin header, driven by the kernel's thermal framework through a device-tree overlay.
 
 Other gateway configuration is installed on the host and documented in [operations](../../documentation/operations/OPERATIONS.md). It is not yet provided here as deployable source. Add reviewed configuration components alongside `vpn-policy/` when brought into version control.
 

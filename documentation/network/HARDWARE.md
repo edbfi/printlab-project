@@ -13,6 +13,7 @@ Kernel/package and interface details were inspected on 2026-10-06. Hardware and 
 | Spare USB Ethernet | TP-Link UE300 reported by operator; Realtek RTL8153, USB ID `0bda:8153`, `r8152` driver. Attached through USB 2.0 with no Ethernet cable or active network role; reliability needs evaluation before future use |
 | Network software | systemd-networkd, wpa_supplicant, dnsmasq, nftables, systemd-resolved; Windscribe CLI `2.24.13` ARM64 |
 | VPN policy | Root-owned Python/systemd policy, executed as `<gateway-user>`; country priority and scheduling are documented in topology and operations |
+| Cooling | Noctua NF-A8 5V PWM on the 40-pin header: pin 4 (5V), pin 6 (GND), pin 16 (GPIO26, PWM), pin 18 (GPIO27, tach); kernel-controlled, see [gateway fan](../../systems/gateway/fan/README.md) |
 | Docker | Docker Engine `29.8.2`, active; preserve existing data/images and service integration |
 | Other resolver | Unbound `1.24.2-1ubuntu2.2` installed, disabled |
 | Administration / power | SSH TCP 22, key-only; sleep and hibernation targets masked |

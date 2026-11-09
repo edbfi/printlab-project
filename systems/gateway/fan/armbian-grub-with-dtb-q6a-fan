@@ -1,0 +1,6 @@
+#!/bin/sh
+# Runs after armbian-grub-with-dtb has copied the stock DTB into /boot, and
+# merges the Q6A fan overlay into it. If that fails the stock DTB stays,
+# and the fan simply runs at full speed.
+/usr/local/sbin/q6a-fan-dtb "$1" ||
+	echo "q6a-fan: overlay failed for $1, keeping the stock DTB" >&2

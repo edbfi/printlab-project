@@ -1,0 +1,39 @@
+#!/bin/sh
+# Build the Dragon Q6A fan DTB: the stock Armbian DTB with
+# /etc/q6a-fan/q6a-fan.dts merged in.
+#
+# Usage: q6a-fan-dtb <kernel-version> [output]
+#   output defaults to /boot/armbian-dtb-<kernel-version>, the file GRUB loads.
+set -eu
+
+kver=$1
+out=${2:-/boot/armbian-dtb-$kver}
+src=/etc/q6a-fan/q6a-fan.dts
+
+. /etc/armbian-grub-with-dtb
+base=/usr/lib/linux-image-$kver/$BOOT_FDT_FILE
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp" "$out.new"' EXIT
+
+# -undef: otherwise cpp predefines e.g. "linux" and rewrites it.
+cpp -nostdinc -undef -P -x assembler-with-cpp "$src" >"$tmp/fan.dts"
+dtc -q -@ -I dts -O dtb -o "$tmp/fan.dtbo" "$tmp/fan.dts"
+fdtoverlay -i "$base" -o "$tmp/fan.dtb" "$tmp/fan.dtbo"
+
+# The overlay creates zones it doesn't find, so a zone renamed in a newer
+# kernel would end up as a sensorless orphan. Refuse to install that.
+# (Assigned first so set -e catches an fdtget failure.)
+zones=$(fdtget -l "$tmp/fan.dtb" /thermal-zones)
+for zone in $zones; do
+	fdtget -l "$tmp/fan.dtb" "/thermal-zones/$zone/trips" 2>/dev/null |
+		grep -qx q6a-fan-trip1 || continue
+	fdtget "$tmp/fan.dtb" "/thermal-zones/$zone" thermal-sensors >/dev/null 2>&1 || {
+		echo "q6a-fan: $zone has no sensor in $base" >&2
+		exit 1
+	}
+done
+
+install -m 0644 "$tmp/fan.dtb" "$out.new"
+mv "$out.new" "$out"
+echo "q6a-fan: wrote $out" >&2

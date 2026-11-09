@@ -1,0 +1,143 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Radxa Dragon Q6A: Arctic P8 Max (4-pin PWM) on the 40-pin header.
+ *
+ * Wiring. The fan runs from 5V; PWM and tach go straight to the header,
+ * since GPIO24-27 pass through U48, a UM3204H open-drain-capable level
+ * shifter (1V8 SoC side, 3V3 header side, 10k pull-ups on both sides).
+ * The header-side pull-up also makes the fan run at full speed until this
+ * driver takes over:
+ *
+ *   fan pin 1  GND        -> header pin 6  (GND)
+ *   fan pin 2  +12V       -> header pin 4  (5V)
+ *   fan pin 3  tach       -> header pin 18 (GPIO27)
+ *   fan pin 4  PWM        -> header pin 16 (GPIO26)
+ *
+ * U48's header side is only rated to 3V3 + 0.5V while driving, and the
+ * fan's own PWM pull-up may go to its 5V supply. If fan pin 4 measures
+ * more than 3.6V against pin 1 with the fan powered and pin 4 unconnected,
+ * that is outside the datasheet: either leave pin 4 unconnected (the fan
+ * then runs at full 5V speed) or add an open-drain buffer.
+ *
+ * None of the header pins can mux to a hardware PWM, so pwm-gpio drives
+ * GPIO26 from an hrtimer: two timer interrupts per period whenever the fan
+ * spins. pwm-fan never requests exactly 100% (255 maps to period - 1), so
+ * only state 0 is free of timer interrupts.
+ *
+ * pwm-fan reads the tach and is bound as an active cooling device to the
+ * sensors listed at the bottom; those zones have no other cooling maps and
+ * are switched to step_wise by /etc/udev/rules.d/60-q6a-fan-thermal.rules.
+ * step_wise raises the fan as soon as a trip is crossed, and lowers it one
+ * state per falling reading once the temperature is back below a trip
+ * minus FAN_HYST.
+ *
+ * Preprocessed with cpp, then merged into /boot/armbian-dtb-<kver> by
+ * /usr/local/sbin/q6a-fan-dtb. Rerun that and reboot after editing.
+ */
+
+/* PWM period. 40000 ns = 25 kHz, the 4-pin fan spec. */
+#define FAN_PERIOD_NS	40000
+
+/* Trip temperatures (millicelsius) for fan states 1-5, see cooling-levels. */
+#define FAN_TRIP1	55000
+#define FAN_TRIP2	62000
+#define FAN_TRIP3	69000
+#define FAN_TRIP4	76000
+#define FAN_TRIP5	83000
+#define FAN_HYST	4000
+
+#define FAN_TRIP(n, lbl, temp)						\
+	lbl##_fan##n: q6a-fan-trip##n {					\
+		temperature = <temp>;					\
+		hysteresis = <FAN_HYST>;				\
+		type = "active";					\
+	};
+
+#define FAN_MAP(n, lbl)							\
+	q6a-fan-map##n {						\
+		trip = <&lbl##_fan##n>;					\
+		cooling-device = <&q6a_fan n n>;			\
+	};
+
+#define FAN_ZONE(lbl)							\
+	lbl-thermal {							\
+		polling-delay = <1000>;					\
+		trips {							\
+			FAN_TRIP(1, lbl, FAN_TRIP1)			\
+			FAN_TRIP(2, lbl, FAN_TRIP2)			\
+			FAN_TRIP(3, lbl, FAN_TRIP3)			\
+			FAN_TRIP(4, lbl, FAN_TRIP4)			\
+			FAN_TRIP(5, lbl, FAN_TRIP5)			\
+		};							\
+		cooling-maps {						\
+			FAN_MAP(1, lbl)					\
+			FAN_MAP(2, lbl)					\
+			FAN_MAP(3, lbl)					\
+			FAN_MAP(4, lbl)					\
+			FAN_MAP(5, lbl)					\
+		};							\
+	};
+
+/dts-v1/;
+/plugin/;
+
+&tlmm {
+	q6a_fan_pwm_pins: q6a-fan-pwm-state {
+		pins = "gpio26";
+		function = "gpio";
+		/* Sinks U48's pull-ups plus the fan's own PWM pull-up. */
+		drive-strength = <8>;
+		bias-disable;
+	};
+
+	q6a_fan_tach_pins: q6a-fan-tach-state {
+		pins = "gpio27";
+		function = "gpio";
+		bias-disable;
+	};
+};
+
+&{/} {
+	q6a_fan_pwm: q6a-fan-pwm {
+		compatible = "pwm-gpio";
+		#pwm-cells = <3>;
+		gpios = <&tlmm 26 0>;			/* GPIO_ACTIVE_HIGH */
+		pinctrl-names = "default";
+		pinctrl-0 = <&q6a_fan_pwm_pins>;
+	};
+
+	q6a_fan: q6a-fan {
+		compatible = "pwm-fan";
+		pwms = <&q6a_fan_pwm 0 FAN_PERIOD_NS 0>;
+		/*
+		 * Off, 25%, 40%, 60%, 80%, 100%. The P8 Max stops below 5%.
+		 * No fan-stop-to-start-*: in 6.18 pwm-fan applies that kick to
+		 * any change from a duty below it, not only from standstill.
+		 */
+		cooling-levels = <0 64 102 153 204 255>;
+		#cooling-cells = <2>;
+		interrupts-extended = <&tlmm 27 2>;	/* IRQ_TYPE_EDGE_FALLING */
+		pulses-per-revolution = <2>;
+		/*
+		 * Full speed on shutdown/unbind; otherwise pwm-fan disables the
+		 * PWM and pwm-gpio drives GPIO26 low, stopping the fan. A probe
+		 * failure before this is parsed (e.g. the tach IRQ) still stops
+		 * it; CPU passive throttling remains the backstop then. pwm-gpio
+		 * has no shutdown hook, so "100%" keeps toggling 39999/1 ns; the
+		 * 1 ns low is redone within the same timer IRQ, so a halted CPU
+		 * leaves the pin high in practice. Not guaranteed on a bare
+		 * halt; poweroff drops the 5V rail and reboot resets the pin.
+		 */
+		fan-shutdown-percent = <100>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&q6a_fan_tach_pins>;
+	};
+};
+
+&thermal_zones {
+	FAN_ZONE(cpuss0)
+	FAN_ZONE(cpuss1)
+	FAN_ZONE(nspss0)
+	FAN_ZONE(nspss1)
+	FAN_ZONE(ddr)
+};

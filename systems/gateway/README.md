@@ -7,6 +7,7 @@ The gateway supplies the uplink, VPN, firewall, DHCP, and DNS for the printer ne
 - [DNS](dns/README.md): unbound resolver for the printer LAN and Radxa, end-to-end DNS check, and tests.
 - [Firewall](firewall/README.md): the `inet printer_gateway` nftables table.
 - [VPN policy](vpn-policy/README.md): static-IP-first recovery with country fallback, scheduled maintenance, systemd templates, and deterministic tests.
+- [Host](host/README.md): restart hardening for the remote-access services, persistent journal, per-boot evidence and the fail2ban `sshd` jail.
 - [Fan](fan/README.md): Noctua 5V PWM fan on the 40-pin header, driven by the kernel's thermal framework through a device-tree overlay.
 
 Other gateway configuration is installed on the host and documented in [operations](../../documentation/operations/OPERATIONS.md). It is not yet provided here as deployable source. Add reviewed configuration components alongside these when brought into version control.

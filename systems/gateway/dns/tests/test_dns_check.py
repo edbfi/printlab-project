@@ -2,10 +2,11 @@
 import importlib.util
 from pathlib import Path
 import socket
+import ssl
 import struct
 import threading
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 spec = importlib.util.spec_from_file_location("dns_check", Path(__file__).parents[1] / "dns-check.py")
 check = importlib.util.module_from_spec(spec)
@@ -13,10 +14,14 @@ spec.loader.exec_module(check)
 NOW = 1_800_000_000
 
 
-def decide(lan, resolver="ok", tunnel=True, state=None, now=NOW):
+def unexpected_probe():
+    raise AssertionError("Control D probed when no unbound restart was due")
+
+
+def decide(lan, resolver="ok", tunnel=True, state=None, now=NOW, reachable=unexpected_probe):
     state = {} if state is None else state
     with patch.object(check, "log"):
-        return check.decide(lan, resolver, tunnel, state, now), state
+        return check.decide(lan, resolver, tunnel, state, now, reachable), state
 
 
 class DecideTests(unittest.TestCase):
@@ -46,7 +51,29 @@ class DecideTests(unittest.TestCase):
 
     def test_unflushable_upstream_escalates_to_restart(self):
         state = {"failures": 9, "last_repair": "flush-infra", "repair_after": NOW - 1}
-        self.assertEqual(decide("silent", "upstream-down", state=state)[0], "restart-unbound")
+        repair, state = decide("silent", "upstream-down", state=state, reachable=lambda: True)
+        self.assertEqual(repair, "restart-unbound")
+        self.assertEqual(state["repair_after"], NOW + check.COOLDOWN)
+
+    def test_unreachable_control_d_keeps_unbound_cache(self):
+        state = {"failures": 9, "last_repair": "flush-infra", "repair_after": NOW - 1}
+        repair, state = decide("silent", "upstream-down", state=state, reachable=lambda: False)
+        self.assertIsNone(repair)
+        self.assertEqual(state["failures"], 10)
+        # Cooldown unspent and escalation kept, so the restart follows once Control D answers.
+        self.assertEqual(state["repair_after"], NOW - 1)
+        self.assertEqual(state["last_repair"], "flush-infra")
+        repair, _ = decide("silent", "upstream-down", state=state, now=NOW + 60, reachable=lambda: True)
+        self.assertEqual(repair, "restart-unbound")
+
+    def test_stuck_unbound_restarts_without_probing(self):
+        # Its cache answers nothing, so there is nothing to keep.
+        state = {"failures": 9, "last_repair": "flush-infra", "repair_after": NOW - 1}
+        self.assertEqual(decide("silent", "silent", state=state)[0], "restart-unbound")
+
+    def test_cooldown_skips_probe(self):
+        state = {"failures": 9, "last_repair": "flush-infra", "repair_after": NOW + 1}
+        self.assertIsNone(decide("silent", "upstream-down", state=state)[0])
 
     def test_recovery_forgets_last_repair(self):
         _, state = decide("ok", state={"failures": 4, "last_repair": "flush-infra"})
@@ -77,7 +104,7 @@ class DecideTests(unittest.TestCase):
 
 
 class MainTests(unittest.TestCase):
-    def run_main(self, answers, state):
+    def run_main(self, answers, state, reachable=unexpected_probe):
         """answers maps (server, name) to a probe result; name is None for random names."""
         calls = []
 
@@ -88,7 +115,8 @@ class MainTests(unittest.TestCase):
         with patch.object(check, "query", fake_query), patch.object(check, "tunnel_up", return_value=True), \
                 patch.object(check, "load_state", return_value=state), patch.object(check, "save_state") as save, \
                 patch.object(check, "log"), patch.object(check.subprocess, "run") as run, \
-                patch.object(check.time, "time", return_value=NOW):
+                patch.object(check.time, "time", return_value=NOW), \
+                patch.object(check, "controld_reachable", reachable):
             check.main()
         return run, save, calls
 
@@ -109,10 +137,74 @@ class MainTests(unittest.TestCase):
                                   {"failures": 2})
         self.assertEqual(run.call_args.args[0], check.REPAIRS["restart-dnsmasq"])
 
+    def test_unreachable_control_d_runs_no_repair(self):
+        run, save, _ = self.run_main({(check.LAN_DNS, None): "silent", (check.RESOLVER, None): "silent",
+                                      (check.RESOLVER, "localhost"): "ok"},
+                                     {"failures": 5, "last_repair": "flush-infra"}, reachable=lambda: False)
+        run.assert_not_called()
+        self.assertEqual(save.call_args.args[0]["last_repair"], "flush-infra")
+
+    def test_reachable_control_d_restarts_unbound(self):
+        run, _, _ = self.run_main({(check.LAN_DNS, None): "silent", (check.RESOLVER, None): "silent",
+                                   (check.RESOLVER, "localhost"): "ok"},
+                                  {"failures": 5, "last_repair": "flush-infra"}, reachable=lambda: True)
+        self.assertEqual(run.call_args.args[0], check.REPAIRS["restart-unbound"])
+
     def test_healthy_check_does_not_rewrite_state(self):
         _, save, calls = self.run_main({(check.LAN_DNS, None): "ok"}, {"failures": 0})
         save.assert_not_called()
         self.assertEqual(calls, [(check.LAN_DNS, None)])
+
+
+class ControlDProbeTests(unittest.TestCase):
+    """No network: the TCP connection and TLS handshake are faked."""
+
+    def probe(self, connect_errors, handshake_errors=()):
+        attempts, handshakes, handshake_errors = [], [], list(handshake_errors)
+
+        def connect(address, timeout):
+            attempts.append(address)
+            error = connect_errors.get(address)
+            if error:
+                raise error
+            return MagicMock()
+
+        def wrap_socket(sock, server_hostname):
+            handshakes.append(server_hostname)
+            if handshake_errors:
+                raise handshake_errors.pop(0)
+            return MagicMock()
+        context = MagicMock()
+        context.wrap_socket.side_effect = wrap_socket
+        with patch.object(check.socket, "create_connection", connect), \
+                patch.object(check.ssl, "create_default_context", return_value=context):
+            return check.controld_reachable(), attempts, handshakes
+
+    def test_first_address_answering_is_enough(self):
+        reachable, attempts, handshakes = self.probe({})
+        self.assertTrue(reachable)
+        self.assertEqual(attempts, [check.CONTROLD[0]])
+        self.assertEqual(handshakes, [check.CONTROLD_NAME])
+
+    def test_second_address_is_tried(self):
+        reachable, attempts, _ = self.probe({check.CONTROLD[0]: TimeoutError()})
+        self.assertTrue(reachable)
+        self.assertEqual(attempts, list(check.CONTROLD))
+
+    def test_failed_tls_handshake_is_unreachable(self):
+        reachable, attempts, _ = self.probe({}, (ssl.SSLError(), ssl.SSLCertVerificationError()))
+        self.assertFalse(reachable)
+        self.assertEqual(attempts, list(check.CONTROLD))
+
+    def test_no_connection_is_unreachable(self):
+        reachable, _, handshakes = self.probe({address: OSError() for address in check.CONTROLD})
+        self.assertFalse(reachable)
+        self.assertEqual(handshakes, [])
+
+    def test_probes_unbound_upstreams(self):
+        conf = (Path(__file__).parents[1] / "unbound-printing-station.conf").read_text()
+        for host, port in check.CONTROLD:
+            self.assertIn(f"forward-addr: {host}@{port}#{check.CONTROLD_NAME}", conf)
 
 
 class QueryTests(unittest.TestCase):

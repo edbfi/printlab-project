@@ -39,10 +39,13 @@ Until 2026-10-29, dnsmasq forwarded to Windscribe's bundled `ctrld` proxy on `12
 |---|---|---|---|
 | fails twice | answers | any | Restart `printing-dhcp` |
 | fails | fails, `localhost.` too | any | Restart `unbound` (it is stuck) |
-| fails | fails, but answers its built-in `localhost.` | up | `unbound-control flush_infra all` (keeps the cache); restart `unbound` if the next repair is still needed. A restart empties unbound's cache, so in a Control D outage longer than about 18 minutes cached names fail too |
+| fails | fails, but answers its built-in `localhost.` | up | `unbound-control flush_infra all` (keeps the cache); restart `unbound` if the next repair is still needed and Control D answers a DoT handshake |
+| fails | fails, but answers `localhost.` after a flush | up, but Control D does not answer | None. A restart would empty the cache that still answers known names and cannot bring Control D back. Failures keep counting and the cooldown stays unspent, so the restart follows at the first check that reaches Control D |
 | fails | fails, but answers `localhost.` | down | None, and failures are not counted; VPN recovery belongs to Windscribe and the VPN policy |
 
-Failures and repairs are logged at priority `err` in the `printing-dns-check` journal. It never touches Windscribe or the VPN.
+The Control D probe is a TLS handshake with `76.76.2.11` and then `76.76.10.11` on port 853, verified for `p2.freedns.controld.com`, with a 5-second timeout on each socket operation, so a fully silent Control D costs about 10 seconds and a stalling handshake longer, still well within the check's 2-minute limit. It runs only before restarting an unbound that still answers `localhost.`, and takes the same route as unbound's queries, so `dns_guard` lets it out only through `tun0`. An unbound that does not even answer `localhost.` is restarted without the probe: its cache answers nothing.
+
+Failures, repairs and skipped restarts are logged at priority `err` in the `printing-dns-check` journal. It never touches Windscribe or the VPN.
 
 ## Deployment
 

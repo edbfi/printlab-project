@@ -6,12 +6,16 @@ import os
 from pathlib import Path
 import secrets
 import socket
+import ssl
 import struct
 import subprocess
 import time
 
 LAN_DNS = ("192.168.77.1", 53)
 RESOLVER = ("127.0.0.1", 5335)
+# Unbound's forward-addr entries; the firewall lets them out only through tun0.
+CONTROLD = (("76.76.2.11", 853), ("76.76.10.11", 853))
+CONTROLD_NAME = "p2.freedns.controld.com"
 STATE = Path("/var/lib/printing-station/dns-check/state.json")
 FAILURES_REQUIRED = 3
 COOLDOWN = 900
@@ -59,8 +63,28 @@ def tunnel_up():
         return False
 
 
-def decide(lan, resolver, tunnel, state, now):
-    """Return the repair to run, or None. Mutates state."""
+def controld_reachable(timeout=5):
+    """True if a DoT handshake with either Control D address succeeds.
+
+    The probe takes the same route as unbound's queries, so dns_guard lets it
+    out only through tun0.
+    """
+    context = ssl.create_default_context()
+    for address in CONTROLD:
+        try:
+            with socket.create_connection(address, timeout=timeout) as sock, \
+                    context.wrap_socket(sock, server_hostname=CONTROLD_NAME):
+                return True
+        except OSError:  # Includes timeouts and TLS failures.
+            continue
+    return False
+
+
+def decide(lan, resolver, tunnel, state, now, upstream_reachable):
+    """Return the repair to run, or None. Mutates state.
+
+    upstream_reachable is called only before restarting a responsive unbound.
+    """
     if lan == "ok":
         if state.get("failures"):
             log(f"Printer DNS recovered after {state['failures']} failed checks")
@@ -93,6 +117,12 @@ def decide(lan, resolver, tunnel, state, now):
     state["repair_after"] = min(state.get("repair_after", 0), now + COOLDOWN)
     if now < state["repair_after"]:
         log("Repair cooldown active; not repairing")
+        return None
+    if repair == "restart-unbound" and resolver == "upstream-down" and not upstream_reachable():
+        # A restart empties the cache that still answers known names, and cannot
+        # bring Control D back. Leave the cooldown unspent so a restart follows
+        # as soon as Control D answers and unbound still has not recovered.
+        log("Control D unreachable through tun0; keeping unbound's cache, not restarting", 3)
         return None
     state["repair_after"] = now + COOLDOWN
     state["last_repair"] = repair
@@ -134,7 +164,7 @@ def main():
         # silence alone does not mean it hung. Its built-in localhost needs no upstream.
         elif query(RESOLVER, "localhost") == "ok":
             resolver = "upstream-down"
-    repair = decide(lan, resolver, tunnel_up(), state, time.time())
+    repair = decide(lan, resolver, tunnel_up(), state, time.time(), controld_reachable)
     if state != saved:
         save_state(state)
     if repair:

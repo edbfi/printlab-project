@@ -91,13 +91,15 @@ Radxa's firewall restricts unbound to loopback and DoT to the two Control D addr
 
 The Radxa table `inet printer_gateway` handles traffic entering or leaving the built-in printer interface. It rejects invalid packets, sources outside the printer subnet, the configured nonpublic IPv4 destinations and IPv6 forwarding; permits public IPv4 forwarding only through `tun0`; and permits established/related tunnel replies. Tunnel-only NAT supplies internet access. Losing the VPN blocks downstream internet while local gateway/AP/printer reachability remains available. Cloud-dependent printing features still need internet.
 
-The printer interface retains IPv6 link-local addressing, advertises no IPv6 router and accepts no router advertisements; Radxa IPv6 forwarding is disabled. Firewall input rules restrict DNS to loopback/printer LAN, DHCP to the printer interface, and SSH to loopback/printer LAN/school Wi-Fi. School clients cannot initiate forwarded connections into the printer LAN through this gateway.
+The printer interface retains IPv6 link-local addressing, advertises no IPv6 router and accepts no router advertisements; Radxa IPv6 forwarding is disabled. Firewall input rules restrict DNS to loopback/printer LAN, DHCP to the printer interface, and SSH to loopback, the printer LAN, school Wi-Fi and `tun0`. fail2ban's `sshd` jail bans repeated failed logins on every interface. School clients cannot initiate forwarded connections into the printer LAN through this gateway.
 
 Docker remains active. The `PRINTING-VPN` chain, reached from `DOCKER-USER`, adds only printer↔tunnel allowances and returns other traffic to Docker's rules. A Docker service drop-in reapplies those allowances after startup. The independent printer firewall enforces restrictions before those allowances. Stopping `printing-gateway` flushes only its forwarding allowance chains, preserving local services and Docker's unrelated forwarding.
 
 Current client checks cover built-in Ethernet, DHCP/DNS, local devices and VPN egress. Existing policy/recovery evidence has its original test scope; a reboot or VPN-loss test has not been repeated for this interface assignment. See [validation and limits](../worklog/TESTS.md).
 
 ## Management paths
+
+The operator administers Radxa remotely over SSH to the Windscribe static IP: Windscribe forwards it through the tunnel, so it arrives on `tun0` port 22 and passes both Windscribe's `tun0` input accept and the `printer_gateway` management rule. That path exists only while the static-IP tunnel is up; a reconnect to a fallback country, a Windscribe restart or a firewall reload that loses the `tun0` accept cuts it, and the printer LAN or school Wi-Fi is then the only way in. Treat changes to Windscribe, networkd, wpa_supplicant, sshd, fail2ban or the firewall as able to lock the operator out, and plan a timed automatic rollback for them.
 
 From the Chromebook, `ssh radxa` uses `<gateway-user>`, TCP 22 and the existing pinned host key at the printer gateway. `ssh radxa-school` uses the observed school DHCP address above; update that alias only after establishing the host's current address and preserving key verification. Reaching Radxa's school address from the printer LAN is host-local delivery, not permission to route to other school hosts or proof of access from an independent school client.
 

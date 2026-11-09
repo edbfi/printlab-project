@@ -30,6 +30,8 @@ Until 2026-10-29, dnsmasq forwarded to Windscribe's bundled `ctrld` proxy on `12
 - **Tunnel down or reconnecting:** unbound's packets are dropped outside `tun0`, so no query leaks. `serve-expired` answers cached names within 1.8 seconds, and `infra-keep-probing` with a 60-second `infra-host-ttl` lets it retry Control D as soon as the tunnel returns, instead of after 15 minutes.
 - **Control D unreachable through a working tunnel:** uncached names fail (fail closed). There is no automatic fallback to an unfiltered resolver.
 - **Boot:** unbound starts after `printing-gateway` has loaded the firewall and needs no `tun0`; dnsmasq starts after unbound. Neither requires the other, so DHCP keeps working if the resolver fails. If `gateway.nft` fails to load, unbound still starts without its `dns_guard` allowlist; Windscribe's Always On firewall then remains the only block on non-`tun0` egress.
+- **Reboots:** unattended upgrades may reboot Radxa at 02:00, and since 2026-11-09 a boot can reset by itself 40-90 seconds in ([issues](../../../documentation/worklog/ISSUES.md)). The first check runs 3 minutes after boot, so a boot that resets runs none. The failure count and cooldown are kept in `/var/lib/printing-station/dns-check/` across reboots; at worst a failure from before the reboot brings a harmless repair one check forward. A package upgrade that restarts unbound or dnsmasq is shorter than the three checks a repair needs.
+- **Containers:** the `dns_guard` rules match only traffic Radxa sends itself. Docker forwards container traffic from `docker0` through `tun0`, so containers bypass unbound. The Redroid test device `revanced-device` uses `1.1.1.1` on purpose, so p2 does not hide an app's ad requests. Other containers on Docker's default bridge get Windscribe's tunnel DNS `10.255.255.1`, because Docker drops resolved's loopback server. Do not add rules that steer `docker0` DNS into unbound.
 
 `printing-dns-check.timer` queries `192.168.77.1` for a random name under `example.com` once a minute, so no cache can hide a dead upstream. After three consecutive failures it repairs at most once per 15 minutes:
 
@@ -44,7 +46,9 @@ Failures and repairs are logged at priority `err` in the `printing-dns-check` jo
 
 ## Deployment
 
-On Radxa with administrative privileges, from this directory:
+Installed on 2026-10-29; the installed files match this directory and `../firewall/gateway.nft`. `/var/lib/printing-station/rollback/20261029/dns/` holds `before.tar` with the four files the rollout replaced, and `windscribe_cli.conf.before`, Windscribe's settings from that morning, after it had reset Connected DNS to Auto.
+
+To install again, on Radxa with administrative privileges, from this directory, outside the 02:00 reboot window:
 
 1. Save the current files: `/etc/unbound/unbound.conf.d/controld-dot.conf`, `/etc/printing-station/dnsmasq.conf`, `/etc/printing-station/gateway.nft` and `/etc/systemd/resolved.conf.d/printing-station.conf`, into a dated directory under `/var/lib/printing-station/rollback/`.
 2. Firewall first: install `../firewall/gateway.nft`, then `systemctl reload printing-gateway`. The reload validates the file with `nft -c` before loading it.
@@ -52,11 +56,11 @@ On Radxa with administrative privileges, from this directory:
 4. Printer DNS: install `dnsmasq.conf` and the `printing-dhcp` drop-in, `systemctl daemon-reload`, `systemctl restart printing-dhcp`. Check `dig @192.168.77.1 example.com`.
 5. Radxa's resolver: install the resolved file, `systemctl restart systemd-resolved`, and check `resolvectl query example.com`.
 6. Check: install `dns-check.py` (mode 0755) and both units (0644), `systemctl daemon-reload`, `systemctl enable --now printing-dns-check.timer`.
-7. Accept only after a printer-LAN client loads web pages, a VPN reconnect and a reboot each recover without intervention, and `journalctl -u printing-dns-check` shows no failures afterwards.
+7. Accept only after a printer-LAN client loads web pages, a VPN reconnect and a reboot each recover without intervention, and `journalctl -u printing-dns-check` shows no failures afterwards. A reboot may reset once by itself before it settles; `journalctl --list-boots` shows each boot, and the boot that stays up must pass.
 
 Rollback, in order:
 
 1. `systemctl disable --now printing-dns-check.timer printing-dns-check.service unbound`, so no repair runs during the rollback.
 2. Remove `/etc/unbound/unbound.conf.d/printing-station.conf`, both drop-ins, `dns-check.py` and the two check units, then `systemctl daemon-reload`.
-3. Restore the saved files, including `controld-dot.conf`, then `systemctl reload printing-gateway` and `systemctl restart printing-dhcp systemd-resolved`.
+3. Restore the saved files from `before.tar`, including `controld-dot.conf`, then `systemctl reload printing-gateway` and `systemctl restart printing-dhcp systemd-resolved`.
 4. Set Windscribe's Connected DNS back to Custom with upstream `https://freedns.controld.com/p2`, which the old path needs.

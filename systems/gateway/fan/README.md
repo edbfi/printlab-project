@@ -11,6 +11,8 @@ A Noctua NF-A8 5V PWM on the Radxa Dragon Q6A's 40-pin header, sped up and slowe
 | `grub/custom.cfg` | `/boot/grub/custom.cfg` while testing | The fallback entry plus a one-shot entry that boots the fan DTB once. |
 | `grub/custom-live.cfg` | `/boot/grub/custom.cfg` once live | Only the fallback entry: the newest kernel with the stock DTB. |
 
+The build needs `cpp` and `device-tree-compiler` (`dtc`, `fdtoverlay`, `fdtget`); the wiring checks use libgpiod v2 (`gpiomon`, `gpioset`, `gpioget` with `-c`). If a build tool is missing, the kernel hook prints one line and keeps the stock DTB, so the fan just runs at full speed.
+
 GRUB boots `/boot/armbian-dtb-<kernel>` (see `/etc/grub.d/09_linux_with_dtb.sh`), so the fan is live once that file contains the overlay. If the overlay fails to build, the stock DTB stays. The fan then runs at full speed, because U48's pull-up holds its PWM input high. The one exception is a failed tach IRQ request at probe: the fan then stops, and only CPU throttling is left. After every kernel upgrade, check that a `pwm-fan` cooling device exists (the `grep` checks after the test boot below).
 
 ## Wiring
@@ -59,7 +61,7 @@ sudo grub-reboot q6a-fan-test && sudo reboot
 
 After the install commands above (skip their last line to do this before the fan test), check that the fallback entry boots: `sudo grub-reboot q6a-fan-fallback && sudo reboot`. Afterwards `/proc/cmdline` should start with `BOOT_IMAGE=/boot/vmlinuz `. It boots the same kernel with the stock DTB.
 
-GRUB keeps Armbian's 0 s menu timeout. On 2026-11-09 a 3 s timeout was tried, and both clean reboots made with it reset on their own about 50 s later; with 0 s the same test boot came up normally. The cause wasn't found, so the menu stays off. With a screen and keyboard attached, the menu may still be reachable by holding Esc during power-on (untested).
+GRUB keeps Armbian's 0 s menu timeout. A 3 s timeout was tried on 2026-11-09, but boots reset with both 3 s and 0 s (see [the open issue](../../../documentation/worklog/ISSUES.md)), so the timeout isn't the cause. The menu stays off because the board runs headless. The cost: on a boot that fails, the fallback entry can't be picked.
 
 After the test boot, find the fan and its zones. `zones` is an array, so these commands work the same in bash and zsh:
 
@@ -93,9 +95,11 @@ for z in "${zones[@]}"; do grep -H . "$z/policy"; done   # all step_wise
    ```
 
    The fan should go to state 1 within a few seconds of the load starting. After the trip is restored, it stops on a later falling reading. On kernel 6.18.2 this can take a while (see `q6a-fan.dts`). Trip changes made through sysfs last only until reboot.
-3. **Timer load.** At any running fan level, `pwm-gpio` takes 50,000 timer interrupts a second on one CPU. That time counts as `hi` in `top` (press `1` for each CPU), not as a process. On 2026-11-09 this measured about 50,000 interrupts a second and 23% `hi` on one of the 8 CPUs at any running level, and nothing with the fan off. That cost was accepted because the fan only runs above 55 °C (the board idles at 28-33 °C). One `hrtimer: interrupt took` warning (89 µs) appeared; it only delays one PWM edge. Check that the gateway still serves the printers while the fan runs.
+3. **Timer load.** At any running fan level, `pwm-gpio` takes 50,000 timer interrupts a second on one CPU. That time counts as `hi` in `top` (press `1` for each CPU), not as a process. On 2026-11-09 this measured about 50,000 interrupts a second and 23% `hi` on one of the 8 CPUs at any running level, and nothing with the fan off. That cost was accepted because the fan only runs above 55 °C (28-43 °C observed with the fan off). The kernel reports only the first slow hrtimer interrupt of each boot: 89 µs in the test boot and 50 µs in the live boot; such a delay only stretches one PWM edge. Check that the gateway still serves the printers while the fan runs.
 
 ## Go live
+
+The gateway has reset early in boot several times since the fan was wired; see [the open issue](../../../documentation/worklog/ISSUES.md) before going live elsewhere.
 
 ```sh
 sudo install -m 0755 armbian-grub-with-dtb-q6a-fan /etc/kernel/postinst.d/
@@ -105,7 +109,7 @@ sudo rm "/boot/armbian-dtb-$(uname -r)-fan"
 sudo reboot
 ```
 
-Rerun `sudo q6a-fan-dtb "$(uname -r)"` and reboot after you edit the overlay. After a kernel upgrade, run the `grep` checks above and confirm `fan1_input` reads a speed whenever `pwm1` is above 0.
+Rerun `sudo q6a-fan-dtb "$(uname -r)"` and reboot after you edit the overlay. After a kernel upgrade, run the `grep` checks above and confirm `fan1_input` reads a speed whenever `pwm1` is above 0. The hook builds a fan DTB for each new kernel, and unattended upgrades may reboot into it at 02:00 without anyone checking it first (see operations).
 
 ## Rollback
 
@@ -121,4 +125,4 @@ done
 sudo reboot
 ```
 
-If the board no longer boots, there is no menu to pick the fallback from (see the timeout note above). Try holding Esc at power-on with a screen and keyboard attached; otherwise restore `/boot/armbian-dtb-<kernel>` from another machine with the boot drive attached. While the system still runs, `sudo grub-reboot q6a-fan-fallback` boots the fallback entry once.
+If the board no longer boots, there is no menu to pick the fallback from (see the timeout note above). Put the NVMe drive in a USB enclosure on another Linux machine, mount its root partition (`nvme0n1p2` on the gateway), and copy `usr/lib/linux-image-<kernel>/qcom/qcs6490-radxa-dragon-q6a.dtb` over `boot/armbian-dtb-<kernel>`. While the system still runs, `sudo grub-reboot q6a-fan-fallback` boots the fallback entry once.

@@ -50,11 +50,22 @@ fail2ban 1.1 reads the `sshd` journal through the systemd backend and bans with 
 - 5 failures within 10 minutes ban the address for 1 hour; each repeat ban for the same address multiplies that, up to 7 days.
 - `publickey=nofail`: a rejected key offer is not a failure, so a client that tries several keys before the right one is not banned.
 - `ignoreip` is loopback only. Connections through the static IP keep the client's own address (the `ssh` journal shows many distinct scanner addresses), so scanners that get banned do not take the operator's address with them. The operator's own address is not exempt: it is private and changes, so a client that keeps failing to log in gets banned like any other.
-- The other `sshd` jails and `recidive` stay disabled. `fail2ban.local` keeps ban history for 30 days, so increasing bans survive restarts.
+- `recidive` stays disabled. The `[sshd-aggressive]`, `[sshd-badprotocol]` and `[sshd-ddos]` sections name jails that fail2ban 1.1's `jail.conf` no longer defines, so they do nothing; drop them the next time `jail.local` is deployed. `fail2ban.local` keeps ban history for 30 days, so increasing bans survive restarts.
 
-A banned operator gets in again through the printer LAN or school Wi-Fi and runs `sudo fail2ban-client set sshd unbanip <address>`; `sudo fail2ban-client status sshd` lists current bans.
+A ban applies to the address on every interface, so a banned client stays out over the printer LAN and school Wi-Fi too. Unban from a client with a different address, or at a local console, with `sudo fail2ban-client set sshd unbanip <address>`; otherwise the ban expires after an hour, or longer for repeat bans. `sudo fail2ban-client status sshd` lists current bans.
 
 ## Deployment
+
+### First install
+
+On a fresh gateway with administrative privileges, with the `fail2ban` package installed (its packaged `jail.conf` and `jail.d/defaults-debian.conf` stay in place):
+
+1. Hardening: for each of the five units, `install -D -m0644 systemd/10-hardening.conf /etc/systemd/system/<unit>.service.d/10-hardening.conf`, then `systemctl daemon-reload`.
+2. Journal: `install -D -m0644 journald/10-persistent.conf /etc/systemd/journald.conf.d/10-persistent.conf`, then `systemctl restart systemd-journald`.
+3. Boot evidence: `install -D -m0755 boot-evidence/boot-evidence /usr/local/libexec/printing-station/boot-evidence`, `install -m0644 boot-evidence/printing-boot-evidence.service /etc/systemd/system/`, `systemctl daemon-reload` and `systemctl enable printing-boot-evidence.service`. It first runs at the next boot.
+4. fail2ban: `install -m0644 fail2ban/jail.local fail2ban/fail2ban.local /etc/fail2ban/`, `fail2ban-client -t`, then `systemctl restart fail2ban`. Check `fail2ban-client status sshd`.
+
+### Updates
 
 Repository changes do not alter Radxa. Every file here sits on the operator's SSH path through the static-IP tunnel ([topology](../../../documentation/network/TOPOLOGY.md#management-paths)). Deploy a change only with the operator's approval, from the printer LAN or with a second session open, and with a timed automatic revert.
 

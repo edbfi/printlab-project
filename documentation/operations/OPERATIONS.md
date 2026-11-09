@@ -97,7 +97,7 @@ The unused USB adapter has no IPv4/DHCP role and is not a fallback gateway. Its 
 
 ### Remote-access hardening
 
-The services between the operator and Radxa (`wpa_supplicant@wlan0`, `systemd-networkd`, `windscribe-helper`, `systemd-resolved`, `printing-dhcp`) have a `10-hardening.conf` drop-in: systemd never gives up restarting them, backs off up to a minute, and the OOM killer spares them. The journal is persistent, and each boot writes one line recording how the previous boot ended and how long Wi-Fi and the VPN took to come up. fail2ban bans addresses with repeated failed SSH logins on every interface, including the static-IP tunnel. The [host component](../../systems/gateway/host/README.md) explains each setting. Read-only checks on **Radxa**:
+The services between the operator and Radxa (`wpa_supplicant@wlan0`, `systemd-networkd`, `windscribe-helper`, `systemd-resolved`, `printing-dhcp`) have a `10-hardening.conf` drop-in: systemd's start-rate limit never leaves them stopped, restarts back off up to a minute, and the OOM killer picks almost anything else first. Each unit keeps its own `Restart=` policy. The journal is persistent, and each boot writes one line recording how the previous boot ended and how long Wi-Fi and the VPN took to come up. fail2ban bans addresses with repeated failed SSH logins on every interface, including the static-IP tunnel. The [host component](../../systems/gateway/host/README.md) explains each setting. Read-only checks on **Radxa**:
 
 ```sh
 journalctl --list-boots | tail -5
@@ -105,7 +105,7 @@ sudo -n journalctl -t boot-evidence -p warning
 sudo -n fail2ban-client status sshd
 ```
 
-If fail2ban has banned the operator's address, connect over the printer LAN or school Wi-Fi and run `sudo fail2ban-client set sshd unbanip <address>`.
+A ban covers the address on every interface. If fail2ban has banned the operator's address, connect from a client with a different address, or use a local console, and run `sudo fail2ban-client set sshd unbanip <address>`; otherwise the ban expires after an hour, or longer for repeat bans.
 
 ## VPN policy administration
 

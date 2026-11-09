@@ -11,7 +11,7 @@ Kernel/package and interface details were inspected on 2026-10-06. Hardware and 
 | Resources | Approximately 11 GiB RAM, 5.7 GiB swap and 457 GiB root filesystem in recorded inventory; not a workload benchmark |
 | Printer Ethernet | Built-in Realtek RTL8111/8168/8211/8411 PCIe interface, driver `r8169`, serving the AP; interface and link details are in topology |
 | Spare USB Ethernet | TP-Link UE300 reported by operator; Realtek RTL8153, USB ID `0bda:8153`, `r8152` driver. Attached through USB 2.0 with no Ethernet cable or active network role; reliability needs evaluation before future use |
-| Network software | systemd-networkd, wpa_supplicant, dnsmasq, nftables, systemd-resolved; Windscribe CLI `2.24.13` ARM64 |
+| Network software | systemd-networkd, wpa_supplicant, dnsmasq, nftables, systemd-resolved, fail2ban; Windscribe CLI `2.24.13` ARM64 |
 | VPN policy | Root-owned Python/systemd policy, executed as `<gateway-user>`; country priority and scheduling are documented in topology and operations |
 | Cooling | Noctua NF-A8 5V PWM on the 40-pin header: pin 4 (5V), pin 6 (GND), pin 16 (GPIO26, PWM), pin 18 (GPIO27, tach); kernel-controlled, see [gateway fan](../../systems/gateway/fan/README.md) |
 | Docker | Docker Engine `29.8.2`, active; preserve existing data/images and service integration |

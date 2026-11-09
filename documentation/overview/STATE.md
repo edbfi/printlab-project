@@ -18,7 +18,7 @@ Since 2026-10-29, printer-LAN and Radxa DNS use a local unbound that sends DNS-o
 - Touch/scaling, physical power behavior, and audio audibility need evaluation for kiosk use. They are not blockers to the confirmed printing workflow.
 - School Ethernet is deferred. The unused USB Ethernet adapter has no active role and needs reliability evaluation before reuse.
 - The gateway has reset early in boot on several reboots since the fan was wired on 2026-11-09; the cause is open ([issues](../worklog/ISSUES.md)).
-- The repository packages the VPN policy, fan, DNS and firewall components; other installed configuration is documented, not available as a complete provisioning system.
+- The repository packages the VPN policy, fan, DNS, firewall and [host](../../systems/gateway/host/README.md) (restart hardening, persistent journal, boot evidence, fail2ban) components; other installed configuration is documented, not available as a complete provisioning system.
 
 ## References and recovery
 

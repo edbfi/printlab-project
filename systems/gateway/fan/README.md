@@ -27,7 +27,7 @@ Hold the board with the Ethernet and USB ports on the right, so the header runs 
 | 3 tach (green) | 18 GPIO27 | 9th |
 | 4 PWM (blue) | 16 GPIO26 | 8th |
 
-On the fan plug, the latch ridge covers pins 1-3; pin 4 (PWM) is the hole outside it. Why the PWM wire may go straight to the header is explained in `q6a-fan.dts`.
+On the fan plug, the latch ridge covers pins 1-3; pin 4 (PWM) is the hole outside it. Why the PWM wire may go straight to the header is explained in `q6a-fan.dts`. On this gateway it was connected without measuring the fan's PWM voltage (no meter at hand), as an operator decision. The `gpioset` gate below is the remaining check.
 
 ## Check the wiring with the stock DTB
 

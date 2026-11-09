@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0
+// SPDX-License-Identifier: AGPL-3.0-only
 /*
  * Radxa Dragon Q6A: Noctua NF-A8 5V PWM (4-pin) on the 40-pin header.
  *

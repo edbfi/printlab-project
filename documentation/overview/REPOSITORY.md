@@ -6,7 +6,7 @@
 
 | Location | Purpose |
 |---|---|
-| [systems/gateway](../../systems/gateway/README.md) | Gateway components; currently the VPN policy with its tests, and the fan |
+| [systems/gateway](../../systems/gateway/README.md) | Gateway components; DNS, firewall, VPN policy with its tests, and the fan |
 | [systems/printing-station](../../systems/printing-station/README.md) | Workstation components; currently a documented role and kiosk placeholder |
 | [systems/printing-station/kiosk](../../systems/printing-station/kiosk/README.md) | Future kiosk source/configuration after interface and account decisions |
 

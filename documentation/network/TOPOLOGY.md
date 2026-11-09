@@ -78,7 +78,7 @@ Radxa applications
 Docker containers on docker0
   → forwarded through tun0 to their own DNS servers; never unbound
   → Redroid test device: 1.1.1.1 (deliberately unfiltered)
-  → other default-bridge containers: 10.255.255.1 (Docker's fallback if started without tun0)
+  → other default-bridge containers: 10.255.255.1 while tun0 is up; Docker's public fallback servers if started without it
 ```
 
 The Chromebook's own systemd-resolved stub uses DHCP DNS `192.168.77.1`. dnsmasq uses `no-resolv` and only `server=127.0.0.1#5335@lo`. Radxa's resolved configuration uses `127.0.0.1:5335` with an empty fallback list; Windscribe also sets `10.255.255.1` as `tun0`'s link DNS, which resolved queries alongside it, so Radxa's own lookups are not guaranteed to be p2-filtered.

@@ -10,7 +10,6 @@ A Noctua NF-A8 5V PWM on the Radxa Dragon Q6A's 40-pin header, sped up and slowe
 | `60-q6a-fan-thermal.rules` | `/etc/udev/rules.d/` | Switches the fan's zones to `step_wise`. The default `power_allocator` ignores `pwm-fan`. |
 | `grub/custom.cfg` | `/boot/grub/custom.cfg` while testing | The fallback entry plus a one-shot entry that boots the fan DTB once. |
 | `grub/custom-live.cfg` | `/boot/grub/custom.cfg` once live | Only the fallback entry: the newest kernel with the stock DTB. |
-| `grub/99-q6a-fan.cfg` | `/etc/default/grub.d/` | Shows the GRUB menu for 3 s (Armbian sets 0), so the fallback can be picked with an HDMI screen and a USB keyboard. |
 
 GRUB boots `/boot/armbian-dtb-<kernel>` (see `/etc/grub.d/09_linux_with_dtb.sh`), so the fan is live once that file contains the overlay. If the overlay fails to build, the stock DTB stays. The fan then runs at full speed, because U48's pull-up holds its PWM input high. The one exception is a failed tach IRQ request at probe: the fan then stops, and only CPU throttling is left. After every kernel upgrade, check that a `pwm-fan` cooling device exists (the `grep` checks after the test boot below).
 
@@ -52,14 +51,15 @@ The test boot uses a separate DTB, so a hang or bad behaviour goes away after a 
 sudo install -D -m 0644 q6a-fan.dts /etc/q6a-fan/q6a-fan.dts
 sudo install -m 0755 q6a-fan-dtb /usr/local/sbin/q6a-fan-dtb
 sudo install -m 0644 60-q6a-fan-thermal.rules /etc/udev/rules.d/
-sudo install -m 0644 grub/99-q6a-fan.cfg /etc/default/grub.d/
 sudo install -m 0644 grub/custom.cfg /boot/grub/custom.cfg  # kernel version and args must match /proc/cmdline
 sudo update-grub
 sudo q6a-fan-dtb "$(uname -r)" "/boot/armbian-dtb-$(uname -r)-fan"
 sudo grub-reboot q6a-fan-test && sudo reboot
 ```
 
-After the install commands above (skip their last line to do this before the fan test), prove the recovery path once. Attach an HDMI screen and a USB keyboard, run a plain `sudo reboot`, and in the 3 s GRUB menu select **Armbian, newest kernel, stock DTB (Q6A fan fallback)** with the arrow keys and Enter. Afterwards `/proc/cmdline` should start with `BOOT_IMAGE=/boot/vmlinuz `. This shows that the screen and keyboard reach GRUB in time; if the screen wakes too slowly to react, raise `GRUB_TIMEOUT` in `99-q6a-fan.cfg`. It boots the same kernel with the stock DTB.
+After the install commands above (skip their last line to do this before the fan test), check that the fallback entry boots: `sudo grub-reboot q6a-fan-fallback && sudo reboot`. Afterwards `/proc/cmdline` should start with `BOOT_IMAGE=/boot/vmlinuz `. It boots the same kernel with the stock DTB.
+
+GRUB keeps Armbian's 0 s menu timeout. On 2026-11-09 a 3 s timeout was tried, and both clean reboots made with it reset on their own about 50 s later; with 0 s the same test boot came up normally. The cause wasn't found, so the menu stays off. With a screen and keyboard attached, the menu may still be reachable by holding Esc during power-on (untested).
 
 After the test boot, find the fan and its zones. `zones` is an array, so these commands work the same in bash and zsh:
 
@@ -93,7 +93,7 @@ for z in "${zones[@]}"; do grep -H . "$z/policy"; done   # all step_wise
    ```
 
    The fan should go to state 1 within a few seconds of the load starting. After the trip is restored, it stops on a later falling reading. On kernel 6.18.2 this can take a while (see `q6a-fan.dts`). Trip changes made through sysfs last only until reboot.
-3. **Timer load.** At any running fan level, `pwm-gpio` takes 50,000 timer interrupts a second on one CPU. That time counts as `hi` in `top` (press `1` for each CPU), not as a process. Check that one CPU's `hi` stays at a few percent, that `dmesg | grep 'hrtimer: interrupt took'` is empty, and that printers can still browse while the fan runs.
+3. **Timer load.** At any running fan level, `pwm-gpio` takes 50,000 timer interrupts a second on one CPU. That time counts as `hi` in `top` (press `1` for each CPU), not as a process. On 2026-11-09 this measured about 50,000 interrupts a second and 23% `hi` on one of the 8 CPUs at any running level, and nothing with the fan off. That cost was accepted because the fan only runs above 55 °C (the board idles at 28-33 °C). One `hrtimer: interrupt took` warning (89 µs) appeared; it only delays one PWM edge. Check that the gateway still serves the printers while the fan runs.
 
 ## Go live
 
@@ -121,4 +121,4 @@ done
 sudo reboot
 ```
 
-If the board no longer boots, connect an HDMI screen and a USB keyboard and power it on. In the 3 s GRUB menu, choose **Armbian, newest kernel, stock DTB (Q6A fan fallback)**, then roll back as above.
+If the board no longer boots, there is no menu to pick the fallback from (see the timeout note above). Try holding Esc at power-on with a screen and keyboard attached; otherwise restore `/boot/armbian-dtb-<kernel>` from another machine with the boot drive attached. While the system still runs, `sudo grub-reboot q6a-fan-fallback` boots the fallback entry once.

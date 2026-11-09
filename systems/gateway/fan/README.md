@@ -12,7 +12,7 @@ A Noctua NF-A8 5V PWM on the Radxa Dragon Q6A's 40-pin header, sped up and slowe
 | `grub/custom-live.cfg` | `/boot/grub/custom.cfg` once live | Only the fallback entry: the newest kernel with the stock DTB. |
 | `grub/99-q6a-fan.cfg` | `/etc/default/grub.d/` | Shows the GRUB menu for 3 s (Armbian sets 0), so the fallback can be picked with an HDMI screen and a USB keyboard. |
 
-GRUB boots `/boot/armbian-dtb-<kernel>` (see `/etc/grub.d/09_linux_with_dtb.sh`), so the fan is live once that file contains the overlay. If the overlay fails to build, the stock DTB stays. The fan then runs at full speed, because U48's pull-up holds its PWM input high. The one exception is a failed tach IRQ request at probe: the fan then stops, and only CPU throttling is left. After every kernel upgrade, check that a `pwm-fan` cooling device exists (step 1 below).
+GRUB boots `/boot/armbian-dtb-<kernel>` (see `/etc/grub.d/09_linux_with_dtb.sh`), so the fan is live once that file contains the overlay. If the overlay fails to build, the stock DTB stays. The fan then runs at full speed, because U48's pull-up holds its PWM input high. The one exception is a failed tach IRQ request at probe: the fan then stops, and only CPU throttling is left. After every kernel upgrade, check that a `pwm-fan` cooling device exists (the `grep` checks after the test boot below).
 
 ## Wiring
 
@@ -111,7 +111,9 @@ Rerun `sudo q6a-fan-dtb "$(uname -r)"` and reboot after you edit the overlay. Af
 ## Rollback
 
 ```sh
-sudo chmod -x /etc/kernel/postinst.d/armbian-grub-with-dtb-q6a-fan
+sudo chmod -f -x /etc/kernel/postinst.d/armbian-grub-with-dtb-q6a-fan
+sudo install -m 0644 grub/custom-live.cfg /boot/grub/custom.cfg
+sudo rm -f /boot/armbian-dtb-*-fan
 for f in /boot/armbian-dtb-*; do
 	k=${f#/boot/armbian-dtb-}
 	[ -f "/usr/lib/linux-image-$k/qcom/qcs6490-radxa-dragon-q6a.dtb" ] &&

@@ -35,8 +35,14 @@ With the fan wired, boot normally. The fan runs at full speed, because nothing d
 
 ```sh
 sudo timeout 2 gpiomon -c gpiochip4 -e falling 27 | wc -l   # tach: rpm ≈ count × 15, so ≈ 147 at 2200 rpm
-sudo timeout 5 gpioset -c gpiochip4 26=0                   # PWM low: the fan stops, then returns to full speed
+sudo timeout 5 gpioset -c gpiochip4 26=0                   # PWM low: the fan stops
+sudo gpioget -c gpiochip4 26 >/dev/null                    # back to input: full speed again
 ```
+
+Releasing the line after `gpioset` leaves it an output driven low, so the `gpioget` is needed to make it an input again. These are gates for the next step:
+
+- About 0 tach events: recheck the green wire on pin 18.
+- The fan doesn't stop at `26=0`: U48 can't pull the fan's PWM input low enough. Unplug pin 4 (the fan stays at full speed) and don't install the overlay. The stock DTB drives the pin at 2 mA and the overlay at 8 mA, so passing here is the harder case.
 
 ## Test with the one-shot entry
 
@@ -53,9 +59,12 @@ sudo q6a-fan-dtb "$(uname -r)" "/boot/armbian-dtb-$(uname -r)-fan"
 sudo grub-reboot q6a-fan-test && sudo reboot
 ```
 
-After the test boot, find the fan and its zones:
+Before or after the fan test, try the fallback entry once with an HDMI screen and a USB keyboard attached: `sudo grub-reboot q6a-fan-fallback && sudo reboot`. The GRUB menu should show for 3 s, and `/proc/cmdline` afterwards should start with `BOOT_IMAGE=/boot/vmlinuz `. It boots the same kernel with the stock DTB.
+
+After the test boot, start `bash`: the commands below rely on bash word splitting, and zsh doesn't split `$zones`. Find the fan and its zones:
 
 ```sh
+bash
 H=$(dirname "$(grep -l '^pwmfan$' /sys/class/hwmon/*/name)")
 cat "$H/fan1_input" "$H/pwm1"                     # rpm and duty (0-255)
 grep -l '^pwm-fan$' /sys/class/thermal/cooling_device*/type

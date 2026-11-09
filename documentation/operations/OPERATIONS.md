@@ -95,6 +95,18 @@ On **Radxa as `<gateway-user>`**, check `networkctl status enp1s0`, `ip -4 addre
 
 The unused USB adapter has no IPv4/DHCP role and is not a fallback gateway. Its reliability limitation is in [issues](../worklog/ISSUES.md); moving the AP cable to it alone does not restore service. Any future reassignment needs matching networkd, DHCP, firewall and Docker configuration plus client verification.
 
+### Remote-access hardening
+
+The services between the operator and Radxa (`wpa_supplicant@wlan0`, `systemd-networkd`, `windscribe-helper`, `systemd-resolved`, `printing-dhcp`) have a `10-hardening.conf` drop-in: systemd never gives up restarting them, backs off up to a minute, and the OOM killer spares them. The journal is persistent, and each boot writes one line recording how the previous boot ended and how long Wi-Fi and the VPN took to come up. fail2ban bans addresses with repeated failed SSH logins on every interface, including the static-IP tunnel. The [host component](../../systems/gateway/host/README.md) explains each setting. Read-only checks on **Radxa**:
+
+```sh
+journalctl --list-boots | tail -5
+sudo -n journalctl -t boot-evidence -p warning
+sudo -n fail2ban-client status sshd
+```
+
+If fail2ban has banned the operator's address, connect over the printer LAN or school Wi-Fi and run `sudo fail2ban-client set sshd unbanip <address>`.
+
 ## VPN policy administration
 
 The static-IP preference, DK → SE → NL fallback order and health/refresh behavior are authoritative in [topology](../network/TOPOLOGY.md). The policy runs as `<gateway-user>` in system services, using the existing Windscribe session; it needs no stored password or ongoing sudo grant. Units and scripts are root-owned. Runtime state is under `/var/lib/printing-station/vpn-policy/` (0700, owned by `<gateway-user>`), with a 0600 state file containing failure/cooldown/static-retry/refresh bookkeeping, not credentials.
@@ -144,6 +156,7 @@ Restricted `/var/lib/printing-station/rollback/20261006/vpn-policy/` contains th
 | Radxa / gateway helpers | `/usr/local/libexec/printing-station/gateway-control`, `docker-forwarding`; Docker integration at `/etc/systemd/system/docker.service.d/printing-station.conf` |
 | Radxa / resolver | `/etc/unbound/unbound.conf.d/printing-station.conf`, `/etc/systemd/resolved.conf.d/printing-station.conf`; drop-ins `/etc/systemd/system/unbound.service.d/printing-station.conf` and `printing-dhcp.service.d/printing-station.conf`; source in the [DNS component](../../systems/gateway/dns/README.md) |
 | Radxa / DNS check | `/usr/local/libexec/printing-station/dns-check.py`; `printing-dns-check.service/.timer` under `/etc/systemd/system/`; state in `/var/lib/printing-station/dns-check/` |
+| Radxa / host hardening | `10-hardening.conf` drop-ins for `printing-dhcp`, `systemd-resolved`, `systemd-networkd`, `windscribe-helper` and `wpa_supplicant@wlan0` under `/etc/systemd/system/`; `/etc/systemd/journald.conf.d/10-persistent.conf`; `/usr/local/libexec/printing-station/boot-evidence` and `printing-boot-evidence.service`, log in `/var/log/printing-station/`; `/etc/fail2ban/jail.local`, `fail2ban.local`; source in the [host component](../../systems/gateway/host/README.md) |
 | Radxa / Windscribe | System `windscribe-helper.service`; `<gateway-user>` user `windscribe.service` with linger and `/home/<gateway-user>/.config/systemd/user/windscribe.service.d/printing-station.conf` |
 | Radxa / VPN policy | `/usr/local/libexec/printing-station/vpn-policy.py`, `/etc/printing-station/vpn-policy.json`; `printing-vpn-check.service/.timer` and `printing-vpn-refresh.service/.timer` under `/etc/systemd/system/` |
 | Chromebook / NetworkManager | `3D-Printere client` profile and restricted Netplan file above; DHCP client only |

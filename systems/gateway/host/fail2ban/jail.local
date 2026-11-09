@@ -1,0 +1,33 @@
+[sshd]
+enabled = true
+backend = systemd
+journalmatch = _SYSTEMD_UNIT=ssh.service + _COMM=sshd
+filter = sshd[mode=normal, publickey=nofail]
+port = 22
+protocol = tcp
+
+maxretry = 5
+findtime = 10m
+bantime = 1h
+
+bantime.increment = true
+bantime.factor = 1
+bantime.multipliers = 1 2 4 8 16 32 64 128 168
+bantime.maxtime = 7d
+bantime.overalljails = false
+
+banaction = nftables
+action = %(action_)s
+ignoreip = 127.0.0.1/8 ::1
+
+[sshd-aggressive]
+enabled = false
+
+[sshd-badprotocol]
+enabled = false
+
+[sshd-ddos]
+enabled = false
+
+[recidive]
+enabled = false

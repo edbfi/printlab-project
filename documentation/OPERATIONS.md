@@ -63,10 +63,10 @@ ping -c 2 192.168.77.1
 curl --max-time 5 -o /dev/null -w '%{http_code}\n' http://192.168.77.2/
 dig @192.168.77.1 example.com +short
 dig +tcp @192.168.77.1 example.com +short
-curl --max-time 10 https://api.ipify.org
+curl --ipv4 --noproxy '*' --fail --max-time 10 https://api.ipify.org
 ```
 
-Compare client egress with `curl --interface tun0 --max-time 10 https://api.ipify.org` on Radxa and the locally configured static IP. For a missing printer, match its label and [reservation](NETWORK.md#interfaces-and-addressing), inspect DHCP leases, and check Studio's account/device view and printer Wi-Fi. Ping checks only reachability. Browser Secure DNS can bypass the system resolver.
+Compare client egress with `curl --ipv4 --noproxy '*' --fail --interface tun0 --max-time 10 https://api.ipify.org` on Radxa and the locally configured static IP. For a missing printer, match its label and [reservation](NETWORK.md#interfaces-and-addressing), inspect DHCP leases, and check Studio's account/device view and printer Wi-Fi. Ping checks only reachability. Browser Secure DNS can bypass the system resolver.
 
 ## Routine recovery
 
@@ -87,15 +87,15 @@ sudo systemctl start --no-block printing-uplink-boot-fallback.service
 journalctl -u printing-uplink-boot-fallback.service -u printing-uplink-rollback.service -f
 ```
 
-This interrupts the VPN and disables future native starts. Recovery stops native DHCP, removes only owned resources, selects the reserved-native profile, restores the saved Wi-Fi policy and explicitly reconnects the static VPN. Verify `rollback-complete` in `/var/lib/printing-station/rollback/native-uplink-trial/`, actual Wi-Fi transport and a fresh public SSH login. Unit exit alone does not prove success.
+This interrupts the VPN and disables future native starts, restoring saved Wi-Fi operation while preserving the USB LAN. Verify `rollback-complete` in `/var/lib/printing-station/rollback/native-uplink-trial/`, actual Wi-Fi transport and a fresh public SSH login. Unit exit alone does not prove success; the [native guide](../systems/gateway/native-uplink/README.md#boot-and-permanent-fallback) owns the rollback sequence and marker behavior.
 
 Stopping a running `printing-uplink-boot-check.service` can trigger its `OnFailure` fallback and revoke native boot. Do not stop it as a read-only diagnostic. The watchdog intentionally stops an overdue checker; systemd serializes any duplicate fallback requests.
 
 The rollback service allows up to 20 minutes per attempt and at most three starts per hour. If contact disappears, allow the local recovery budget before retrying the normal endpoint with its pinned key. Failed recovery may require local access; do not improvise route flushes, cable swaps or repeated reboots.
 
-Do not delete the active snapshot directory, `boot-baseline/`, any `boot-fallback` marker or the `boot-enabled` marker. The installed helpers depend on them. A permanent fallback marker blocks reactivation; a new controlled deployment must verify state before changing it. Never restore a native-printer-LAN snapshot or stop DHCP alone as a substitute for coordinated recovery. See [component contracts](../systems/gateway/native-uplink/README.md).
+Do not delete the active snapshot directory, `boot-baseline/`, any `boot-fallback` marker or the `boot-enabled` marker. The installed helpers depend on them. A new controlled deployment must verify recovery state before reactivation. Never restore a native-printer-LAN snapshot or stop DHCP alone as a substitute for coordinated recovery.
 
-Recovery requires the frozen networkd input inventory and protected-file hashes, including `/etc/printing-station/vpn-policy.json`. Return to Wi-Fi **before** changing those inputs; fallback restores the staged `old-policy.py`, not a newer repository copy. If inputs already differ, restore the reviewed protected values before retrying. Do not regenerate manifests to bless drift or rerun staging over the active directory. A rejected preflight retains pending recovery and permits only the matching native-aware policy to resume; it does not establish completed Wi-Fi fallback.
+Recovery requires the frozen networkd input inventory and protected-file hashes, including `/etc/printing-station/vpn-policy.json`. Return to Wi-Fi **before** changing those inputs; fallback restores the staged `old-policy.py`, not a newer repository copy. If inputs already differ, restore the reviewed protected values before retrying. Do not regenerate manifests to bless drift or rerun staging over the active directory. A rejected preflight retains pending recovery and retry admission, and permits only the matching native-aware policy to resume; it does not establish completed Wi-Fi fallback.
 
 ### USB printer link
 
@@ -107,7 +107,7 @@ Keep networkd files root-owned, mode 0644, and preserve the MAC-based guard. Do 
 
 ## VPN maintenance
 
-Run on **Radxa as the gateway user, not root**:
+Run on **Radxa in the existing gateway user's login session, not root**, with its user systemd bus available:
 
 ```sh
 systemctl list-timers printing-vpn-check.timer printing-vpn-refresh.timer
@@ -115,7 +115,7 @@ systemctl show printing-vpn-check.service printing-vpn-refresh.service -p Result
 /usr/bin/python3 /usr/local/libexec/printing-station/vpn-policy.py check --dry-run
 ```
 
-Dry-run changes neither VPN nor persisted state. Read the journal decision: a successful unit can mean a deliberate skip. Detailed timing and recovery behavior belong in the [VPN component](../systems/gateway/vpn-policy/README.md).
+Dry-run changes neither VPN nor persisted state; read its decision in the command output. Service runs log to the journal. A successful unit can mean a deliberate skip, and contention with a timer run can report `Another policy run is active; skipped` instead of a decision. Detailed timing and recovery behavior belong in the [VPN component](../systems/gateway/vpn-policy/README.md#behavior).
 
 For an exceptional overnight job, pause only daily maintenance with `sudo systemctl stop printing-vpn-refresh.timer printing-vpn-refresh.service`; afterward run `sudo systemctl start printing-vpn-refresh.timer`. This does not disable it at the next boot. Before a manual VPN change, stop **both** timers and both corresponding services, then restore both timers afterward. Windscribe's own autoconnect remains active.
 
@@ -133,14 +133,17 @@ APT schedules daily work at 06:00/18:00 with up to 12 hours of random delay, and
 
 | Owner | Principal paths |
 |---|---|
-| Network roles | `/etc/systemd/network/05-school-wifi.network`, `05-printer-lan.network`, `05-native-uplink.network`, `05-reserved-builtin.network`, `09-ethernet-safe-fallback.network` |
+| Network profiles | [Tracked profiles](../systems/gateway/README.md#network-profiles); host-only `/etc/systemd/network/05-school-wifi.network` |
 | School authentication | `/etc/wpa_supplicant/wpa_supplicant-wlan0.conf`; `wpa_supplicant@wlan0.service` |
-| LAN and firewall | `/etc/printing-station/dnsmasq.conf`, `gateway.nft`; `printing-dhcp.service`, `printing-gateway.service`; helpers under `/usr/local/libexec/printing-station/` |
+| Firewall | [Tracked firewall and Docker helper](../systems/gateway/README.md#firewall-and-docker) |
+| Base services | Host-only `printing-dhcp.service` and `printing-gateway.service`; the latter loads the firewall via installed `gateway-control` (helper's absolute path unverified) |
+| Docker integration | Host-only `/etc/systemd/system/docker.service.d/printing-station.conf` reapplies `PRINTING-VPN` allowances |
 | Native uplink and recovery | [Helper, controller and boot units](../systems/gateway/native-uplink/README.md#installed-files) |
 | DNS | [Unbound, resolved, checker and drop-ins](../systems/gateway/dns/README.md#installed-files) |
-| Windscribe | System `windscribe-helper.service`; gateway user's `windscribe.service` and `~/.config/systemd/user/windscribe.service.d/printing-station.conf` |
-| VPN policy | `/usr/local/libexec/printing-station/vpn-policy.py`, `/etc/printing-station/vpn-policy.json`; `printing-vpn-check.*`, `printing-vpn-refresh.*` |
-| Host and cooling | [Hardening, journal, fail2ban](../systems/gateway/host/README.md) and [fan](../systems/gateway/fan/README.md) |
+| Windscribe | Host-only system `windscribe-helper.service`; gateway user's `windscribe.service` and `~/.config/systemd/user/windscribe.service.d/printing-station.conf` |
+| VPN policy | [Policy, config and rendered units](../systems/gateway/vpn-policy/README.md#installation-and-configuration) |
+| Host | [Service hardening and diagnostics](../systems/gateway/host/README.md#installed-files) |
+| Cooling | [Fan overlay, builder and GRUB files](../systems/gateway/fan/README.md#installed-files) |
 
 ## Credentials and recovery storage
 

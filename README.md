@@ -15,6 +15,8 @@ Slicing and transfer work through Studio in the existing desktop session. There 
 
 ## Development
 
+Run `prek install` once to install the configured `pre-commit` and `commit-msg` hooks. They check staged changes and commit titles; the manual command below checks all files and includes the offline suites, but does not run commit-message or staged-only hooks.
+
 Run the repository's checks **as an unprivileged user**, from its root:
 
 ```sh
@@ -29,7 +31,9 @@ python3 -B -m unittest discover -s systems/gateway/native-uplink/tests
 
 These suites use temporary state and simulated dependencies; do not run them as root or use installed recovery tools as test commands. Editing or testing the checkout does not deploy changes.
 
-Use Conventional Commits. Keep implementation, configuration, units and tests together by component. Use the guide that owns a subject instead of repeating it across documents. Documentation describes **the current system only**: remove superseded states, migration logs, dated test reports, review transcripts and future-work plans. Git history preserves earlier versions. Keep material operating limits with the current behavior and unresolved faults in operations.
+Use Conventional Commits and Conventional PR titles (`type(scope): description`). If any commit is breaking (`!` or a `BREAKING CHANGE` footer), the PR title must include `!`. Sign off commits with `git commit -s`; `Signed-off-by` must match the commit author's name and email. See the [PR policy workflow](.github/workflows/pr-policy.yml) for exact validation and exceptions.
+
+Keep implementation, configuration, units and tests together by component. Use the guide that owns a subject instead of repeating it across documents. Documentation describes **the current system only**: remove superseded states, migration logs, dated test reports, review transcripts and future-work plans. Git history preserves earlier versions. Keep material operating limits with the current behavior and unresolved faults in operations.
 
 Use account placeholders in tracked examples and render service templates privately. Keep credentials, private inventory, login/session exports, captures, runtime state, jobs and recovery archives outside Git. `.work/` and `*.private.md` are ignored; preserve their contents and review diffs before publication. Installed `/etc/printing-station/`, `/usr/local/libexec/printing-station/` and `/var/lib/printing-station/` paths are independent of repository organization.
 

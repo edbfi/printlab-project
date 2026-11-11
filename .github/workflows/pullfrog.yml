@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # Source: https://github.com/edbfi/edbfi-ci/blob/main/templates/pullfrog.yml
-# Copy as .github/workflows/pullfrog.yml. Reviews dispatch on the default branch.
+# Reviews dispatch on the default branch.
 name: Pullfrog
 run-name: ${{ inputs.name || github.workflow }}
 on:

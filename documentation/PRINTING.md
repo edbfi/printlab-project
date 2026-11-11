@@ -31,7 +31,7 @@ The Acer Chromebook Spin 511/R753T-class machine (Google Magolor) runs Lubuntu/L
 
 Studio is launched manually; no kiosk startup, lockdown or application recovery is configured. The existing account retains its Studio login and device views across application restarts and reboots. Preserve that account's application state in place; it does not establish a session for another account.
 
-The Chromebook is an ordinary NetworkManager client on `3D-Printere`, using `wlp0s20f3` with IPv4 DHCP and IPv6 disabled. It has no local Windscribe, routing or DHCP-server role. Key-only administration uses TCP 2222 at its current DHCP address; see [access instructions](OPERATIONS.md#access).
+The Chromebook is an ordinary NetworkManager client on `3D-Printere`, using `wlp0s20f3` with IPv4 DHCP and IPv6 disabled. It has no local Windscribe, routing or DHCP-server role. Administrative SSH details are in [Operations](OPERATIONS.md#access).
 
 ## Network dependency
 

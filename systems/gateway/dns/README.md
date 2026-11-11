@@ -1,6 +1,6 @@
 # Printer DNS
 
-Printer clients use dnsmasq → unbound → Control D p2 through the VPN. Radxa's systemd-resolved also uses unbound, alongside Windscribe's tunnel DNS; host lookups are not guaranteed p2-filtered. Windscribe Connected DNS stays on Auto. See [network paths](../../../documentation/NETWORK.md#dns) and [operations](../../../documentation/OPERATIONS.md#diagnostics).
+Printer clients use dnsmasq → unbound → Control D p2 through the VPN. See [network paths and filtering exceptions](../../../documentation/NETWORK.md#dns) and [operations diagnostics](../../../documentation/OPERATIONS.md#diagnostics).
 
 ## Installed files
 
@@ -17,6 +17,8 @@ Printer clients use dnsmasq → unbound → Control D p2 through the VPN. Radxa'
 Files are root-owned, 0644 unless noted. The firewall's `dns_guard` rules are in [gateway.nft](../firewall/gateway.nft). Repair also requires working local `unbound-control` configuration supplied by the host; that prerequisite is not packaged here.
 
 ## Resolver behavior
+
+dnsmasq uses only unbound (`no-resolv`). systemd-resolved points to unbound with an empty `FallbackDNS=` list, alongside Windscribe's tunnel DNS. Keep Windscribe Connected DNS on Auto.
 
 Unbound listens on `127.0.0.1:5335` and forwards over TLS to `76.76.2.11` / `76.76.10.11:853`, verifying `p2.freedns.controld.com`. It delegates DNSSEC validation to Control D (`module-config: "iterator"`) so filtered signed domains can return the provider's blocking response.
 
@@ -41,6 +43,6 @@ The upstream probe verifies TLS against both Control D addresses, with five-seco
 
 ## Updating
 
-Back up affected installed files privately and follow the [access safeguards](../../../documentation/OPERATIONS.md#access). Before installing a firewall change, validate the candidate with `sudo nft -c -f systems/gateway/firewall/gateway.nft` from the repository root. Install changed files at the paths above, then run `unbound-checkconf` against the resulting installed configuration before restarting unbound. If validation fails, restore the affected backup and do not restart. Run `systemctl daemon-reload` for unit/drop-in changes and restart only the affected resolver or timer. Firewall updates use `systemctl reload printing-gateway`, which validates the installed file. Script changes take effect on the next check.
+On Radxa, back up affected installed files privately and follow the [access safeguards](../../../documentation/OPERATIONS.md#access). Firewall changes use the [Gateway validation and reload procedure](../README.md#applying-firewall-changes). Install changed resolver files at the paths above, then run `sudo unbound-checkconf` against the resulting installed configuration before restarting unbound. If validation fails, restore the affected backup and do not restart. Run `sudo systemctl daemon-reload` for unit/drop-in changes and use `sudo systemctl restart <affected-unit>` only for the affected resolver or timer. Script changes take effect on the next check.
 
-Verify direct unbound and printer-LAN DNS queries, filtered responses, client HTTPS and journals. Restoring an arbitrary DNS archive can overwrite current interface and firewall configuration; recover only reviewed files compatible with the current topology. Offline tests and their common command are in the [root guide](../../../README.md#development).
+Verify direct unbound and printer-LAN DNS queries, filtered responses, client HTTPS and journals. Restoring an arbitrary DNS archive can overwrite current interface and firewall configuration; recover only reviewed files compatible with the current topology.

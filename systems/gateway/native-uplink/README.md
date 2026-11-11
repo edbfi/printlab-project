@@ -52,7 +52,7 @@ The installed root config explicitly enables acquisition and this timing assumpt
 
 The native profile sorts before the retained `05-reserved-builtin.network`. `KeepConfiguration=dynamic` preserves the helper's finite address; `ManageForeignRoutes=no` leaves owned routes and the authorized VPN pin intact. networkd's own DHCP, link-local addressing and router advertisements remain disabled. Preserve the reserved profile and MAC guard. Never restart networkd, regenerate Netplan or reconfigure Wi-Fi/USB as part of a native-only change.
 
-The profile requires systemd **257 or newer** for `KeepConfiguration=dynamic` ([upstream setting change](https://raw.githubusercontent.com/systemd/systemd/v257/NEWS)); the gateway runs systemd 259.9. An older networkd can ignore the value and remove the helper's address during reconfiguration.
+The profile requires systemd **257 or newer** for `KeepConfiguration=dynamic` ([upstream setting change](https://raw.githubusercontent.com/systemd/systemd/v257/NEWS)); `systemctl --version` on the gateway reports 259.9. An older networkd can ignore the value and remove the helper's address during reconfiguration.
 
 Only `status` may run unprivileged:
 

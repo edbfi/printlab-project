@@ -76,7 +76,7 @@ IPv6 forwarding is off; the USB interface keeps link-local addresses but neither
 |---|---|
 | Gateway | Radxa Dragon Q6A, aarch64, Armbian (Ubuntu base); about 12 GiB RAM, 500 GB NVMe |
 | Native Ethernet | Realtek PCIe, `r8169` driver |
-| USB Ethernet | TP-Link UE300 (Realtek RTL8153, USB ID `0bda:8153`, `r8152` driver); AP link 100 Mb/s full duplex |
+| USB Ethernet | AXAGON ADE-AR (Realtek RTL8153, USB ID `0bda:8153`, `r8152` driver); AP link 100 Mb/s full duplex |
 | Access point | TP-Link TL-WR902AC EU V4.40, on its own wall power |
 | Cooling | Noctua NF-A8 5V PWM on the 40-pin header; see [fan](../systems/gateway/fan/README.md) |
 

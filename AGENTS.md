@@ -31,7 +31,7 @@ Each fact has one home. Elsewhere, link to it or leave it out.
 - Describe the current system only. Leave history to git: no dated logs, migration notes, test reports or plans.
 - State facts plainly. No hedges ("does not establish", "is not proof") and no truisms. Write each limitation once: an unresolved fault under current faults, a design limit next to the behaviour it limits.
 - Do not write sentences about which document covers what; link instead.
-- Do not restate timeouts, limits or tuning values that a commented config file or unit already holds; link to the file.
+- Do not restate tuning values that a commented config file already explains; link to the file. State a timeout or limit only where an operator has to act on it.
 - When a tracked installed file is added, renamed or removed, update its row in the [file map](systems/gateway/README.md#file-map).
 - Give commands that can be copied as written, and say which host and account they run on.
 - Do not add a documentation file unless a new component needs one; when you do, add it to the README's map and to the list above.
@@ -45,7 +45,7 @@ Each fact has one home. Elsewhere, link to it or leave it out.
 
 ## Before finishing
 
-1. Run `prek run --all-files --hook-stage manual` as an unprivileged user. It skips secret scanning, which runs on staged changes in the pre-commit hook that `prek install` sets up; to run it by hand, stage your changes and run `prek run gitleaks`. A read-only review skips this step, because some hooks rewrite files.
+1. Run `prek run --all-files --hook-stage manual` as an unprivileged user. It skips gitleaks, which runs on staged changes in the pre-commit hook that `prek install` sets up; to run it by hand, stage your changes and run `prek run gitleaks`. A read-only review skips this step, because some hooks rewrite files.
 2. For every fact you changed, `git grep` its old value, review each hit and update the ones the change affects.
 3. Re-read every document you touched and delete text the change superseded.
 4. Check that every relative link and heading anchor resolves.

@@ -39,7 +39,7 @@ Changes to Windscribe, networkd, the supplicant, SSH, fail2ban or the firewall c
 3. Validate and apply as described for the [component](../systems/gateway/README.md#validate-and-apply).
 4. Check over a fresh login, then cancel the rollback with `sudo systemctl stop printing-change-rollback.timer`.
 
-While native Ethernet is in use, fallback to Wi-Fi refuses to run if a [protected input](../systems/gateway/native-uplink/README.md#protected-inputs) has changed: any networkd file, `/etc/printing-station/vpn-policy.json`, or a file listed in the `20261110-lan-usb` manifests. `sudo jq -r 'keys[]' /var/lib/printing-station/rollback/native-uplink-trial/protected.json` lists them. Fall back to Wi-Fi before changing them; that disables native boot ([current faults](#current-faults)). Fallback also reinstalls the `vpn-policy.py` saved at staging over any newer copy.
+While native Ethernet is in use, fallback to Wi-Fi refuses to run if a [protected input](../systems/gateway/native-uplink/README.md#protected-inputs) has changed: any networkd file, including the packaged ones under `/usr/lib/systemd/network/`; `/etc/printing-station/vpn-policy.json`; and the USB LAN files `gateway.nft`, `dnsmasq.conf`, `printing-dhcp.service`, `printing-gateway.service`, `gateway-control`, `docker-forwarding` and the supplicant configuration. `sudo jq -r 'keys[]' /var/lib/printing-station/rollback/native-uplink-trial/protected.json` lists them all. A package upgrade that changes a packaged networkd file blocks fallback the same way. Fall back to Wi-Fi before changing them; that disables native boot ([current faults](#current-faults)). Fallback also reinstalls the `vpn-policy.py` saved at staging over any newer copy.
 
 Do not interrupt print jobs, printer firmware updates, Studio sessions or other Docker containers.
 
@@ -132,7 +132,7 @@ Fallback has worked when, on Radxa:
 
 and a login over `radxa.edb.fi:22222` from outside the school works.
 
-If the journal shows `Networkd input inventory changed` or `Protected input changed: <path>`, rollback stopped before disconnecting and native Ethernet is still in use. Restore the changed file or remove the added one, then run `sudo systemctl reset-failed printing-uplink-rollback.service` and `sudo systemctl start --no-block printing-uplink-rollback.service`. Never regenerate the hash manifests or rerun staging.
+If the journal shows `Networkd input inventory changed` or `Protected input changed: <path>`, rollback stopped before disconnecting and native Ethernet is still in use. Restore the changed or removed file, or remove the added one, then run `sudo systemctl reset-failed printing-uplink-rollback.service` and `sudo systemctl start --no-block printing-uplink-rollback.service`. Never regenerate the hash manifests or rerun staging.
 
 Do not stop a running `printing-uplink-boot-check.service`: its failure starts the fallback. Do not change anything in `/var/lib/printing-station/rollback/native-uplink-trial/`; the installed controllers read it. Never restore a snapshot that put the printer LAN on native Ethernet.
 
@@ -159,7 +159,7 @@ To see what the policy would do, as the gateway user (not root):
 
 It prints its decision and changes nothing, or `Another policy run is active; skipped` while a timer run holds the lock.
 
-**Package updates:** APT refreshes at 06:00 and 18:00 with up to 12 hours' random delay and upgrades at 06:00 with up to an hour's delay. Unattended upgrades reboot at 02:00 host time (Europe/Berlin) when required, even with users logged in. The VPN policy postpones refreshes and static retries during package work, while a reboot is pending, and for 30 minutes after boot. Nothing detects a running print.
+**Package updates:** APT refreshes at 06:00 and 18:00 with up to 12 hours' random delay and upgrades at 06:00 with up to an hour's delay. Unattended upgrades reboot at 02:00 host time (Europe/Berlin) when required, even with users logged in. During package work, while a reboot is pending, and for 30 minutes after boot, the VPN policy skips that day's refresh and defers static retries. Nothing detects a running print.
 
 ## Current faults
 
@@ -175,7 +175,7 @@ It prints its decision and changes nothing, or `Another policy run is active; sk
 These tracked changes behave differently from the installed copies ([compare](../systems/gateway/README.md#compare-with-the-installed-copy)); other differences are in comments, docstrings and unit descriptions only.
 
 - `dns/dns-check.py`: the installed checker has no Control D probe. In a Control D outage it restarts unbound after a failed flush, emptying the cache that still answered known names.
-- `firewall/gateway.nft`: the installed dnsmasq rule lacks `ct direction original`, so it drops replies to clients that query from source port 53.
+- `firewall/gateway.nft`: the installed dnsmasq rule lacks `ct direction original`, so it drops replies to clients that query from source port 53. `gateway.nft` is a protected input, so installing it needs a fallback to Wi-Fi first.
 - `native-uplink/trial/uplink-trial.py`: the installed rollback stops the VPN policy before checking protected inputs, so a changed input leaves the policy stopped on native Ethernet until an operator acts. It also clears `pending` and writes `rollback-complete` before restarting the policy timers, and retries skip that restart; check the timers after a fallback.
 - `native-uplink/boot/uplink-boot.py`: the installed checker also writes a persistent `boot-verified` file into the recovery directory. Only `/run/printing-native-uplink/boot-verified` reflects the current boot.
 
@@ -185,4 +185,4 @@ On the Chromebook, `~/.config/printing-station/credentials/` (0700) holds `print
 
 On Radxa, `/etc/wpa_supplicant/wpa_supplicant-wlan0.conf` is 0600 and `~/.config/Windscribe/` 0700. The static VPN IP is in `/etc/printing-station/vpn-policy.json`; the native VPN endpoint, a different address, is in `/etc/printing-station/native-uplink.json` (0600).
 
-Both hosts keep root-only snapshots in `/var/lib/printing-station/rollback/`. On Radxa, `native-uplink-trial/` is live recovery state and `20261110-lan-usb/` protects the current USB LAN. The other dated directories snapshot earlier topologies and can contain credentials; never restore them.
+Both hosts keep root-only snapshots in `/var/lib/printing-station/rollback/`. On Radxa, `native-uplink-trial/` is live recovery state and `20261110-lan-usb/` protects the current USB LAN. Directories created by the [change procedure](#change-procedure) hold one change's saved files. The other dated directories snapshot earlier topologies and can contain credentials; never restore them.

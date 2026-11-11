@@ -20,6 +20,7 @@ When operating the helper:
 
 - Never suppress DHCP options 33, 121 or 249 with dhcpcd's `nooption` or `-O`; validation must see them to reject the grant.
 - Never hold `/run/printing-native-uplink/operation.lock` while waiting for the service to stop.
+- Never edit `vpn_endpoint` on a healthy tunnel: the helper withdraws the grant when it changes. Change it together with a reconnect and check the transport afterwards.
 - After a stop, check that the resources above are gone, not just that the unit stopped. The service has `Restart=no`; if any remain, reconcile them by hand.
 
 `lease_timing.py` takes 30 seconds off the DHCP lease duration at hook entry, plus the processing delay, assuming the server's ACK reached the hook within 30 seconds. If it took longer, the address can outlive the lease until its kernel lifetime expires. Never replay stored callbacks or reuse cached lease storage.

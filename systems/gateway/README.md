@@ -66,6 +66,7 @@ for s in check refresh; do
       -e "s|@GATEWAY_UID@|$(id -u "$u")|g" -e "s|@GATEWAY_HOME@|$(getent passwd "$u" | cut -d: -f6)|g" \
       systems/gateway/vpn-policy/systemd/printing-vpn-$s.service.in > "$d/printing-vpn-$s.service"
 done
+echo "$d"
 ```
 
 ### Compare with the installed copy

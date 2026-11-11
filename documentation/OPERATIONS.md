@@ -136,10 +136,10 @@ APT schedules daily work at 06:00/18:00 with up to 12 hours of random delay, and
 | Network profiles | [Tracked profiles](../systems/gateway/README.md#network-profiles); host-only `/etc/systemd/network/05-school-wifi.network` |
 | School authentication | `/etc/wpa_supplicant/wpa_supplicant-wlan0.conf`; `wpa_supplicant@wlan0.service` |
 | Firewall | [Tracked firewall and Docker helper](../systems/gateway/README.md#firewall-and-docker) |
-| Base services | Host-only `printing-dhcp.service` and `printing-gateway.service`; the latter loads the firewall via installed `gateway-control` (helper's absolute path unverified) |
+| Base services | Host-only `printing-dhcp.service` and `printing-gateway.service`; the latter loads the firewall via the installed `gateway-control` helper |
 | Docker integration | Host-only `/etc/systemd/system/docker.service.d/printing-station.conf` reapplies `PRINTING-VPN` allowances |
 | Native uplink and recovery | [Helper, controller and boot units](../systems/gateway/native-uplink/README.md#installed-files) |
-| DNS | [Unbound, resolved, checker and drop-ins](../systems/gateway/dns/README.md#installed-files) |
+| DNS | [dnsmasq, unbound, resolved, checker and drop-ins](../systems/gateway/dns/README.md#installed-files) |
 | Windscribe | Host-only system `windscribe-helper.service`; gateway user's `windscribe.service` and `~/.config/systemd/user/windscribe.service.d/printing-station.conf` |
 | VPN policy | [Policy, config and rendered units](../systems/gateway/vpn-policy/README.md#installation-and-configuration) |
 | Host | [Service hardening and diagnostics](../systems/gateway/host/README.md#installed-files) |

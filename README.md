@@ -15,7 +15,7 @@ Slicing and transfer work through Studio in the existing desktop session. There 
 
 ## Development
 
-Run `prek install` once to install the configured `pre-commit` and `commit-msg` hooks. They check staged changes and commit titles; the manual command below checks all files and includes the offline suites, but does not run commit-message or staged-only hooks.
+Run `prek install` once to install the configured `pre-commit` and `commit-msg` hooks. Commits run staged-file checks, the offline suites and the commit-title check. The manual command below checks all files but skips commit-message and staged-only hooks.
 
 Run the repository's checks **as an unprivileged user**, from its root:
 

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-# Keep this filename: Dependabot's
-# pre-commit updater can't read prek.toml. CI runs prek run --all-files --hook-stage manual.
+# Keep this filename: Dependabot's pre-commit updater can't read prek.toml.
+# CI runs prek run --all-files --hook-stage manual.
 default_install_hook_types: [pre-commit, commit-msg]
 default_stages: [pre-commit, manual]
 repos:

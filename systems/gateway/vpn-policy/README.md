@@ -34,7 +34,7 @@ Render `@GATEWAY_USER@`, `@GATEWAY_GROUP@`, `@GATEWAY_UID@` and `@GATEWAY_HOME@`
 
 The public JSON has an empty `static_ip`. Set the purchased address only in the installed config and preserve it when updating; `/opt/windscribe/windscribe-cli locations static` lists account locations locally. Empty static configuration permits country order only on eligible Wi-Fi; it cannot recover native. The JSON refresh time and timer calendar must agree.
 
-This JSON and the matching policy are protected native-recovery inputs; follow the [recovery constraints](../../../documentation/OPERATIONS.md#native-uplink-recovery) before updating them.
+Native recovery freezes this JSON and snapshots the matching policy; follow the [recovery constraints](../../../documentation/OPERATIONS.md#native-uplink-recovery) before updating either.
 
 Install the matching native helper before the policy. Verify `status` works as the actual service account under its sandbox and that mutating helper modes are denied. Native's authorized outer endpoint must match the chosen static server; it is distinct from the public static exit.
 

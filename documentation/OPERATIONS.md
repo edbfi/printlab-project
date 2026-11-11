@@ -89,6 +89,8 @@ journalctl -u printing-uplink-boot-fallback.service -u printing-uplink-rollback.
 
 This interrupts the VPN and disables future native starts. Recovery stops native DHCP, removes only owned resources, selects the reserved-native profile, restores the saved Wi-Fi policy and explicitly reconnects the static VPN. Verify `rollback-complete` in `/var/lib/printing-station/rollback/native-uplink-trial/`, actual Wi-Fi transport and a fresh public SSH login. Unit exit alone does not prove success.
 
+Stopping a running `printing-uplink-boot-check.service` can trigger its `OnFailure` fallback and revoke native boot. Do not stop it as a read-only diagnostic. The watchdog intentionally stops an overdue checker; systemd serializes any duplicate fallback requests.
+
 The rollback service allows up to 20 minutes per attempt and at most three starts per hour. If contact disappears, allow the local recovery budget before retrying the normal endpoint with its pinned key. Failed recovery may require local access; do not improvise route flushes, cable swaps or repeated reboots.
 
 Do not delete the active snapshot directory, `boot-baseline/`, any `boot-fallback` marker or the `boot-enabled` marker. The installed helpers depend on them. A permanent fallback marker blocks reactivation; a new controlled deployment must verify state before changing it. Never restore a native-printer-LAN snapshot or stop DHCP alone as a substitute for coordinated recovery. See [component contracts](../systems/gateway/native-uplink/README.md).

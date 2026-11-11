@@ -1,4 +1,4 @@
-# Candidate only: install through the reviewed uplink deployment procedure.
+# Active native profile; managed together with the guarded DHCP helper.
 # Sorts before 05-reserved-builtin.network, which stays installed for rollback.
 [Match]
 Name=enp1s0

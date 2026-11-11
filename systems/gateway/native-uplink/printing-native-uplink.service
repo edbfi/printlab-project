@@ -1,5 +1,5 @@
 [Unit]
-Description=Guarded native Ethernet DHCP (manual trial only)
+Description=Guarded native Ethernet DHCP
 After=systemd-networkd.service
 
 [Service]
@@ -20,7 +20,7 @@ Restart=no
 StandardOutput=journal
 StandardError=journal
 
-# No [Install] section: do not enable at boot before separate acceptance.
+# Boot enablement and readiness conditions are supplied by native-persistent.conf.
 # Budget 70s TERM, potentially another 70s KILL wait, and up to 67s cleanup.
-# These timers cannot bound uninterruptible kernel tasks. Future rollback must
+# These timers cannot bound uninterruptible kernel tasks. Rollback must
 # verify resource absence; an aggregate cleanup timeout is not cleanup success.

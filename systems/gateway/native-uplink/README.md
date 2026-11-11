@@ -52,6 +52,8 @@ The installed root config explicitly enables acquisition and this timing assumpt
 
 The native profile sorts before the retained `05-reserved-builtin.network`. `KeepConfiguration=dynamic` preserves the helper's finite address; `ManageForeignRoutes=no` leaves owned routes and the authorized VPN pin intact. networkd's own DHCP, link-local addressing and router advertisements remain disabled. Preserve the reserved profile and MAC guard. Never restart networkd, regenerate Netplan or reconfigure Wi-Fi/USB as part of a native-only change.
 
+The profile requires systemd **257 or newer** for `KeepConfiguration=dynamic` ([upstream setting change](https://raw.githubusercontent.com/systemd/systemd/v257/NEWS)); the gateway runs systemd 259.9. An older networkd can ignore the value and remove the helper's address during reconfiguration.
+
 Only `status` may run unprivileged:
 
 ```sh
@@ -59,6 +61,8 @@ Only `status` may run unprivileged:
 ```
 
 It checks live identity, carrier, address lifetime and routes against boot-scoped eligibility. It changes no state and reads no private ownership/config file. The [VPN policy](../vpn-policy/README.md) treats unknown native resources as blocking reconnect. Native permits only the configured static endpoint; country fallback requires native withdrawal and eligible Wi-Fi. A healthy Wi-Fi tunnel is retained by policy, while Windscribe may independently react to route changes.
+
+Snapshots are strict and collected across separate commands. Concurrent interface changes, unsupported route attributes or a recreated native interface with a different ifindex can stop the helper or block eligibility, even for Wi-Fi. The service does not automatically restart or adopt a replacement identity; these cases require operator reconciliation.
 
 Removing a native pin alone does not restore Wi-Fi: remaining VPN split defaults can still misroute its endpoint. Recovery must use the supported disconnect/reconnect sequence and verify actual transport. A carrier-up upstream outage with a valid native lease is not automatically withdrawn.
 

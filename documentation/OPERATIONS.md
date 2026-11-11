@@ -140,7 +140,7 @@ Do not stop a running `printing-uplink-boot-check.service`: its failure starts t
 
 The access point's cable goes in the USB adapter `enx00e04c48acf0`, in the socket given under [hardware](NETWORK.md#hardware); the school cable goes in `enp1s0`. Test with the printer-LAN checks above, because carrier can stay up while traffic fails. Replug the adapter only with independent access open and no print running.
 
-Do not run `netplan apply` or restart `systemd-networkd` to recover the link: that reconfigures the uplinks too. Keep `/var/lib/printing-station/rollback/20261110-lan-usb/` intact: staging requires the directory, the files listed in its manifests are protected inputs, and its restore scripts do not fit the current cabling.
+Do not run `netplan apply` or restart `systemd-networkd` to recover the link: that reconfigures the uplinks too. Keep `/var/lib/printing-station/rollback/20261110-lan-usb/` intact: staging requires the directory, the files listed in its manifests are protected inputs, and its hashes and restore scripts do not fit the current cabling or adapter.
 
 ## Maintenance windows
 
@@ -179,13 +179,13 @@ These tracked changes behave differently from the installed copies ([compare](..
 - `native-uplink/trial/uplink-trial.py`: the installed rollback stops the VPN policy before checking protected inputs, so a changed input leaves the policy stopped on native Ethernet until an operator acts. It also clears `pending` and writes `rollback-complete` before restarting the policy timers, and retries skip that restart; check the timers after a fallback.
 - `native-uplink/boot/uplink-boot.py`: the installed checker also writes a persistent `boot-verified` file into the recovery directory. Only `/run/printing-native-uplink/boot-verified` reflects the current boot.
 - `native-uplink/boot/wait-online.conf`: the installed drop-in waits for `wlan0` only; a routable `enp1s0` alone does not bring the host online.
-- `host/boot-evidence/boot-evidence`: the installed script records no verified boot uplink and no `enp1s0` address, and waits for Wi-Fi authentication and `tun0` instead of the boot check.
+- `host/boot-evidence/boot-evidence`: the installed script records no verified boot uplink and no `enp1s0` address, and with native boot enabled waits for Wi-Fi authentication and `tun0` instead of the boot check.
 - `vpn-policy/vpn-policy.py`: the installed policy never calls the native helper's `status`. It counts the uplink as available whenever `wlan0` has carrier, connects without checking which uplink the route selects, and has none of the [native restrictions](../systems/gateway/README.md#vpn-policy), so over native Ethernet it also tries country locations.
 
 ## Secrets and recovery state
 
 On the Chromebook, `~/.config/printing-station/credentials/` (0700) holds `printer-wifi.txt` and `router-admin.txt` (0600), and `~/.ssh/id_ed25519` is passphrase-protected. Keep `~/.config/BambuStudio/` in place; never export the session. Its checkout holds the ignored private printer inventory `documentation/printing/PRINTERS.private.md` and the access point backup in `.work/setup/router-backups/`.
 
-On Radxa, `/etc/wpa_supplicant/wpa_supplicant-wlan0.conf` is 0600 and `~/.config/Windscribe/` 0700. The static VPN IP is in `/etc/printing-station/vpn-policy.json`; the native VPN endpoint, a different address, is in `/etc/printing-station/native-uplink.json` (0600).
+On Radxa, `/etc/wpa_supplicant/wpa_supplicant-wlan0.conf` is 0600 and `~/.config/Windscribe/` 0700. The static VPN IP is in `/etc/printing-station/vpn-policy.json`; the native VPN endpoint, a different address, is in `/var/lib/printing-station/rollback/native-uplink-trial/trial.json` and, while native boot is enabled, in `/etc/printing-station/native-uplink.json` (0600).
 
-Both hosts keep root-only snapshots in `/var/lib/printing-station/rollback/`. On Radxa, `native-uplink-trial/` is live recovery state and `20261110-lan-usb/` protects the current USB LAN. Directories created by the [change procedure](#change-procedure) hold one change's saved files. The other dated directories snapshot earlier topologies and can contain credentials; never restore them.
+Both hosts keep root-only snapshots in `/var/lib/printing-station/rollback/`. On Radxa, `native-uplink-trial/` is live recovery state; keep `20261110-lan-usb/` intact as described under [USB printer link](#usb-printer-link). Directories created by the [change procedure](#change-procedure) hold one change's saved files. The other dated directories snapshot earlier topologies and can contain credentials; never restore them.

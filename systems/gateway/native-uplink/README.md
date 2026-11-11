@@ -63,7 +63,7 @@ Staging hashed every networkd input (the `/etc`, `/run` and `/usr/lib` copies of
 
 | Unit | Started by |
 |---|---|
-| `printing-native-uplink.service` | Enabled, conditions above |
+| `printing-native-uplink.service` | Enabled while native boot is enabled, conditions above; fallback disables it |
 | `printing-uplink-boot-check.service` | Enabled; runs only with `boot-enabled` and without `boot-fallback` or `pending` |
 | `printing-uplink-boot-watchdog.timer` | Enabled; starts `printing-uplink-boot-watchdog.service` |
 | `printing-uplink-boot-recover.service` | Enabled by staging; if `pending` survived a reboot, reconnects the VPN over Wi-Fi |

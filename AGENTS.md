@@ -6,7 +6,7 @@
 - On the gateway, stay read-only unless the task asks for a change. Use only the privileges granted for the current task; do not extend an expired sudo grant or restore archived permission policies.
 - Without an explicit instruction for that specific action, never:
   - restart or reload `systemd-networkd`, run `netplan apply` or `networkctl reload`;
-  - stop `printing-uplink-boot-check.service` or start any `printing-uplink-*` unit;
+  - stop `printing-uplink-boot-check.service` or `printing-native-uplink.service`, or start any `printing-uplink-*` unit;
   - run `uplink-trial.py`, `uplink-boot.py` or `stage-trial.py`;
   - change or delete anything that already exists under `/var/lib/printing-station/rollback/`;
   - change Windscribe, the supplicant, SSH, fail2ban or the firewall;
@@ -41,7 +41,7 @@ Each fact has one home. Elsewhere, link to it or leave it out.
 
 - The repository is public. Never commit credentials, real account names, the static VPN IP, the native VPN endpoint, DHCP leases, logs, captures or rollback archives. Use placeholders such as `<gateway-user>`, and render templates outside the checkout.
 - Never modify `.work/` or `*.private.md`.
-- Use Conventional Commits and a Conventional PR title. Mark a breaking change with `!` in the commit header and in the PR title; the [PR policy](.github/workflows/pr-policy.yml) rejects a breaking commit under an unmarked title, and rejects unsigned commits. Sign off every commit with `git commit -s`.
+- Use Conventional Commits and a Conventional PR title. Mark a breaking change with `!` in the commit header and in the PR title; the [PR policy](.github/workflows/pr-policy.yml) also treats a `BREAKING CHANGE:` footer as breaking, rejects a breaking commit under an unmarked title, and rejects a commit whose `Signed-off-by` line does not match its author's name and email. Sign off every commit with `git commit -s` and leave the author unchanged.
 
 ## Before finishing
 

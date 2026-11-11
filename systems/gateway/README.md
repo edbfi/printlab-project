@@ -60,10 +60,11 @@ On Radxa, from the checkout root, render the VPN service templates outside the c
 
 ```sh
 u=<gateway-user>
+d=$(mktemp -d)
 for s in check refresh; do
   sed -e "s|@GATEWAY_USER@|$u|g" -e "s|@GATEWAY_GROUP@|$(id -gn "$u")|g" \
       -e "s|@GATEWAY_UID@|$(id -u "$u")|g" -e "s|@GATEWAY_HOME@|$(getent passwd "$u" | cut -d: -f6)|g" \
-      systems/gateway/vpn-policy/systemd/printing-vpn-$s.service.in > "/tmp/printing-vpn-$s.service"
+      systems/gateway/vpn-policy/systemd/printing-vpn-$s.service.in > "$d/printing-vpn-$s.service"
 done
 ```
 

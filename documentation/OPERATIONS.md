@@ -39,7 +39,7 @@ Changes to Windscribe, networkd, the supplicant, SSH, fail2ban or the firewall c
 3. Validate and apply as described for the [component](../systems/gateway/README.md#validate-and-apply).
 4. Check over a fresh login, then cancel the rollback with `sudo systemctl stop printing-change-rollback.timer`.
 
-While native Ethernet is in use, fallback to Wi-Fi refuses to run if a [protected input](../systems/gateway/native-uplink/README.md#protected-inputs) has changed: any networkd file, including the packaged ones under `/usr/lib/systemd/network/`; `/etc/printing-station/vpn-policy.json`; and the USB LAN files `gateway.nft`, `dnsmasq.conf`, `printing-dhcp.service`, `printing-gateway.service`, `gateway-control`, `docker-forwarding` and the supplicant configuration. `sudo jq -r 'keys[]' /var/lib/printing-station/rollback/native-uplink-trial/protected.json` lists them all. A package upgrade that changes a packaged networkd file blocks fallback the same way. Fall back to Wi-Fi before changing them; that disables native boot ([current faults](#current-faults)). Fallback also reinstalls the `vpn-policy.py` saved at staging over any newer copy.
+While native boot is enabled, and until a fallback has completed, fallback to Wi-Fi refuses to run on either uplink if a [protected input](../systems/gateway/native-uplink/README.md#protected-inputs) has changed: any networkd file, including the packaged ones under `/usr/lib/systemd/network/`; `/etc/printing-station/vpn-policy.json`; and the USB LAN files `gateway.nft`, `dnsmasq.conf`, `printing-dhcp.service`, `printing-gateway.service`, `gateway-control`, `docker-forwarding` and the supplicant configuration. `sudo jq -r 'keys[]' /var/lib/printing-station/rollback/native-uplink-trial/protected.json` lists them all. A package upgrade that changes a packaged networkd file blocks fallback the same way. Fall back to Wi-Fi before changing them; that disables native boot ([current faults](#current-faults)). Fallback also reinstalls the `vpn-policy.py` saved at staging over any newer copy.
 
 Do not interrupt print jobs, printer firmware updates, Studio sessions or other Docker containers.
 
@@ -93,11 +93,11 @@ The last line should print the static VPN IP; on Radxa, add `--interface tun0` t
 The VPN policy, the DNS checker and the native boot check each act within minutes; let them run first.
 
 - **Chromebook offline:** on the Chromebook, `nmcli connection up '3D-Printere client'`.
-- **VPN down:** read `journalctl -u windscribe-helper -u printing-vpn-check.service` and, as the gateway user, `journalctl --user -u windscribe`. To connect by hand, stop the policy first:
+- **VPN down:** on Radxa, as the gateway user, read `journalctl -u windscribe-helper -u printing-vpn-check.service` and `journalctl --user -u windscribe`. To connect by hand, stop the policy first:
 
   ```sh
   sudo systemctl stop printing-vpn-check.timer printing-vpn-refresh.timer printing-vpn-check.service printing-vpn-refresh.service
-  /opt/windscribe/windscribe-cli connect static <static-ip> stealth:443   # as the gateway user
+  /opt/windscribe/windscribe-cli connect static <static-ip> stealth:443
   sudo systemctl start printing-vpn-check.timer printing-vpn-refresh.timer
   ```
 
@@ -108,16 +108,16 @@ The VPN policy, the DNS checker and the native boot check each act within minute
 
 ### Native uplink recovery
 
-If the boot check finds no verified static VPN, or none is verified 12 minutes after boot, Radxa falls back to Wi-Fi without SSH. To fall back deliberately:
+If the boot check finds no verified static VPN, or none is verified 12 minutes after boot, Radxa falls back to Wi-Fi without SSH. To fall back deliberately, on Radxa as the gateway user:
 
 ```sh
 sudo systemctl start --no-block printing-uplink-boot-fallback.service
 journalctl -u printing-uplink-boot-fallback.service -u printing-uplink-rollback.service -f
 ```
 
-This disconnects the VPN, stops native DHCP, disables native boot permanently and reconnects the static VPN over Wi-Fi. The printer LAN stays up; remote SSH drops meanwhile.
+It does nothing unless native boot is enabled or an earlier fallback is unfinished. It disconnects the VPN, stops native DHCP, disables native boot permanently and reconnects the static VPN over Wi-Fi. The printer LAN stays up; remote SSH drops meanwhile.
 
-One rollback attempt takes at most 20 minutes; failures are retried after 30 seconds, up to three attempts an hour. If you lose contact, wait 20 minutes; after a boot-triggered fallback, count them from the 12-minute boot deadline. Then retry `ssh -p 22222 <gateway-user>@radxa.edb.fi` with host-key checking on, every 20 minutes. After an hour without contact, recovery needs local access; do not try route flushes, cable swaps or repeated reboots.
+One rollback attempt takes at most 20 minutes; a failure before the Wi-Fi reconnect is retried after 30 seconds, up to three attempts an hour. If the Wi-Fi reconnect fails, rollback is not retried, the policy timers take over, and the last `rollback-` journal line is `rollback-failed`. If you lose contact, wait 20 minutes; after a boot-triggered fallback, count them from the 12-minute boot deadline. Then retry `ssh -p 22222 <gateway-user>@radxa.edb.fi` with host-key checking on, every 20 minutes. After an hour without contact, recovery needs local access; do not try route flushes, cable swaps or repeated reboots.
 
 Fallback has worked when, on Radxa:
 
@@ -132,9 +132,9 @@ Fallback has worked when, on Radxa:
 
 and a login over `radxa.edb.fi:22222` from outside the school works.
 
-If the journal shows `Networkd input inventory changed` or `Protected input changed: <path>`, rollback stopped before disconnecting and native Ethernet is still in use. Restore the changed or removed file, or remove the added one, then run `sudo systemctl reset-failed printing-uplink-rollback.service` and `sudo systemctl start --no-block printing-uplink-rollback.service`. Never regenerate the hash manifests or rerun staging.
+If `journalctl -b -u printing-uplink-rollback.service -g 'input|FileNotFoundError'` shows `Networkd input inventory changed`, `Protected input changed: <path>` or, for a removed protected file, `FileNotFoundError`, rollback stopped before disconnecting and the uplink is unchanged. If `vpn-policy.py` also differs from the copy staged with native, the VPN policy stays stopped (`Cannot resume a policy that differs from the native snapshot`). Restore the changed or removed file, or remove the added one, then run `sudo systemctl reset-failed printing-uplink-rollback.service` and `sudo systemctl start --no-block printing-uplink-rollback.service`. Never regenerate the hash manifests or rerun staging.
 
-Do not stop a running `printing-uplink-boot-check.service`: its failure starts the fallback. Do not change anything in `/var/lib/printing-station/rollback/native-uplink-trial/`; the installed controllers read it. Never restore a snapshot that put the printer LAN on native Ethernet.
+Do not stop a running `printing-uplink-boot-check.service`: its failure starts the fallback. Never stop `printing-native-uplink.service` alone in place of a fallback: it withdraws the native address and routes, which drops the VPN and SSH while on native Ethernet. Do not change anything in `/var/lib/printing-station/rollback/native-uplink-trial/`; the installed controllers read it. Never restore a snapshot that put the printer LAN on native Ethernet.
 
 ### USB printer link
 
@@ -144,7 +144,7 @@ Do not run `netplan apply` or restart `systemd-networkd` to recover the link: th
 
 ## Maintenance windows
 
-**VPN refresh:** `printing-vpn-refresh.timer` fires daily at 04:30 Europe/Copenhagen and the policy acts until 05:00. It can reconnect as described under [VPN policy](../systems/gateway/README.md#vpn-policy), which interrupts cloud printing. Missed runs are skipped. To protect a print overnight:
+**VPN refresh:** `printing-vpn-refresh.timer` fires daily at 04:30 Europe/Copenhagen and the policy acts until 05:00. It can reconnect as described under [VPN policy](../systems/gateway/README.md#vpn-policy), which interrupts cloud printing. Missed runs are skipped. To protect a print overnight, on Radxa as the gateway user:
 
 ```sh
 sudo systemctl stop printing-vpn-refresh.timer printing-vpn-refresh.service
@@ -168,6 +168,7 @@ It prints its decision and changes nothing, or `Another policy run is active; sk
 - **Automatic upgrades:** Armbian's precheck in `/etc/systemd/system/apt-daily-upgrade.service.d/armbian-exec-correct-service.conf` runs `systemd-networkd-wait-online --any --timeout=60`. Every profile sets `RequiredForOnline=no`, so it can time out and skip the upgrade although the uplinks work.
 - **Upstream failover:** if the school network fails upstream while `enp1s0` keeps carrier and a valid lease, the gateway stays on Ethernet. Fallback is tested only for an administratively downed link, not a pulled cable or a natural lease renewal.
 - **Native boot after fallback:** no tracked procedure re-enables it, and `stage-trial.py` refuses to run while the recovery directory exists.
+- **Native-uplink changes:** no tracked procedure installs a new helper, `trial/` or `boot/` script or unit. An update must keep the snapshots and hash manifests in the recovery directory, and a helper `status` the installed VPN policy accepts.
 - **Workstation:** touch input, audio, and behaviour on lid close, idle and power loss are unchecked.
 
 ### Not installed on the gateway

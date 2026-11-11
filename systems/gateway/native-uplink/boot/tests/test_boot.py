@@ -78,6 +78,20 @@ class BootTests(unittest.TestCase):
             healthy.assert_called_once_with(t)
             t.write.assert_called_once_with(base/'boot-verified',b'enp1s0\n')
 
+    def test_verified_boot_does_not_require_writable_persistent_audit_storage(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            (base / 'boot-enabled').touch()
+            t = Mock()
+            t.RUNTIME = base / 'runtime'
+            t.wait_for.side_effect = lambda predicate, seconds: self.assertTrue(predicate())
+            t.marker.side_effect = OSError('read-only persistent storage')
+            t.write.side_effect = lambda path, data: path.write_bytes(data)
+            with patch.object(boot, 'BASE', base), patch.object(boot, 'healthy', return_value='enp1s0'):
+                boot.check(t)
+            self.assertEqual((t.RUNTIME / 'boot-verified').read_bytes(), b'enp1s0\n')
+            t.systemctl.assert_not_called()
+
     def test_check_cannot_publish_success_after_revocation(self):
         with tempfile.TemporaryDirectory() as directory:
             base=Path(directory);(base/'boot-enabled').touch();t=Mock();t.RUNTIME=base

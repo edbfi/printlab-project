@@ -65,7 +65,6 @@ def check(t):
         raise RuntimeError('Boot acceptance revoked during verification')
     t.RUNTIME.mkdir(mode=0o755,exist_ok=True)
     t.write(t.RUNTIME/'boot-verified',(link+'\n').encode())
-    t.marker('boot-verified')
     print('Verified boot transport: '+link,flush=True)
 
 

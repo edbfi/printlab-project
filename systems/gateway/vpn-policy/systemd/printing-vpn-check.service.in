@@ -1,5 +1,5 @@
 [Unit]
-Description=Check printer VPN and recover through preferred countries
+Description=Check printer VPN and recover the static IP or a permitted country
 After=network-online.target windscribe-helper.service user@@GATEWAY_UID@.service
 
 [Service]

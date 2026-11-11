@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-# Give each repo its own weekly minute. Every added PR job belongs in ci-ok. No paths: filter:
-# a skipped workflow leaves the required checks pending.
+# Every added PR job belongs in ci-ok. No paths: filter: a skipped workflow
+# leaves the required checks pending.
 name: CI
 on:
   pull_request:
   push: { branches: [main] }
   workflow_dispatch:
-  schedule: [{ cron: "32 4 * * 0" }]   # weekly main revalidation; minute unique per repo
+  schedule: [{ cron: "32 4 * * 0" }]   # weekly main revalidation
 permissions: {}
 concurrency:
   group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}-{1}', github.event.pull_request.number, github.event.pull_request.head.sha) || format('ci-{0}', github.sha) }}

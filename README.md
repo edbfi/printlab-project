@@ -1,42 +1,36 @@
 # printlab-project
 
-A shared printing station with two Bambu Lab A1 minis and a Lubuntu Chromebook running Bambu Studio. A Radxa Dragon Q6A provides the school uplink, Windscribe VPN, firewall, DHCP and DNS independently of the Chromebook. Native Ethernet is primary, Wi-Fi is backup, and USB Ethernet connects the printer access point.
+Configuration and documentation for a shared 3D-printing station: two Bambu Lab A1 minis, a Lubuntu Chromebook running Bambu Studio, and a Radxa Dragon Q6A that is the station's network gateway. The repository tracks the gateway's configuration by component; it is not a machine installer, and nothing in it deploys itself.
 
-Slicing and transfer work through Studio in the existing desktop session. There is no kiosk mode. USB printer-LAN instability and intermittent boot resets remain unresolved; see [current faults](documentation/OPERATIONS.md#current-faults).
+## Documents
 
-## Guides
+| Document | Contents |
+|---|---|
+| [Printing](documentation/PRINTING.md) | Printers, printing a job and the workstation, for lab users |
+| [Network](documentation/NETWORK.md) | Topology, addressing, hardware, uplinks and VPN, DNS paths, firewall |
+| [Operations](documentation/OPERATIONS.md) | Access, change procedure, diagnostics, recovery, maintenance windows, current faults |
+| [Gateway](systems/gateway/README.md) | Map from repository files to installed paths, validating and applying changes, DNS, VPN policy and host behaviour |
+| [Native uplink](systems/gateway/native-uplink/README.md) | Ethernet DHCP helper, boot check and Wi-Fi fallback |
+| [Fan](systems/gateway/fan/README.md) | Fan wiring, device-tree overlay and stock-DTB recovery |
 
-- [Printing](documentation/PRINTING.md): equipment, daily workflow and workstation session.
-- [Network](documentation/NETWORK.md): topology, addressing, hardware, VPN, DNS and isolation.
-- [Operations](documentation/OPERATIONS.md): access, diagnostics, recovery, maintenance and current faults.
-- [Gateway components](systems/gateway/README.md): source, installed-file mappings and component maintenance.
+Rules for agents and contributors are in [AGENTS.md](AGENTS.md).
 
-`systems/gateway/` contains the native uplink, VPN policy, DNS, firewall, network profiles, host hardening and fan configuration. This is a deployment-specific repository, not a complete machine installer. The workstation is documented in the printing guide; no workstation implementation is packaged here.
+## Checks
 
-## Development
-
-Run `prek install` once to install the configured `pre-commit` and `commit-msg` hooks. Commits run staged-file checks, the offline suites and the commit-title check. The manual command below checks all files but skips commit-message and staged-only hooks.
-
-Run the repository's checks **as an unprivileged user**, from its root:
+Run as an unprivileged user from the repository root:
 
 ```sh
 prek run --all-files --hook-stage manual
 ```
 
-CI runs the same command. It includes formatting/configuration/security checks and all five offline gateway suites: native DHCP, trial recovery, boot recovery, VPN policy and DNS. To run one suite:
+CI runs the same command. It covers formatting, configuration and security checks and the five offline gateway test suites: native DHCP, trial recovery, boot recovery, VPN policy and DNS. The suites simulate the system and must not run as root. To run one suite:
 
 ```sh
 python3 -B -m unittest discover -s systems/gateway/native-uplink/tests
 ```
 
-These suites use temporary state and simulated dependencies; do not run them as root or use installed recovery tools as test commands. Editing or testing the checkout does not deploy changes.
-
-Use Conventional Commits and Conventional PR titles (`type(scope): description`). If any commit is breaking (`!` or a `BREAKING CHANGE` footer), the PR title must include `!`. Sign off commits with `git commit -s`; `Signed-off-by` must match the commit author's name and email. See the [PR policy workflow](.github/workflows/pr-policy.yml) for exact validation and exceptions.
-
-Keep implementation, configuration, units and tests together by component. Use the guide that owns a subject instead of repeating it across documents. Documentation describes **the current system only**: remove superseded states, migration logs, dated test reports, review transcripts and future-work plans. Git history preserves earlier versions. Keep material operating limits with the current behavior and unresolved faults in operations.
-
-Use account placeholders in tracked examples and render service templates privately. Keep credentials, private inventory, login/session exports, captures, runtime state, jobs and recovery archives outside Git. `.work/` and `*.private.md` are ignored; preserve their contents and review diffs before publication. Installed `/etc/printing-station/`, `/usr/local/libexec/printing-station/` and `/var/lib/printing-station/` paths are independent of repository organization.
+`prek install` installs the `pre-commit` and `commit-msg` hooks.
 
 ## License
 
-GNU AGPL-3.0-only; see [LICENSE](LICENSE). Third-party software retains its own licenses.
+GNU AGPL-3.0-only; see [LICENSE](LICENSE). Third-party software keeps its own licenses.

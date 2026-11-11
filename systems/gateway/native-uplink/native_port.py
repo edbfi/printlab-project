@@ -1,4 +1,4 @@
-"""Privileged OS adapter. Not an entry point or authorization to deploy.
+"""Privileged OS adapter for the native helper; not an entry point.
 
 All mutations require the shared lock and previously persisted intent. The
 service bounds the complete handler in addition to each command.

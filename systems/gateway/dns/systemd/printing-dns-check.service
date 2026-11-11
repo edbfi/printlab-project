@@ -1,5 +1,5 @@
 [Unit]
-Description=Check printer-LAN DNS end to end and repair local DNS services
+Description=Check printer-LAN DNS at the gateway resolver and repair local DNS services
 After=printing-dhcp.service unbound.service
 
 [Service]

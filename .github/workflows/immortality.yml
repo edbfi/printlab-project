@@ -4,7 +4,7 @@
 # workflows with a personal token (github.token cannot), which resets that
 # counter. Workflows disabled by hand stay disabled. Nothing reports it if
 # GitHub disables this workflow itself.
-# From edbfi/homebrew-taps; script: PhrozenByte/gh-workflow-immortality v1.1.1 (MIT).
+# Script: PhrozenByte/gh-workflow-immortality v1.1.1 (MIT).
 name: immortality
 
 on:

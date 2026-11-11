@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -I
 """Write one evidence line per boot: how the previous boot ended and how long
-the school Wi-Fi login and the VPN tunnel took to come up, plus native eligibility.
+the school Wi-Fi login and the VPN tunnel took to come up, plus the verified boot uplink.
 
 Runs at every boot from printing-boot-evidence.service. The current boot is
 recorded once the VPN boot check passed (or historical WLAN auth and tunnel

@@ -1,7 +1,7 @@
 """Pure pre-assignment checks for the native DHCP hook.
 
-No command execution or networking lives here. Passing these checks does not
-authorize installation: the caller must also establish callback freshness,
+No command execution or networking lives here. Passing these checks is not
+sufficient: the caller must also establish callback freshness,
 identity, serialization, remaining lifetime, and safe address/route ownership.
 """
 

@@ -146,9 +146,11 @@ class RecoveryRegressionTests(IsolatedTrialTestCase):
                         patch.object(trial, 'pause_policy') as pause, \
                         patch.object(trial, 'disconnect') as disconnect, \
                         patch.object(trial, 'stop_native') as stop, \
-                        patch.object(trial, 'systemctl') as systemctl:
+                        patch.object(trial, 'systemctl') as systemctl, \
+                        patch('builtins.print') as output:
                     with self.assertRaises(RuntimeError):
                         trial.rollback()
+                    output.assert_called_once_with('Rollback rejected: RuntimeError: input drift', flush=True)
                     self.assertTrue((base / 'pending').exists())
                     pause.assert_not_called()
                     disconnect.assert_not_called()

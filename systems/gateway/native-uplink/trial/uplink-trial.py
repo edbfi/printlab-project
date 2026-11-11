@@ -472,7 +472,8 @@ def rollback():
     # also gates policy units, so explicitly release only the matching policy.
     try:
         hashes()
-    except (RuntimeError, OSError, ValueError):
+    except (RuntimeError, OSError, ValueError) as error:
+        print(f'Rollback rejected: {type(error).__name__}: {error}', flush=True)
         resume_matching_policy()
         raise
     (RUNTIME / 'trial-permit').unlink(missing_ok=True)

@@ -15,7 +15,8 @@ Installed files are root-owned, mode 0644 unless noted. Rows marked "host only" 
 
 | Repository file | Installed path |
 |---|---|
-| `network/*.network`, `native-uplink/05-native-uplink.network` | `/etc/systemd/network/` |
+| `network/*.network` | `/etc/systemd/network/` |
+| `native-uplink/05-native-uplink.network` | `/etc/systemd/network/` while native boot is enabled; fallback removes it |
 | `native-uplink/networkd.conf.d/10-keep-foreign-routes.conf` | `/etc/systemd/networkd.conf.d/` |
 | Host only | `/etc/systemd/network/05-school-wifi.network`; `/etc/wpa_supplicant/wpa_supplicant-wlan0.conf` (0600) for `wpa_supplicant@wlan0` |
 | `firewall/gateway.nft` | `/etc/printing-station/` |
@@ -31,8 +32,8 @@ Installed files are root-owned, mode 0644 unless noted. Rows marked "host only" 
 | `vpn-policy/systemd/*.timer` | `/etc/systemd/system/`; enabled |
 | Host only | `windscribe-helper.service.d/printing-station.conf`; the gateway user's `windscribe.service` with `~/.config/systemd/user/windscribe.service.d/printing-station.conf` and `10-hardening.conf`; `user@1000.service.d/10-hardening.conf` and `/etc/systemd/user.conf.d/10-hardening.conf` (OOM scores) |
 | `native-uplink/native-uplink`, `native-uplink-hook`, `*.py` | `/usr/local/libexec/printing-station/native-uplink/`; entry points 0755 |
-| `native-uplink/native-uplink.json` | `/etc/printing-station/` (0600), with `allow_acquisition` and `timing_assumption_approved` true and `vpn_endpoint` set |
-| `native-uplink/printing-native-uplink.service` | `/etc/systemd/system/`; enabled |
+| `native-uplink/native-uplink.json` | `/etc/printing-station/` (0600); native boot needs `allow_acquisition` and `timing_assumption_approved` true and `vpn_endpoint` set, and fallback restores the tracked copy |
+| `native-uplink/printing-native-uplink.service` | `/etc/systemd/system/`; enabled while native boot is enabled |
 | `native-uplink/boot/native-persistent.conf` | `/etc/systemd/system/printing-native-uplink.service.d/zz-persistent.conf` |
 | `native-uplink/boot/wait-online.conf` | `/etc/systemd/system/systemd-networkd-wait-online.service.d/printing-station.conf` |
 | `native-uplink/boot/uplink-boot.py`, `trial/uplink-trial.py` | `/usr/local/libexec/printing-station/` (0755) |
@@ -77,7 +78,7 @@ On Radxa, from the checkout root, diff a tracked file against its path from the 
 diff -u /etc/printing-station/gateway.nft systems/gateway/firewall/gateway.nft
 ```
 
-Compare rendered templates instead of `.in` files, and use `sudo diff` for 0600 files. The installed `vpn-policy.json` and `native-uplink.json` hold private values and always differ. `systemctl cat <unit>` shows a unit with all its drop-ins. Known differences are listed under [not installed](../../documentation/OPERATIONS.md#not-installed-on-the-gateway).
+Compare rendered templates instead of `.in` files, and use `sudo diff` for 0600 files. The installed `vpn-policy.json` holds private values and always differs, as does `native-uplink.json` while native boot is enabled. `systemctl cat <unit>` shows a unit with all its drop-ins. Known differences are listed under [not installed](../../documentation/OPERATIONS.md#not-installed-on-the-gateway).
 
 ## Validate and apply
 

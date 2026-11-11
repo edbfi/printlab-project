@@ -16,10 +16,10 @@
  * U48's header side tolerates 6.5V as an input; while U48 drives it, the
  * limit is 3V3 + 0.5V. Noctua only says the fan pulls its PWM input up to
  * "3,3V/5V" internally (at most 5.25V open circuit, 5mA short circuit).
- * Owners of Noctua 5V PWM fans measured about 3.7V open circuit, and 3.3V
- * once a 3V3 GPIO drives it. In parallel with U48's 10k pull-up to 3V3,
- * the line idles between 3V3 and the fan's own open-circuit level: below
- * 3V3 + 0.5V while that is about 3.7V. Noctua's 5mA short-circuit limit
+ * This fan's open-circuit PWM voltage has not been measured. In parallel
+ * with U48's 10k pull-up to 3V3, the line idles between 3V3 and the fan's
+ * own open-circuit level, so it stays within 3V3 + 0.5V only while that
+ * level is at most 3.8V. Noctua's 5mA short-circuit limit
  * caps any current fed back into 3V3. A fan whose PWM input idles near 5V
  * needs a push-pull buffer instead, or pin 4 left unconnected (the fan
  * then runs at full speed). The tach is open collector (at most 5mA), so

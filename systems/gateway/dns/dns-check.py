@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Check printer-LAN DNS end to end; restart only the local DNS services."""
+"""Query printer-LAN DNS at the gateway's own resolver; restart only local DNS services."""
 
 import json
 import os

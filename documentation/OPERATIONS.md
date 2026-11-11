@@ -31,11 +31,11 @@ Changes to Windscribe, networkd, the supplicant, SSH, fail2ban or the firewall c
    ```sh
    d=/var/lib/printing-station/rollback/$(date +%Y%m%d-%H%M)-<change>
    sudo install -d -m 0700 "$d"
-   sudo cp -a --parents <installed-file>... "$d"/
-   sudo systemd-run --unit=printing-change-rollback --on-active=15min /bin/sh -c "cp -a $d/. / && <reload-command>"
+   sudo tar -cpPf "$d/files.tar" <installed-file>...
+   sudo systemd-run --unit=printing-change-rollback --on-active=15min /bin/sh -c "tar -xpPf $d/files.tar && <reload-command>"
    ```
 
-   After 15 minutes the rollback copies the saved files back and runs the reload command. It does not remove files the change added.
+   Give the installed files as absolute paths. After 15 minutes the rollback restores them with their owners and modes and runs the reload command. It does not remove files the change added.
 3. Validate and apply as described for the [component](../systems/gateway/README.md#validate-and-apply).
 4. Check over a fresh login, then cancel the rollback with `sudo systemctl stop printing-change-rollback.timer`.
 

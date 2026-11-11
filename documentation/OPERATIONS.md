@@ -175,9 +175,13 @@ It prints its decision and changes nothing, or `Another policy run is active; sk
 These tracked changes behave differently from the installed copies ([compare](../systems/gateway/README.md#compare-with-the-installed-copy)); other differences are in comments, docstrings and unit descriptions only.
 
 - `dns/dns-check.py`: the installed checker has no Control D probe. In a Control D outage it restarts unbound after a failed flush, emptying the cache that still answered known names.
-- `firewall/gateway.nft`: the installed dnsmasq rule lacks `ct direction original`, so it drops replies to clients that query from source port 53. `gateway.nft` is a protected input, so installing it needs a fallback to Wi-Fi first.
+- `firewall/gateway.nft`: the installed dnsmasq rule lacks `ct direction original`, so it drops replies to clients that query from source port 53.
 - `native-uplink/trial/uplink-trial.py`: the installed rollback stops the VPN policy before checking protected inputs, so a changed input leaves the policy stopped on native Ethernet until an operator acts. It also clears `pending` and writes `rollback-complete` before restarting the policy timers, and retries skip that restart; check the timers after a fallback.
 - `native-uplink/boot/uplink-boot.py`: the installed checker also writes a persistent `boot-verified` file into the recovery directory. Only `/run/printing-native-uplink/boot-verified` reflects the current boot.
+- `native-uplink/boot/wait-online.conf`: the installed drop-in waits for `wlan0` only; a routable `enp1s0` alone does not bring the host online.
+- `host/boot-evidence/boot-evidence`: the installed script records no verified boot uplink and no `enp1s0` address, and waits for Wi-Fi authentication and `tun0` instead of the boot check.
+- `vpn-policy/vpn-policy.py`: the installed policy never calls the native helper's `status`. It counts the uplink as available whenever `wlan0` has carrier, connects without checking which uplink the route selects, and has none of the [native restrictions](../systems/gateway/README.md#vpn-policy), so over native Ethernet it also tries country locations.
+
 ## Secrets and recovery state
 
 On the Chromebook, `~/.config/printing-station/credentials/` (0700) holds `printer-wifi.txt` and `router-admin.txt` (0600), and `~/.ssh/id_ed25519` is passphrase-protected. Keep `~/.config/BambuStudio/` in place; never export the session. Its checkout holds the ignored private printer inventory `documentation/printing/PRINTERS.private.md` and the access point backup in `.work/setup/router-backups/`.

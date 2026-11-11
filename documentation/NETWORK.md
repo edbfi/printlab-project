@@ -1,10 +1,10 @@
 # Network
 
-A Radxa Dragon Q6A runs the printer network, independently of the Chromebook. Built-in Ethernet is the primary school uplink, school Wi-Fi stays connected as backup, and a USB Ethernet adapter serves the printer LAN.
+A Radxa Dragon Q6A runs the printer network, independently of the Chromebook. School Wi-Fi is the school uplink, built-in Ethernet is [unused](#uplinks-and-vpn), and a USB Ethernet adapter serves the printer LAN.
 
 ```text
 Ishoj Kommune school network
-    │ enp1s0 primary / wlan0 backup
+    │ wlan0
 Radxa Dragon Q6A — Windscribe Stealth/443, firewall, DHCP and DNS
     │ USB Ethernet / 192.168.77.1
 TP-Link TL-WR902AC access point / 192.168.77.2
@@ -18,8 +18,8 @@ TP-Link TL-WR902AC access point / 192.168.77.2
 
 | Device / interface | Role | Address or identity |
 |---|---|---|
-| Radxa `enp1s0` | Primary school uplink, DHCP by the [native helper](../systems/gateway/native-uplink/README.md) | MAC `00:48:54:21:66:96`; default route metric 100 |
-| Radxa `wlan0` | Backup school uplink, DHCP by networkd | MAC `ec:b5:0a:98:36:cc`; default route metric 600 |
+| Radxa `enp1s0` | Native school uplink, [disabled](#uplinks-and-vpn) | MAC `00:48:54:21:66:96`; no address |
+| Radxa `wlan0` | School uplink, DHCP by networkd | MAC `ec:b5:0a:98:36:cc`; default route metric 600 |
 | Radxa `tun0` | Windscribe tunnel | Printer-LAN forwarding and NAT |
 | Radxa `enx00e04c48acf0` | Printer-LAN gateway, DHCP and DNS | `192.168.77.1/24`; MAC `00:e0:4c:48:ac:f0` |
 | Radxa `docker0` | Docker default bridge | `172.17.0.1/16` |
@@ -38,7 +38,7 @@ The access point bridges Ethernet to the **3D-Printere** network: WPA2-PSK/AES, 
 
 School Wi-Fi authenticates with PEAP/MSCHAPv2 through `wpa_supplicant@wlan0`. It validates the server certificate against `/etc/ssl/certs/ca-certificates.crt` for the names `ise.intern.ishoj.dk;ise02.intern.ishoj.dk` and requires protected management frames (`ieee80211w=2`). networkd runs DHCP on `wlan0` and ignores the DNS, domain and NTP options the school sends.
 
-On `enp1s0` the [native helper](../systems/gateway/native-uplink/README.md) runs DHCP instead of networkd. If no verified VPN comes up after boot, the gateway falls back to Wi-Fi by itself and keeps the printer LAN up ([recovery](OPERATIONS.md#native-uplink-recovery)).
+Native boot is disabled ([current faults](OPERATIONS.md#current-faults)), so `wlan0` is the only school uplink. With native boot enabled, the [native helper](../systems/gateway/native-uplink/README.md) runs DHCP on `enp1s0` instead of networkd, Ethernet is the primary uplink and Wi-Fi the backup; if no verified VPN comes up after boot, the gateway falls back to Wi-Fi by itself and keeps the printer LAN up ([recovery](OPERATIONS.md#native-uplink-recovery)).
 
 Windscribe runs as the gateway user's systemd user service with lingering, autoconnect, LAN access, restart on failure and its Always On firewall; its privileged helper is the system service `windscribe-helper`. The protocol, including the school-network override, is Stealth/443.
 

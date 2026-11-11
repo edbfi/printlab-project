@@ -10,7 +10,7 @@ Radxa provides the school uplink, VPN and printer-network services. [Network](..
 | [Host](host/README.md) | Service restart hardening, persistent logs, boot evidence and SSH bans |
 | [Fan](fan/README.md) | Kernel thermal control, wiring, DTB builder and stock-DTB recovery |
 
-The remaining network and firewall files are described below. Other live configuration, such as school authentication and account-specific services, is maintained on the host. Repository edits do not deploy it; use the component's installed-file mapping and preserve independent administration access before changing a live service.
+The remaining network and firewall files are described below. [Operations lists host-only configuration](../../documentation/OPERATIONS.md#installed-configuration), including school authentication, base service units and Docker integration. Repository edits do not deploy it; use the component's installed-file mapping and preserve independent administration access before changing a live service.
 
 ## Network profiles
 
@@ -23,12 +23,16 @@ Install nonsecret profiles root-owned, mode 0644, under `/etc/systemd/network/`:
 | [09-ethernet-safe-fallback.network](network/09-ethernet-safe-fallback.network) | MAC guard prevents either Ethernet adapter matching a generated DHCP catchall |
 | [05-native-uplink.network](native-uplink/05-native-uplink.network) | Active native profile; preserves helper-owned finite-lifetime IPv4 resources and sorts before the reserved profile |
 
-Keep DHCP binding, firewall interface, Docker forwarding and physical cable roles consistent. Do not install profiles independently, regenerate Netplan or restore a native-printer-LAN snapshot while the school cable is attached. Native recovery preserves the USB LAN. Keep non-Ethernet networkd inputs unchanged during native-only work; see [recovery constraints](../../documentation/OPERATIONS.md#usb-printer-link).
+Keep DHCP binding, firewall interface, Docker forwarding and physical cable roles consistent. Do not install profiles independently, regenerate Netplan or restore a native-printer-LAN snapshot while the school cable is attached. Native recovery preserves the USB LAN; follow the protected-input [recovery constraints](../../documentation/OPERATIONS.md#native-uplink-recovery).
 
 ## Firewall and Docker
 
-[firewall/gateway.nft](firewall/gateway.nft) defines `inet printer_gateway`, installed at `/etc/printing-station/gateway.nft` and loaded by `printing-gateway.service` through the installed `gateway-control` helper. It restricts printer forwarding to `tun0`, management input and host resolver egress. [Network](../../documentation/NETWORK.md#firewall-and-management) describes the boundaries.
+[firewall/gateway.nft](firewall/gateway.nft) defines `inet printer_gateway`, installed at `/etc/printing-station/gateway.nft` and loaded by `printing-gateway.service`. It restricts printer forwarding to `tun0`, management input and host resolver egress. [Network](../../documentation/NETWORK.md#firewall-and-management) describes the boundaries.
 
-[firewall/docker-forwarding](firewall/docker-forwarding) is installed under `/usr/local/libexec/printing-station/`. The installed `/etc/systemd/system/docker.service.d/printing-station.conf` drop-in reapplies `PRINTING-VPN` allowances without replacing unrelated Docker rules. Preserve existing containers and their data.
+[firewall/docker-forwarding](firewall/docker-forwarding) is installed under `/usr/local/libexec/printing-station/`. It maintains `PRINTING-VPN` allowances without replacing unrelated Docker rules. Preserve existing containers and their data.
 
-From the repository root, validate the candidate with `sudo nft -c -f systems/gateway/firewall/gateway.nft` before installing it. `sudo systemctl reload printing-gateway` validates and loads the installed file. Follow the [access safeguards](../../documentation/OPERATIONS.md#access) before reload; configuration snapshots belong under the private recovery root.
+### Applying firewall changes
+
+Validate **on Radxa**, where the `unbound`, `dnsmasq` and `systemd-resolve` accounts required by the rules exist. If a checkout is present, run `sudo nft -c -f systems/gateway/firewall/gateway.nft` from its root. Otherwise stage the candidate on Radxa and run `sudo nft -c -f /absolute/path/to/staged/gateway.nft`, substituting its actual path. Validation does not install it.
+
+Before installing, follow the [access safeguards](../../documentation/OPERATIONS.md#access): preserve independent access, timed rollback and a private snapshot of the installed file. Install the validated candidate at `/etc/printing-station/gateway.nft`, then run `sudo systemctl reload printing-gateway`, which validates and loads that installed file.

@@ -60,11 +60,11 @@ Only `status` may run unprivileged:
 /usr/bin/python3 -IB /usr/local/libexec/printing-station/native-uplink/native-uplink status
 ```
 
-It checks live identity, carrier, address lifetime and routes against boot-scoped eligibility. It changes no state and reads no private ownership/config file. The [VPN policy](../vpn-policy/README.md) treats unknown native resources as blocking reconnect. Native permits only the configured static endpoint; country fallback requires native withdrawal and eligible Wi-Fi. A healthy Wi-Fi tunnel is retained by policy, while Windscribe may independently react to route changes.
+It checks live identity, carrier, address lifetime and routes against boot-scoped eligibility. It changes no state and reads no private ownership/config file. The [VPN policy](../vpn-policy/README.md#native-integration) blocks reconnect on unknown native resources and restricts native to the static endpoint; eligible Wi-Fi permits country fallback after native withdrawal.
 
 Snapshots are strict and collected across separate commands. Concurrent interface changes, unsupported route attributes or a recreated native interface with a different ifindex can stop the helper or block eligibility, even for Wi-Fi. The service does not automatically restart or adopt a replacement identity; these cases require operator reconciliation.
 
-Removing a native pin alone does not restore Wi-Fi: remaining VPN split defaults can still misroute its endpoint. Recovery must use the supported disconnect/reconnect sequence and verify actual transport. A carrier-up upstream outage with a valid native lease is not automatically withdrawn.
+Removing a native pin alone does not restore Wi-Fi: remaining VPN split defaults can still misroute its endpoint. Recovery must use the supported disconnect/reconnect sequence and verify actual transport; see the [upstream failover limit](../../../documentation/OPERATIONS.md#current-faults).
 
 ## Boot and permanent fallback
 
@@ -76,7 +76,7 @@ Checker failure queues `printing-uplink-boot-fallback.service`. An independent w
 
 Fallback durably revokes boot enablement, serializes rollback and restores the saved readiness/boot-evidence files. It retries preparation at most three times per hour, without repeating an already-submitted rollback. Rollback disconnects Windscribe, stops native DHCP, verifies removal of owned resources, selects the reserved-native profile, restores the saved policy and explicitly reconnects static VPN over Wi-Fi. USB LAN configuration is preserved. See [operator recovery](../../../documentation/OPERATIONS.md#native-uplink-recovery).
 
-Rollback rejects protected-file or networkd inventory drift before pausing automation or withdrawing native resources. On that rejection, it retains retry admission and permits the matching native-aware policy to run; a changed policy is not authorized. Successful recovery restarts policy timers before clearing `pending` and publishing `rollback-complete`. Protected inputs stay frozen while native recovery is required; [operations](../../../documentation/OPERATIONS.md#native-uplink-recovery) owns the change constraints.
+Rollback validates protected files and networkd inventory before pausing automation or withdrawing native resources; [Operations](../../../documentation/OPERATIONS.md#native-uplink-recovery) owns drift rejection and change constraints. Successful recovery restarts policy timers before clearing `pending` and publishing `rollback-complete`. A permanent `boot-fallback` marker blocks native reactivation.
 
 ## Tool constraints
 

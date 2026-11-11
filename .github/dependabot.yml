@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-# Copy as .github/dependabot.yml; match directories to the CI audit matrices.
 version: 2
 updates:
   - package-ecosystem: github-actions

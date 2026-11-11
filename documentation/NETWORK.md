@@ -36,15 +36,15 @@ The AP bridges Ethernet to **3D-Printere** using WPA2-PSK/AES, 2.4 GHz, 20 MHz, 
 
 ## Uplink and VPN
 
-The [native helper](../systems/gateway/native-uplink/README.md) owns Ethernet's finite-lifetime IPv4 address and routes. networkd preserves them with `KeepConfiguration=dynamic` and `ManageForeignRoutes=no`; its own native DHCP, link-local addressing and IPv6 router discovery are disabled.
+The [native helper](../systems/gateway/native-uplink/README.md#vpn-and-networkd-integration) owns Ethernet's finite-lifetime IPv4 address and routes; networkd preserves them without running its own native DHCP client.
 
 School Wi-Fi uses `wpa_supplicant@wlan0` for PEAP/MSCHAPv2 authentication and networkd for DHCP. Certificate validation uses `/etc/ssl/certs/ca-certificates.crt` and exact server names `ise.intern.ishoj.dk;ise02.intern.ishoj.dk`; protected management frames are required (`ieee80211w=2`). School DHCP DNS, domains and NTP options are not adopted by networkd.
 
 Windscribe runs as the gateway user, with linger, autoconnect, LAN access, restart-on-failure and Always On firewall. Its privileged helper is a system service. The saved connection protocol and school-network override are Stealth/443.
 
-The [VPN policy](../systems/gateway/vpn-policy/README.md) prefers the configured Frankfurt static IP. While native Ethernet is eligible, only its authorized static endpoint may be used. After native resources are withdrawn, eligible Wi-Fi permits fallback through **Denmark → Sweden → Netherlands**. A healthy tunnel is retained; Windscribe can independently reconnect when routes change. Carrier loss withdraws native resources; see [failover limits](OPERATIONS.md#current-faults).
+The [VPN policy](../systems/gateway/vpn-policy/README.md#native-integration) prefers the configured Frankfurt static IP: native Ethernet permits only its authorized static endpoint; country fallback requires native withdrawal and eligible Wi-Fi. Carrier loss withdraws native resources; see [failover limits](OPERATIONS.md#current-faults).
 
-Boot readiness accepts either school uplink. A separate static-VPN check and a 12-minute local watchdog can invoke permanent Wi-Fi fallback if boot verification fails. This recovery preserves the USB LAN; see [operations](OPERATIONS.md#native-uplink-recovery).
+Boot readiness accepts either school uplink. [Local boot recovery](../systems/gateway/native-uplink/README.md#boot-and-permanent-fallback) can invoke permanent Wi-Fi fallback while preserving the USB LAN; see [operator recovery](OPERATIONS.md#native-uplink-recovery).
 
 ## DNS
 
@@ -55,9 +55,9 @@ Boot readiness accepts either school uplink. A separate static-VPN check and a 1
 | Docker default bridge | Container DNS through `tun0`, bypassing unbound; normally `10.255.255.1`, or Docker public fallback servers when created without tunnel DNS |
 | Redroid test device | Explicit `1.1.1.1`, intentionally unfiltered |
 
-Control D endpoints are `76.76.2.11` and `76.76.10.11:853`, authenticated as `p2.freedns.controld.com`. dnsmasq uses only unbound, with `no-resolv`; resolved has an empty fallback list. Windscribe's Connected DNS remains Auto.
+The [DNS guide](../systems/gateway/dns/README.md#resolver-behavior) owns resolver settings and Control D TLS endpoints. Windscribe's Connected DNS remains Auto.
 
-Without a working tunnel or Control D, uncached printer-LAN queries fail; there is no unfiltered resolver fallback. The [DNS checker](../systems/gateway/dns/README.md) can repair local resolver services but cannot repair an upstream outage. It logs failures without sending operator alerts. Browser, application and container DNS overrides are outside this resolver policy.
+Without a working tunnel or Control D, uncached printer-LAN queries fail; there is no unfiltered resolver fallback. The [DNS checker](../systems/gateway/dns/README.md#automatic-repair) can repair local resolver services but cannot repair an upstream outage. Browser, application and container DNS overrides are outside this resolver policy.
 
 ## Firewall and management
 

@@ -1,5 +1,5 @@
 [Match]
-MACAddress=00:48:54:21:66:96 00:e0:4c:5a:55:18
+MACAddress=00:48:54:21:66:96 00:e0:4c:48:ac:f0
 [Link]
 RequiredForOnline=no
 [Network]

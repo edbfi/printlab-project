@@ -21,7 +21,7 @@ TP-Link TL-WR902AC access point / 192.168.77.2
 | Radxa `enp1s0` | Primary school uplink, DHCP by the [native helper](../systems/gateway/native-uplink/README.md) | MAC `00:48:54:21:66:96`; default route metric 100 |
 | Radxa `wlan0` | Backup school uplink, DHCP by networkd | MAC `ec:b5:0a:98:36:cc`; default route metric 600 |
 | Radxa `tun0` | Windscribe tunnel | Printer-LAN forwarding and NAT |
-| Radxa `enx00e04c5a5518` | Printer-LAN gateway, DHCP and DNS | `192.168.77.1/24`; MAC `00:e0:4c:5a:55:18` |
+| Radxa `enx00e04c48acf0` | Printer-LAN gateway, DHCP and DNS | `192.168.77.1/24`; MAC `00:e0:4c:48:ac:f0` |
 | Radxa `docker0` | Docker default bridge | `172.17.0.1/16` |
 | TL-WR902AC | Access point, its DHCP server off | `192.168.77.2/24`; MAC `ec:b9:31:19:d2:7f` |
 | `3DP-030-366` | Printer, reservation `a1mini-366` | `192.168.77.115`; MAC `ac:a7:04:12:be:58` |

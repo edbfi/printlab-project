@@ -50,7 +50,7 @@ On Radxa, as the gateway user:
 ```sh
 ip -brief address
 ip -4 route
-networkctl status enp1s0 enx00e04c5a5518 wlan0
+networkctl status enp1s0 enx00e04c48acf0 wlan0
 systemctl --failed
 systemctl is-active printing-native-uplink windscribe-helper printing-dhcp unbound printing-gateway
 systemctl --user is-active windscribe
@@ -138,7 +138,7 @@ Do not stop a running `printing-uplink-boot-check.service`: its failure starts t
 
 ### USB printer link
 
-The access point's cable goes in the USB adapter `enx00e04c5a5518`, in the socket given under [hardware](NETWORK.md#hardware); the school cable goes in `enp1s0`. Test with the printer-LAN checks above, because carrier can stay up while traffic fails. Replugging the adapter often restores traffic for a while; do it only with independent access open and no print running.
+The access point's cable goes in the USB adapter `enx00e04c48acf0`, in the socket given under [hardware](NETWORK.md#hardware); the school cable goes in `enp1s0`. Test with the printer-LAN checks above, because carrier can stay up while traffic fails. Replug the adapter only with independent access open and no print running.
 
 Do not run `netplan apply` or restart `systemd-networkd` to recover the link: that reconfigures the uplinks too. Keep `/var/lib/printing-station/rollback/20261110-lan-usb/` intact: staging requires the directory, the files listed in its manifests are protected inputs, and its restore scripts do not fit the current cabling.
 
@@ -163,7 +163,6 @@ It prints its decision and changes nothing, or `Another policy run is active; sk
 
 ## Current faults
 
-- **USB printer LAN:** recurring USB/xHCI resets and transmit errors stop traffic to the access point while carrier stays up. Cause unknown.
 - **Early boot resets:** some boots end without a clean shutdown and the gateway boots again. Cause unknown; [boot evidence](../systems/gateway/README.md#host) records each one.
 - **Automatic upgrades:** Armbian's precheck in `/etc/systemd/system/apt-daily-upgrade.service.d/armbian-exec-correct-service.conf` runs `systemd-networkd-wait-online --any --timeout=60`. Every profile sets `RequiredForOnline=no`, so it can time out and skip the upgrade although the uplinks work.
 - **Upstream failover:** if the school network fails upstream while `enp1s0` keeps carrier and a valid lease, the gateway stays on Ethernet. Fallback is tested only for an administratively downed link, not a pulled cable or a natural lease renewal.
@@ -179,7 +178,6 @@ These tracked changes behave differently from the installed copies ([compare](..
 - `firewall/gateway.nft`: the installed dnsmasq rule lacks `ct direction original`, so it drops replies to clients that query from source port 53. `gateway.nft` is a protected input, so installing it needs a fallback to Wi-Fi first.
 - `native-uplink/trial/uplink-trial.py`: the installed rollback stops the VPN policy before checking protected inputs, so a changed input leaves the policy stopped on native Ethernet until an operator acts. It also clears `pending` and writes `rollback-complete` before restarting the policy timers, and retries skip that restart; check the timers after a fallback.
 - `native-uplink/boot/uplink-boot.py`: the installed checker also writes a persistent `boot-verified` file into the recovery directory. Only `/run/printing-native-uplink/boot-verified` reflects the current boot.
-
 ## Secrets and recovery state
 
 On the Chromebook, `~/.config/printing-station/credentials/` (0700) holds `printer-wifi.txt` and `router-admin.txt` (0600), and `~/.ssh/id_ed25519` is passphrase-protected. Keep `~/.config/BambuStudio/` in place; never export the session. Its checkout holds the ignored private printer inventory `documentation/printing/PRINTERS.private.md` and the access point backup in `.work/setup/router-backups/`.

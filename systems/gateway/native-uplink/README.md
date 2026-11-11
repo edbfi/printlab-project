@@ -1,8 +1,8 @@
 # Native Ethernet uplink
 
-A guarded DHCP helper gives `enp1s0` its school address so the static VPN can run over Ethernet, with Wi-Fi as backup. Installed paths are in the [file map](../README.md#file-map); operator steps are in [Operations](../../../documentation/OPERATIONS.md#native-uplink-recovery).
+A guarded DHCP helper gives `enp1s0` its school address so the static VPN can run over Ethernet, with Wi-Fi as backup.
 
-The helper refuses to run from anywhere but its installed path. Install exactly its two entry points and six modules, never a checkout or a `__pycache__` directory. The tracked `native-uplink.json` keeps acquisition off; the installed copy turns it on and sets `vpn_endpoint`.
+The helper refuses to run from anywhere but its [installed path](../README.md#file-map). Install exactly its two entry points and six modules, never a checkout or a `__pycache__` directory. The tracked `native-uplink.json` keeps acquisition off; the installed copy needs the [settings in the file map](../README.md#file-map).
 
 ## Resource ownership
 
@@ -16,14 +16,11 @@ The helper refuses to run from anywhere but its installed path. Install exactly 
 | Default route | Main table, protocol 242, metric 100, owned source and gateway |
 | Windscribe endpoint `/32` | Created by Windscribe, at most one: main table, protocol `boot`, metric 0, no preferred source, via the owned gateway |
 
-The contract:
+When operating the helper:
 
-- Grants that are malformed, lack a finite lifetime, overlap protected prefixes or carry unsupported route options are rejected. DHCP options 33, 121 and 249 must reach validation; never suppress them with dhcpcd's `nooption` or `-O`.
-- Ownership is recorded before any change, and eligibility is published only once the kernel matches. All lease operations take `/run/printing-native-uplink/operation.lock`; never hold it while waiting for the service to stop.
-- A changed address or endpoint withdraws the old grant first. Invalid renewal, NAK, expiry, carrier loss, stop or an unsupported callback withdraws eligibility, then routes (default first), then the address. An unknown route or identity mismatch stops cleanup; nothing is flushed broadly. Late callbacks from a retired generation are ignored.
-- The helper keeps or removes the endpoint `/32` only if it matches `vpn_endpoint`, and never creates it. `vpn_endpoint` is Windscribe's outer server address, distinct from the static exit IP; changing it needs a coordinated reconnect.
-- dhcpcd ignores hook exit status, so a failing hook asks the service to stop. The service has `Restart=no`. On stop, systemd kills the client, then `ExecStopPost` removes owned resources: up to 70 seconds for TERM, 70 for KILL and 67 for cleanup. Check that the resources are gone, not just that the unit stopped.
-- A concurrent interface change, an unsupported route attribute, or `enp1s0` returning with a new ifindex stops the helper or blocks eligibility, for Wi-Fi too. The service does not restart; an operator must reconcile.
+- Never suppress DHCP options 33, 121 or 249 with dhcpcd's `nooption` or `-O`; validation must see them to reject the grant.
+- Never hold `/run/printing-native-uplink/operation.lock` while waiting for the service to stop.
+- After a stop, check that the resources above are gone, not just that the unit stopped. The service has `Restart=no`; if any remain, reconcile them by hand.
 
 `lease_timing.py` takes 30 seconds off the DHCP lease duration at hook entry, plus the processing delay, assuming the server's ACK reached the hook within 30 seconds. If it took longer, the address can outlive the lease until its kernel lifetime expires. Never replay stored callbacks or reuse cached lease storage.
 
@@ -41,14 +38,14 @@ Removing the endpoint `/32` alone does not move the VPN to Wi-Fi, because Windsc
 
 At boot:
 
-1. `zz-persistent.conf` lets the native service start only with `boot-enabled` (or a trial's `/run/printing-native-uplink/trial-permit`) and without `pending` or `boot-fallback`. It sorts after and overrides the staging drop-in `trial.conf`. Its `ExecStartPre` waits up to 50 seconds for the native profile, MAC, link up and no addresses; carrier may be absent.
+1. `zz-persistent.conf` lets the native service start only with `boot-enabled` (or a trial's `/run/printing-native-uplink/trial-permit`) and without `pending` or `boot-fallback`. It sorts after and overrides the staging drop-in `trial.conf`. Its `ExecStartPre` waits up to 50 seconds for the native profile, MAC, link up and no addresses or routes on `enp1s0`; carrier may be absent.
 2. `systemd-networkd-wait-online` accepts `enp1s0` or `wlan0` as routable, never the printer LAN.
 3. `printing-uplink-boot-check.service` runs before the VPN policy and watches up to 5 minutes, without connecting anything, for a static Stealth/443 tunnel whose helper status, socket, route and HTTPS egress match, on native first, then Wi-Fi. It writes the interface to `/run/printing-native-uplink/boot-verified` and logs `Verified boot transport: <interface>`.
 4. A failed check starts `printing-uplink-boot-fallback.service` through `OnFailure=`. `printing-uplink-boot-watchdog.timer` does the same 12 minutes after boot if nothing is verified.
 
 The fallback writes the permanent `boot-fallback` marker. If native boot was enabled it also writes `pending`, queues `printing-uplink-rollback.service` and removes `boot-enabled`. It disables the native service and reinstalls the wait-online drop-in and boot-evidence script from `boot-baseline/`.
 
-The rollback:
+The rollback, as tracked ([not all installed](../../../documentation/OPERATIONS.md#not-installed-on-the-gateway)):
 
 1. checks the [protected inputs](#protected-inputs); if one changed, it stops and lets only the matching native-aware VPN policy resume;
 2. stops the VPN policy, disconnects Windscribe and stops native DHCP;
@@ -70,7 +67,7 @@ Staging hashed every networkd input (the `/etc`, `/run` and `/usr/lib` copies of
 | `printing-uplink-boot-watchdog.timer` | Enabled; starts `printing-uplink-boot-watchdog.service` |
 | `printing-uplink-boot-recover.service` | Enabled by staging; if `pending` survived a reboot, reconnects the VPN over Wi-Fi |
 | `printing-uplink-boot-reset.service` | The staging drop-ins below, before networking; if `pending` survived a reboot, restores the saved files |
-| `printing-uplink-boot-fallback.service` | Boot check failure, watchdog or operator |
+| `printing-uplink-boot-fallback.service` | Boot check failure, watchdog or [operator](../../../documentation/OPERATIONS.md#native-uplink-recovery) |
 | `printing-uplink-rollback.service` | Fallback, a trial's 25-minute timer or operator |
 
 Enable boot units without `--now`: starting the watchdog mid-boot can fire a deadline that has passed.
@@ -83,4 +80,4 @@ Enable boot units without `--now`: starting the watchdog mid-boot can fire a dea
 
 ## Trial tools
 
-Rollback imports `trial/uplink-trial.py`, so it stays installed. Its `arm` mode starts a 25-minute local rollback timer; `acquire`, `cutover`, `carrier-fallback` and `carrier-return` disrupt the uplink; `accept-live` ends a trial without enabling boot. `trial/build-bundle.py` packages the helper and trial files, not the boot units. `trial/stage-trial.py` needs a static VPN on Wi-Fi and refuses to run while the recovery directory exists.
+The rollback, boot-recover and boot-reset units run `trial/uplink-trial.py`, and `uplink-boot.py` imports it, so it stays installed. Its `arm` mode starts a 25-minute local rollback timer; `acquire`, `cutover`, `carrier-fallback` and `carrier-return` disrupt the uplink; `accept-live` ends a trial without enabling boot. `trial/build-bundle.py` packages the helper and trial files, not the boot units. `trial/stage-trial.py` needs a static VPN on Wi-Fi and refuses to run while the recovery directory exists.

@@ -1,6 +1,6 @@
 # Gateway fan
 
-The kernel's thermal framework drives a Noctua NF-A8 5V PWM fan without a daemon. The overlay [q6a-fan.dts](q6a-fan.dts) binds `pwm-fan` to the CPU, NSP and DDR thermal zones and sets the trips and fan levels; the fan starts at 55 °C. Software PWM costs about 50,000 timer interrupts a second while the fan spins. Installed paths are in the [file map](../README.md#file-map).
+The kernel's thermal framework drives a Noctua NF-A8 5V PWM fan without a daemon. The overlay [q6a-fan.dts](q6a-fan.dts) binds `pwm-fan` to the CPU, NSP and DDR thermal zones and sets the trips and fan levels; the fan starts at 55 °C. Software PWM costs about 50,000 timer interrupts a second while the fan spins.
 
 ## Wiring
 
@@ -13,7 +13,7 @@ Shut the gateway down and **unplug its power** before touching the 40-pin header
 | Green, tach | 18 GPIO27 | 9th |
 | Blue, PWM | 16 GPIO26 | 8th |
 
-The latch ridge on the fan plug covers pins 1–3; PWM is the hole outside it. The overlay explains why the header's level shifter tolerates the fan's PWM pull-up. This fan's PWM voltage at idle has not been measured.
+The latch ridge on the fan plug covers pins 1–3; PWM is the hole outside it. The overlay documents the level shifter's voltage limits; this fan's open-circuit PWM voltage has not been measured.
 
 ## Device tree and kernel
 
@@ -28,7 +28,7 @@ sudo install -m 0644 systems/gateway/fan/q6a-fan.dts /etc/q6a-fan/q6a-fan.dts
 sudo q6a-fan-dtb "$(uname -r)"
 ```
 
-It takes effect at the next reboot. Before rebooting, check that the stock DTB is in `/usr/lib/linux-image-$(uname -r)/qcom/` and that you have [independent access](../../../documentation/OPERATIONS.md#change-procedure). Unattended upgrades can reboot at 02:00 into a rebuilt DTB.
+It takes effect at the next reboot. Before rebooting, check that the stock DTB is in `/usr/lib/linux-image-$(uname -r)/qcom/` and that you have [independent access](../../../documentation/OPERATIONS.md#change-procedure). An [unattended reboot](../../../documentation/OPERATIONS.md#maintenance-windows) can boot into a rebuilt DTB.
 
 ## Inspection
 
@@ -41,7 +41,7 @@ grep -l '^pwm-fan$' /sys/class/thermal/cooling_device*/type
 grep -H . /sys/class/thermal/thermal_zone*/type /sys/class/thermal/thermal_zone*/policy
 ```
 
-The fan's zones should show `step_wise`, and a nonzero PWM duty a plausible tach reading. Below the first trip the fan is stopped. Do not write trip points or GPIOs while diagnosing.
+The fan's zones should show `step_wise`, and a nonzero PWM duty a plausible tach reading. The fan can keep running below the first trip; the overlay explains its hysteresis and retained cooling votes. Do not write trip points or GPIOs while diagnosing.
 
 ## Recovery with the stock DTB
 

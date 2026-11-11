@@ -14,7 +14,7 @@ Commands name the host and account they run as. Replace `<gateway-user>` and `<w
 
 `radxa` and `radxa-school` are aliases in the client's `~/.ssh/config`. `radxa-school` holds a school DHCP address that can change; compare it with `ip -4 address show dev wlan0` on Radxa.
 
-Windscribe forwards port 22222 on the static IP to port 22 on `tun0`, so remote SSH works only while the tunnel is on the static IP. Radxa accepts SSH on loopback, the printer LAN, `wlan0` and `tun0`, and drops it on `enp1s0`. Both hosts accept keys only. Keep host-key checking on; unlock the Chromebook's key with `ssh-add ~/.ssh/id_ed25519`.
+Windscribe forwards port 22222 on the static IP to port 22 on `tun0`, so remote SSH works only while the tunnel is on the static IP. Radxa's [firewall](NETWORK.md#firewall) drops SSH on `enp1s0`. Both hosts accept keys only, with root login disabled. Keep host-key checking on; unlock the Chromebook's key with `ssh-add ~/.ssh/id_ed25519`.
 
 | Host | ED25519 host key |
 |---|---|
@@ -26,12 +26,20 @@ Windscribe forwards port 22222 on the static IP to port 22 on `tun0`, so remote 
 Changes to Windscribe, networkd, the supplicant, SSH, fail2ban or the firewall can cut remote access. Before one:
 
 1. Log in fresh over an independent path. A second session over the same VPN is not one, nor is SSH from the printer LAN to Radxa's school address, which still crosses the USB link. On site, join school Wi-Fi with a laptop and SSH to `wlan0`.
-2. Copy each installed file you will change into a new root-only directory under `/var/lib/printing-station/rollback/`.
-3. Arrange a rollback that restores those files from a local timer, so it runs without SSH. The repository has no general tool for this.
-4. Validate and apply as described for the [component](../systems/gateway/README.md#validate-and-apply).
-5. Check over a fresh login, then cancel the rollback.
+2. On Radxa, save each installed file you will change and arm a rollback on a local timer, so it runs without SSH. Replace `<change>`, the installed paths and the reload command, such as `systemctl reload printing-gateway`:
 
-While native Ethernet is in use, fallback to Wi-Fi refuses to run if a [protected input](../systems/gateway/native-uplink/README.md#protected-inputs) has changed: any networkd file, or `/etc/printing-station/vpn-policy.json`. Fall back to Wi-Fi before changing them; that disables native boot ([current faults](#current-faults)). Fallback also reinstalls the `vpn-policy.py` saved at staging over any newer copy.
+   ```sh
+   d=/var/lib/printing-station/rollback/$(date +%Y%m%d-%H%M)-<change>
+   sudo install -d -m 0700 "$d"
+   sudo cp -a --parents <installed-file>... "$d"/
+   sudo systemd-run --unit=printing-change-rollback --on-active=15min /bin/sh -c "cp -a $d/. / && <reload-command>"
+   ```
+
+   After 15 minutes the rollback copies the saved files back and runs the reload command. It does not remove files the change added.
+3. Validate and apply as described for the [component](../systems/gateway/README.md#validate-and-apply).
+4. Check over a fresh login, then cancel the rollback with `sudo systemctl stop printing-change-rollback.timer`.
+
+While native Ethernet is in use, fallback to Wi-Fi refuses to run if a [protected input](../systems/gateway/native-uplink/README.md#protected-inputs) has changed: any networkd file, `/etc/printing-station/vpn-policy.json`, or a file listed in the `20261110-lan-usb` manifests. `sudo jq -r 'keys[]' /var/lib/printing-station/rollback/native-uplink-trial/protected.json` lists them. Fall back to Wi-Fi before changing them; that disables native boot ([current faults](#current-faults)). Fallback also reinstalls the `vpn-policy.py` saved at staging over any newer copy.
 
 Do not interrupt print jobs, printer firmware updates, Studio sessions or other Docker containers.
 
@@ -96,7 +104,7 @@ The VPN policy, the DNS checker and the native boot check each act within minute
   Use a country location only on Wi-Fi with native Ethernet withdrawn. Never run `windscribe-cli connect --help`; it takes `--help` as a location and disconnects.
 - **DNS fails, tunnel works:** compare the two `dig` lines above and read the `printing-dns-check` journal. If its [repairs](../systems/gateway/README.md#dns) have not helped, run `sudo systemctl restart unbound printing-dhcp`; this empties unbound's cache.
 - **Studio fails:** save open projects, restart Studio as in [Printing](PRINTING.md#printing-a-job) and check both printers.
-- **SSH ban:** five failed logins in ten minutes ban an address for an hour on every interface, `tun0` included; repeat bans grow to at most seven days. Only loopback is exempt. From another address or the console: `sudo fail2ban-client status sshd`, then `sudo fail2ban-client set sshd unbanip <address>`.
+- **SSH ban:** the fail2ban [sshd jail](../systems/gateway/host/fail2ban/jail.local) bans on every interface, `tun0` included. From another address or the console: `sudo fail2ban-client status sshd`, then `sudo fail2ban-client set sshd unbanip <address>`.
 
 ### Native uplink recovery
 
@@ -109,13 +117,13 @@ journalctl -u printing-uplink-boot-fallback.service -u printing-uplink-rollback.
 
 This disconnects the VPN, stops native DHCP, disables native boot permanently and reconnects the static VPN over Wi-Fi. The printer LAN stays up; remote SSH drops meanwhile.
 
-One rollback attempt takes at most 20 minutes; failures are retried after 30 seconds, up to three attempts an hour. If you lose contact, wait 20 minutes (35 after a boot-triggered fallback), then retry `ssh -p 22222 <gateway-user>@radxa.edb.fi` with host-key checking on, every 20 minutes. After an hour without contact, recovery needs local access; do not try route flushes, cable swaps or repeated reboots.
+One rollback attempt takes at most 20 minutes; failures are retried after 30 seconds, up to three attempts an hour. If you lose contact, wait 20 minutes; after a boot-triggered fallback, count them from the 12-minute boot deadline. Then retry `ssh -p 22222 <gateway-user>@radxa.edb.fi` with host-key checking on, every 20 minutes. After an hour without contact, recovery needs local access; do not try route flushes, cable swaps or repeated reboots.
 
 Fallback has worked when, on Radxa:
 
 | Command | Expected |
 |---|---|
-| `journalctl -b -u printing-uplink-rollback.service -g 'rollback-'` | `rollback-complete`, no `rollback-failed` |
+| `journalctl -b -u printing-uplink-rollback.service -u printing-uplink-boot-recover.service -g 'rollback-'` | The last line is `rollback-complete` |
 | The native-uplink `status` command above | `"native": null`, a `"wifi"` entry, `"blocked": false` |
 | `networkctl status enp1s0` | `Network File: /etc/systemd/network/05-reserved-builtin.network`, no IPv4 address |
 | `systemctl is-enabled printing-native-uplink.service` | `disabled` |
@@ -124,7 +132,7 @@ Fallback has worked when, on Radxa:
 
 and a login over `radxa.edb.fi:22222` from outside the school works.
 
-If the journal shows `Networkd input inventory changed` or `Protected input changed: <path>`, rollback stopped before disconnecting and native Ethernet is still in use. Restore the reviewed file, then run `sudo systemctl reset-failed printing-uplink-rollback.service` and `sudo systemctl start --no-block printing-uplink-rollback.service`. Never regenerate the hash manifests or rerun staging.
+If the journal shows `Networkd input inventory changed` or `Protected input changed: <path>`, rollback stopped before disconnecting and native Ethernet is still in use. Restore the changed file or remove the added one, then run `sudo systemctl reset-failed printing-uplink-rollback.service` and `sudo systemctl start --no-block printing-uplink-rollback.service`. Never regenerate the hash manifests or rerun staging.
 
 Do not stop a running `printing-uplink-boot-check.service`: its failure starts the fallback. Do not change anything in `/var/lib/printing-station/rollback/native-uplink-trial/`; the installed controllers read it. Never restore a snapshot that put the printer LAN on native Ethernet.
 
@@ -132,11 +140,11 @@ Do not stop a running `printing-uplink-boot-check.service`: its failure starts t
 
 The access point's cable goes in the USB adapter `enx00e04c5a5518`, in the socket given under [hardware](NETWORK.md#hardware); the school cable goes in `enp1s0`. Test with the printer-LAN checks above, because carrier can stay up while traffic fails. Replugging the adapter often restores traffic for a while; do it only with independent access open and no print running.
 
-Do not run `netplan apply` or restart `systemd-networkd` to recover the link: that reconfigures the uplinks too. Keep `/var/lib/printing-station/rollback/20261110-lan-usb/` intact; its manifests are protected inputs and its restore scripts do not fit the current cabling.
+Do not run `netplan apply` or restart `systemd-networkd` to recover the link: that reconfigures the uplinks too. Keep `/var/lib/printing-station/rollback/20261110-lan-usb/` intact: staging requires the directory, the files listed in its manifests are protected inputs, and its restore scripts do not fit the current cabling.
 
 ## Maintenance windows
 
-**VPN refresh:** `printing-vpn-refresh.timer` fires daily at 04:30 Europe/Copenhagen and the policy acts until 05:00. It leaves a healthy static tunnel alone; otherwise it reconnects, which interrupts cloud printing. Missed runs are skipped. To protect a print overnight:
+**VPN refresh:** `printing-vpn-refresh.timer` fires daily at 04:30 Europe/Copenhagen and the policy acts until 05:00. It can reconnect as described under [VPN policy](../systems/gateway/README.md#vpn-policy), which interrupts cloud printing. Missed runs are skipped. To protect a print overnight:
 
 ```sh
 sudo systemctl stop printing-vpn-refresh.timer printing-vpn-refresh.service
@@ -164,7 +172,7 @@ It prints its decision and changes nothing, or `Another policy run is active; sk
 
 ### Not installed on the gateway
 
-These tracked changes behave differently from the installed copies ([compare](../systems/gateway/README.md#compare-with-the-installed-copy)); other differences are comments only.
+These tracked changes behave differently from the installed copies ([compare](../systems/gateway/README.md#compare-with-the-installed-copy)); other differences are in comments, docstrings and unit descriptions only.
 
 - `dns/dns-check.py`: the installed checker has no Control D probe. In a Control D outage it restarts unbound after a failed flush, emptying the cache that still answered known names.
 - `firewall/gateway.nft`: the installed dnsmasq rule lacks `ct direction original`, so it drops replies to clients that query from source port 53.

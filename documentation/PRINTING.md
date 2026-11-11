@@ -19,7 +19,7 @@ Studio runs in the Chromebook's existing administrator desktop session. Start it
 
 1. In the device view, pick the printer whose label matches the physical printer, and check that it is online.
 2. Select the **Bambu Lab A1 mini 0.4 nozzle** printer profile, the **Textured PEI Plate**, and the filament that is actually loaded. Check the spool on the printer; a saved preset does not tell you what is loaded.
-3. An already sliced file must be for an A1 mini with a 0.4 mm nozzle, Textured PEI and the loaded material. Re-slice it if not.
+3. Open a project or import a model and slice it, then check placement, supports and the preview. An already sliced file must be for an A1 mini with a 0.4 mm nozzle, Textured PEI and the loaded material; re-slice it if not.
 4. Check that the plate is clear, then send the job from Studio and watch the first layer.
 
 Save open projects before restarting Studio. If a printer is missing from Studio, tell the administrator; [diagnostics](OPERATIONS.md#diagnostics) cover it.

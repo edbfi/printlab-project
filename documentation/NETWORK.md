@@ -30,7 +30,7 @@ TP-Link TL-WR902AC access point / 192.168.77.2
 
 School-side and client addresses come from DHCP and change; read them with `ip -4 address show dev <interface>` on the host concerned.
 
-dnsmasq on Radxa is the only DHCP server on the printer LAN: pool `.100`–`.199`, 12-hour leases, gateway and DNS `192.168.77.1`; see [dnsmasq.conf](../systems/gateway/dns/dnsmasq.conf). The access point's static `.2` matches its reservation.
+dnsmasq on Radxa is the only DHCP server on the printer LAN and hands out `192.168.77.1` as gateway and DNS; see [dnsmasq.conf](../systems/gateway/dns/dnsmasq.conf) for the pool. The access point's static `.2` matches its reservation.
 
 The access point bridges Ethernet to the **3D-Printere** network: WPA2-PSK/AES, 2.4 GHz only, 20 MHz, client isolation off. The school network is routed through Radxa, never bridged in.
 
@@ -54,7 +54,7 @@ The [VPN policy](../systems/gateway/README.md#vpn-policy) keeps the tunnel on th
 | Printer LAN, including the Chromebook | dnsmasq `192.168.77.1:53` → unbound `127.0.0.1:5335` → Control D p2 (filtering) over TLS through `tun0` |
 | Programs on Radxa | systemd-resolved → unbound **and** Windscribe's link DNS `10.255.255.1`, so host lookups can bypass p2 |
 | Docker default bridge | Forwarded through `tun0` to the container's own resolver, normally `10.255.255.1`, or Docker's public fallback servers if the container was created without tunnel DNS; never through unbound |
-| Container `revanced-device` | Redroid (Android in Docker) used for app patching; uses `1.1.1.1` on purpose so p2 does not hide an app's ad requests |
+| Container `revanced-device` | Redroid Android container, unrelated to printing; configured with `1.1.1.1`, which bypasses the filtered resolver |
 
 Printer-LAN DNS has no unfiltered fallback: without the tunnel or Control D, only names unbound has cached resolve. Browsers with Secure DNS and programs with their own resolvers bypass it. Keep Windscribe's Connected DNS on Auto; a custom setting starts Windscribe's ctrld on `127.0.0.1:53`.
 

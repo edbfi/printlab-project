@@ -23,7 +23,7 @@ Run as an unprivileged user from the repository root:
 prek run --all-files --hook-stage manual
 ```
 
-CI runs the same command. It covers formatting, configuration and security checks and the five offline gateway test suites: native DHCP, trial recovery, boot recovery, VPN policy and DNS. The suites simulate the system and must not run as root. To run one suite:
+CI runs the same command, which includes the offline gateway test suites. The suites simulate the system and must not run as root. To run one suite:
 
 ```sh
 python3 -B -m unittest discover -s systems/gateway/native-uplink/tests

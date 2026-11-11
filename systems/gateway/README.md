@@ -1,6 +1,6 @@
 # Gateway
 
-Configuration for the Radxa Dragon Q6A that runs the printer network. The design is in [Network](../../documentation/NETWORK.md); procedures and faults are in [Operations](../../documentation/OPERATIONS.md). Installing a file on the gateway is a separate manual step.
+Configuration for the Radxa Dragon Q6A that runs the printer network. Installing a file on the gateway is a separate manual step.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ Installed files are root-owned, mode 0644 unless noted. Rows marked "host only" 
 | Host only | `/etc/systemd/network/05-school-wifi.network`; `/etc/wpa_supplicant/wpa_supplicant-wlan0.conf` (0600) for `wpa_supplicant@wlan0` |
 | `firewall/gateway.nft` | `/etc/printing-station/` |
 | `firewall/docker-forwarding` | `/usr/local/libexec/printing-station/` (0755) |
-| Host only | `printing-gateway.service` runs `/usr/local/libexec/printing-station/gateway-control`, which loads `gateway.nft`, enables IPv4 forwarding and runs `docker-forwarding`; `/etc/systemd/system/docker.service.d/printing-station.conf` runs `docker-forwarding` after Docker starts |
+| Host only | `printing-gateway.service` runs `/usr/local/libexec/printing-station/gateway-control` (0755), which loads `gateway.nft`, enables IPv4 forwarding and runs `docker-forwarding`; `/etc/systemd/system/docker.service.d/printing-station.conf` runs `docker-forwarding` after Docker starts |
 | `dns/dnsmasq.conf` | `/etc/printing-station/`, used by the host-only `printing-dhcp.service` |
 | `dns/unbound-printing-station.conf` | `/etc/unbound/unbound.conf.d/printing-station.conf` |
 | `dns/resolved-printing-station.conf` | `/etc/systemd/resolved.conf.d/printing-station.conf` |
@@ -29,9 +29,9 @@ Installed files are root-owned, mode 0644 unless noted. Rows marked "host only" 
 | `vpn-policy/vpn-policy.json` | `/etc/printing-station/`, with the static IP filled in |
 | `vpn-policy/systemd/*.service.in` | `/etc/systemd/system/`, [rendered](#templates), without `.in` |
 | `vpn-policy/systemd/*.timer` | `/etc/systemd/system/`; enabled |
-| Host only | `windscribe-helper.service.d/printing-station.conf`; the gateway user's `windscribe.service` with `~/.config/systemd/user/windscribe.service.d/printing-station.conf`; `user@1000.service.d/10-hardening.conf` and `/etc/systemd/user.conf.d/10-hardening.conf` (OOM scores) |
+| Host only | `windscribe-helper.service.d/printing-station.conf`; the gateway user's `windscribe.service` with `~/.config/systemd/user/windscribe.service.d/printing-station.conf` and `10-hardening.conf`; `user@1000.service.d/10-hardening.conf` and `/etc/systemd/user.conf.d/10-hardening.conf` (OOM scores) |
 | `native-uplink/native-uplink`, `native-uplink-hook`, `*.py` | `/usr/local/libexec/printing-station/native-uplink/`; entry points 0755 |
-| `native-uplink/native-uplink.json` | `/etc/printing-station/` (0600), with acquisition on and the endpoint set |
+| `native-uplink/native-uplink.json` | `/etc/printing-station/` (0600), with `allow_acquisition` and `timing_assumption_approved` true and `vpn_endpoint` set |
 | `native-uplink/printing-native-uplink.service` | `/etc/systemd/system/`; enabled |
 | `native-uplink/boot/native-persistent.conf` | `/etc/systemd/system/printing-native-uplink.service.d/zz-persistent.conf` |
 | `native-uplink/boot/wait-online.conf` | `/etc/systemd/system/systemd-networkd-wait-online.service.d/printing-station.conf` |
@@ -51,6 +51,8 @@ Installed files are root-owned, mode 0644 unless noted. Rows marked "host only" 
 | `fan/grub/custom-live.cfg` | `/boot/grub/custom.cfg` |
 
 Host-only drop-ins without a full path are under `/etc/systemd/system/`. `trial/build-bundle.py` and `trial/stage-trial.py` are not installed.
+
+[09-ethernet-safe-fallback.network](network/09-ethernet-safe-fallback.network) matches both Ethernet MACs with DHCP off, so a generated catch-all DHCP profile never claims either adapter. Keep it installed.
 
 ### Templates
 
@@ -79,9 +81,9 @@ Compare rendered templates instead of `.in` files, and use `sudo diff` for 0600 
 
 Follow the [change procedure](../../documentation/OPERATIONS.md#change-procedure) first. Then, on Radxa:
 
-- **Network profiles and `networkd.conf.d`:** protected native-recovery inputs; install them only after falling back to Wi-Fi.
+- **Protected inputs:** network profiles, `networkd.conf.d`, `vpn-policy.json` and the other [protected inputs](native-uplink/README.md#protected-inputs); change them only after [falling back](../../documentation/OPERATIONS.md#native-uplink-recovery) to Wi-Fi.
 - **Firewall:** check with `sudo nft -c -f systems/gateway/firewall/gateway.nft` on Radxa, where the `unbound`, `dnsmasq` and `systemd-resolve` accounts exist. Install at `/etc/printing-station/gateway.nft`, then `sudo systemctl reload printing-gateway`, which checks the file again before loading it.
-- **DNS:** install, then `sudo unbound-checkconf`; if it fails, restore the backup and restart nothing. Run `sudo systemctl daemon-reload` after unit changes and restart only what changed: `unbound` (empties its cache) or `printing-dhcp` (drops DHCP and DNS for seconds). A new `dns-check.py` runs at the next check.
+- **DNS:** install, then `sudo unbound-checkconf`; if it fails, restore the backup and restart nothing. Run `sudo systemctl daemon-reload` after unit changes and restart only what changed: `unbound` (empties its cache), `printing-dhcp` (drops DHCP and DNS for seconds) or `systemd-resolved`. A new `dns-check.py` runs at the next check. Check with the two `dig` lines under [diagnostics](../../documentation/OPERATIONS.md#diagnostics).
 - **VPN policy:** stop both timers and services ([command](../../documentation/OPERATIONS.md#recovery)), run `systemd-analyze verify` on the rendered units, install, `sudo systemctl daemon-reload`, run the [dry run](../../documentation/OPERATIONS.md#maintenance-windows), then start both timers. Install a matching native helper first; the policy calls its `status`.
 - **Host:** `sudo systemctl daemon-reload` for drop-ins and the boot-evidence unit, effective at the service's next start; `sudo systemctl restart systemd-journald` for journald; the boot-evidence script runs at the next boot; `sudo fail2ban-client -t`, then `sudo fail2ban-client reload` for fail2ban.
 - **Native uplink and fan:** see [native uplink](native-uplink/README.md) and [fan](fan/README.md).
@@ -97,28 +99,30 @@ dnsmasq forwards only to unbound (`no-resolv`). systemd-resolved uses unbound wi
 | dnsmasq fails, unbound answers | Restart `printing-dhcp` |
 | Unbound does not answer `localhost.` | Restart unbound |
 | Unbound answers `localhost.` only, `tun0` up | `unbound-control flush_infra all`, keeping the cache |
-| Same, after a flush | Restart unbound if a TLS handshake with Control D succeeds; otherwise wait, cooldown unspent |
+| Same, after a flush | Restart unbound if a TLS handshake with Control D succeeds; otherwise wait, cooldown unspent ([not installed](../../documentation/OPERATIONS.md#not-installed-on-the-gateway)) |
 | Unbound answers `localhost.` only, `tun0` down | None; counting restarts when `tun0` returns |
 
 State is in `/var/lib/printing-station/dns-check/state.json`; results go to the journal only. The checker never touches the VPN.
 
 ## VPN policy
 
-`vpn-policy.py` runs as the gateway user and applies the rules in [Network](../../documentation/NETWORK.md#uplinks-and-vpn). Its operating contract:
+`vpn-policy.py` runs as the gateway user and applies the rules in [Network](../../documentation/NETWORK.md#uplinks-and-vpn).
 
-- A check runs every minute from 3 minutes after boot. It passes when Windscribe reports Stealth/443, HTTPS works through `tun0`, and on the static location the VPN IP matches. Three failures start a recovery pass; passes are at least 15 minutes apart.
-- Recovery tries the static IP, then the country order. If a static retry from a healthy country fallback fails, that country is tried before the order. Each location gets one connect attempt and 90 seconds to verify. A static connection must also show the static IP as public egress. A run lasts at most 12 minutes; a lock prevents overlaps.
-- On a healthy country fallback, the static IP is retried at most every 15 minutes. The daily refresh keeps a healthy static tunnel, or any healthy tunnel while native Ethernet is eligible. Both wait during package work, a pending reboot and the first 30 minutes after boot; fault recovery does not.
-- While native Ethernet is eligible, only the static location is tried, and the kernel must route the endpoint through the native gateway before and after connecting. If the helper's `status` fails or reports unvalidated resources, the policy does not reconnect. A healthy Wi-Fi tunnel stays on Wi-Fi when native becomes eligible.
-- It never logs in, restarts Windscribe, changes the firewall or deletes routes, and does nothing while logged out, while Windscribe's services are stopped, or when no uplink is valid.
+**Health.** A check runs every minute from 3 minutes after boot. It passes when Windscribe reports Stealth/443, HTTPS works through `tun0`, and on the static location the VPN IP matches. Three failures start a recovery pass; a failed pass starts a 15-minute cooldown.
+
+**Recovery order.** Recovery tries the static IP, then the country order. If a static retry from a healthy country fallback fails, that country is tried before the order. Each location gets one connect attempt and 90 seconds to verify; a static connection must also show the static IP as public egress. A run lasts at most 12 minutes; a lock prevents overlaps. On a healthy country fallback, the static IP is retried at most every 15 minutes. The daily refresh keeps a healthy static tunnel, or any healthy tunnel while native Ethernet is eligible. Static retries and the refresh are postponed as described under [package updates](../../documentation/OPERATIONS.md#maintenance-windows); fault recovery is not.
+
+**Native restrictions.** While native Ethernet is eligible, only the static location is tried, and the kernel must route the endpoint through the native gateway before and after connecting. If the helper's `status` fails or reports unvalidated resources, the policy does not reconnect. When native becomes eligible, the policy leaves a healthy tunnel connected; Windscribe can react to route changes on its own.
+
+The policy never logs in, restarts Windscribe, changes the firewall or deletes routes, and does nothing while logged out, while Windscribe's services are stopped, or when no uplink is valid.
 
 The tracked `vpn-policy.json` has an empty `static_ip`; set it only in the installed copy (`/opt/windscribe/windscribe-cli locations static` lists the account's static locations). Without it, the policy uses countries on Wi-Fi and cannot recover native Ethernet. `refresh_time` must match `OnCalendar=` in `printing-vpn-refresh.timer`. State is in `/var/lib/printing-station/vpn-policy/`. The services set `NoNewPrivileges=true`; the account needs no sudo.
 
 ## Host
 
-[10-hardening.conf](host/systemd/10-hardening.conf) removes the start-rate limit, backs restarts off from 2 seconds to 1 minute and sets `OOMScoreAdjust=-900`; it does not set `Restart=`. The host-only `printing-station.conf` drop-ins of `windscribe-helper` and `wpa_supplicant@wlan0` set `Restart=on-failure` and a first delay of 5 seconds. Check with `systemctl show <unit> -p Restart -p RestartUSec -p OOMScoreAdjust`.
+[10-hardening.conf](host/systemd/10-hardening.conf) lifts the start-rate limit and sets restart backoff and OOM priority for the units in the file map; it does not set `Restart=`. The host-only `printing-station.conf` drop-ins of `windscribe-helper` and `wpa_supplicant@wlan0` set `Restart=on-failure` and a first delay of 5 seconds. Check with `systemctl show <unit> -p Restart -p RestartUSec -p OOMScoreAdjust`.
 
-[Journald](host/journald/10-persistent.conf) keeps logs across boots and syncs every 30 seconds, so a reset loses up to 30 seconds. Read the previous boot with `journalctl -b -1`.
+[Journald](host/journald/10-persistent.conf) keeps logs across boots; an abrupt reset loses unsynced messages. Read the previous boot with `journalctl -b -1`.
 
 `printing-boot-evidence.service` logs one line per boot to the `boot-evidence` journal identifier and `/var/log/printing-station/boot-evidence.log`: how the previous boot ended (`clean`, or `unclean` for power loss, kernel hang or watchdog reset, which it cannot tell apart), when Wi-Fi authenticated, the verified boot uplink, and when `tun0` and the clock came up. It waits up to 30 minutes without holding up boot and fills in up to ten unrecorded earlier boots as `recorded=late`. The lines contain addresses and account names. A native fallback reinstalls the script saved at staging.
 

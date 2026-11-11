@@ -1,15 +1,34 @@
-# Printer gateway
+# Gateway components
 
-The gateway supplies the uplink, VPN, firewall, DHCP, and DNS for the printer network. The current host is a Radxa Dragon Q6A; its built-in Ethernet connects to the access point and school Wi-Fi supplies the uplink.
+Radxa provides the school uplink, VPN and printer-network services. [Network](../../documentation/NETWORK.md) owns topology and addressing; [operations](../../documentation/OPERATIONS.md) owns administration, current faults and recovery.
 
-## Components
+| Component | Responsibility |
+|---|---|
+| [Native uplink](native-uplink/README.md) | Guarded Ethernet DHCP, exact resource ownership, boot checks and Wi-Fi rollback |
+| [VPN policy](vpn-policy/README.md) | Static-IP recovery, Wi-Fi country fallback and scheduled maintenance |
+| [DNS](dns/README.md) | dnsmasq, unbound, resolved configuration and automatic local repair |
+| [Host](host/README.md) | Service restart hardening, persistent logs, boot evidence and SSH bans |
+| [Fan](fan/README.md) | Kernel thermal control, wiring, DTB builder and stock-DTB recovery |
 
-- [DNS](dns/README.md): unbound resolver for the printer LAN and Radxa, end-to-end DNS check, and tests.
-- [Firewall](firewall/README.md): the `inet printer_gateway` nftables table.
-- [VPN policy](vpn-policy/README.md): static-IP-first recovery with country fallback, scheduled maintenance, systemd templates, and deterministic tests.
-- [Host](host/README.md): restart hardening for the remote-access services, persistent journal, per-boot evidence and the fail2ban `sshd` jail.
-- [Fan](fan/README.md): Noctua 5V PWM fan on the 40-pin header, driven by the kernel's thermal framework through a device-tree overlay.
+The remaining network and firewall files are described below. Other live configuration, such as school authentication and account-specific services, is maintained on the host. Repository edits do not deploy it; use the component's installed-file mapping and preserve independent administration access before changing a live service.
 
-Other gateway configuration is installed on the host and documented in [operations](../../documentation/operations/OPERATIONS.md). It is not yet provided here as deployable source. Add reviewed configuration components alongside these when brought into version control.
+## Network profiles
 
-[Topology](../../documentation/network/TOPOLOGY.md) owns network behavior; [network hardware](../../documentation/network/HARDWARE.md) records the host and access point. Repository changes alone do not alter the running gateway.
+Install nonsecret profiles root-owned, mode 0644, under `/etc/systemd/network/`:
+
+| File | Role |
+|---|---|
+| [05-printer-lan.network](network/05-printer-lan.network) | USB `192.168.77.1/24`, no DHCP client, no IPv6 router advertisements |
+| [05-reserved-builtin.network](network/05-reserved-builtin.network) | Addressless native profile used during permanent Wi-Fi fallback |
+| [09-ethernet-safe-fallback.network](network/09-ethernet-safe-fallback.network) | MAC guard prevents either Ethernet adapter matching a generated DHCP catchall |
+| [05-native-uplink.network](native-uplink/05-native-uplink.network) | Active native profile; preserves helper-owned finite-lifetime IPv4 resources and sorts before the reserved profile |
+
+Keep DHCP binding, firewall interface, Docker forwarding and physical cable roles consistent. Do not install profiles independently, regenerate Netplan or restore a native-printer-LAN snapshot while the school cable is attached. Native recovery preserves the USB LAN. Keep non-Ethernet networkd inputs unchanged during native-only work; see [recovery constraints](../../documentation/OPERATIONS.md#usb-printer-link).
+
+## Firewall and Docker
+
+[firewall/gateway.nft](firewall/gateway.nft) defines `inet printer_gateway`, installed at `/etc/printing-station/gateway.nft` and loaded by `printing-gateway.service` through the installed `gateway-control` helper. It restricts printer forwarding to `tun0`, management input and host resolver egress. [Network](../../documentation/NETWORK.md#firewall-and-management) describes the boundaries.
+
+[firewall/docker-forwarding](firewall/docker-forwarding) is installed under `/usr/local/libexec/printing-station/`. The installed `/etc/systemd/system/docker.service.d/printing-station.conf` drop-in reapplies `PRINTING-VPN` allowances without replacing unrelated Docker rules. Preserve existing containers and their data.
+
+From the repository root, validate the candidate with `sudo nft -c -f systems/gateway/firewall/gateway.nft` before installing it. `sudo systemctl reload printing-gateway` validates and loads the installed file. Follow the [access safeguards](../../documentation/OPERATIONS.md#access) before reload; configuration snapshots belong under the private recovery root.

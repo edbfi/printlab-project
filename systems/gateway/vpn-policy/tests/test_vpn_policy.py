@@ -36,6 +36,9 @@ class FakeHost:
     def available(self):
         return self.is_available
 
+    def native_only(self):
+        return False
+
     def health(self):
         return self.health_value, self.location
 
@@ -61,6 +64,40 @@ class PolicyTests(unittest.TestCase):
             policy.run_policy(host, state, CONFIG if config is None else config,
                               mode, now, lambda s: saves.append(dict(s)), dry)
         return state, saves
+
+    def test_native_recovery_tries_only_static_even_after_failure(self):
+        host = FakeHost(results=(False,))
+        host.native_only = lambda: True
+        self.run_case(host, {"failures": 2}, config=STATIC_CONFIG)
+        self.assertEqual(host.attempts, ["static:" + STATIC_IP])
+
+    def test_native_missing_static_location_never_uses_countries(self):
+        host = FakeHost(results=(), static=())
+        host.native_only = lambda: True
+        self.run_case(host, {"failures": 2}, config=STATIC_CONFIG)
+        self.assertEqual(host.attempts, [])
+
+    def test_healthy_wifi_static_tunnel_not_forced_to_new_native(self):
+        host = FakeHost(health="healthy", location=STATIC_LOCATION, results=())
+        host.native_only = lambda: True
+        self.run_case(host, config=STATIC_CONFIG)
+        self.assertEqual(host.attempts, [])
+
+    def test_healthy_fallback_is_kept_when_native_appears(self):
+        for mode in ("check", "refresh"):
+            for static in ((), (STATIC_LOCATION,)):
+                with self.subTest(mode=mode, static=static):
+                    host = FakeHost(health="healthy", results=(), static=static)
+                    host.native_only = lambda: True
+                    with patch.object(host, "static_locations") as catalog, \
+                         patch.object(host, "locations") as countries:
+                        state, _ = self.run_case(host, mode=mode, config=STATIC_CONFIG)
+                        self.run_case(host, state, mode=mode, config=STATIC_CONFIG, now=NOW + 60)
+                    self.assertEqual(host.attempts, [])
+                    catalog.assert_not_called()
+                    countries.assert_not_called()
+                    if mode == "refresh":
+                        self.assertEqual(state["last_refresh"], "2026-10-07")
 
     def test_three_failures_before_intervention(self):
         host = FakeHost(results=(True,))
@@ -231,6 +268,15 @@ class PolicyTests(unittest.TestCase):
 
 
 class HostTests(unittest.TestCase):
+    def setUp(self):
+        # These pre-existing tests isolate CLI behavior; route prerequisites have
+        # dedicated tests below and in the native reader tests.
+        for name, value in (("uplinks", {"native": None, "wifi": {"interface": "wlan0"}}),
+                            ("route_matches", True)):
+            patcher = patch.object(policy.Host, name, return_value=value)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
     def test_unavailable_location_is_a_disconnected_state(self):
         text = "Login state: Logged in\nConnect state: Error: Location does not exist or is disabled"
         self.assertEqual(policy.parse_status(text), ("disconnected", ""))
@@ -367,6 +413,96 @@ class HostTests(unittest.TestCase):
         with patch.object(policy, "command", side_effect=replies), patch.object(policy.time, "sleep"), \
              patch.object(host, "health", return_value=("healthy", "Test")):
             self.assertTrue(host.connect("DK", {"Test"}))
+
+
+class UplinkHostTests(unittest.TestCase):
+    def setUp(self):
+        self.native = {"interface": "enp1s0", "address": "10.49.9.53",
+                       "gateway": "10.49.9.1", "endpoint": "82.29.94.2"}
+        self.wifi = {"interface": "wlan0", "address": "10.113.128.29",
+                     "gateway": "10.113.128.1", "endpoint": None}
+        self.links = {"native": self.native, "wifi": self.wifi, "blocked": False}
+        self.host = policy.Host()
+
+    def test_reader_rejects_failed_malformed_blocked_and_multicast_status(self):
+        for rc, value in ((1, json.dumps(self.links)), (0, "not JSON"),
+                          (0, json.dumps({**self.links, "blocked": True})),
+                          (0, json.dumps({**self.links, "native": {**self.native, "endpoint": "224.0.0.1"}}))):
+            with self.subTest(value=value), patch.object(policy, "command", return_value=(rc, value)):
+                self.assertIsNone(self.host.uplinks())
+                self.assertTrue(self.host.native_only())
+        with patch.object(policy, "command", return_value=(0, json.dumps(self.links))):
+            self.assertEqual(self.host.uplinks(), self.links)
+
+    def test_reader_rejects_non_string_addresses(self):
+        for key in ("address", "gateway", "endpoint"):
+            for value in (True, 1377656322):
+                payload = {**self.links, "native": {**self.native, key: value}}
+                with self.subTest(key=key, value=value), \
+                     patch.object(policy, "command", return_value=(0, json.dumps(payload))):
+                    self.assertIsNone(self.host.uplinks())
+
+    def test_reader_failure_and_blocked_resources_have_distinct_logs(self):
+        for rc, payload, expected in (
+                (1, "", "Uplink eligibility reader failed; deferring VPN recovery"),
+                (0, json.dumps({**self.links, "blocked": True}),
+                 "Native resources are not eligible; deferring VPN recovery")):
+            with patch.object(policy, "command", return_value=(rc, payload)), \
+                 patch.object(policy, "log") as logged:
+                self.assertIsNone(self.host.uplinks())
+                logged.assert_called_once_with(expected)
+
+    def test_available_needs_services_and_one_eligible_uplink(self):
+        with patch.object(policy, "command", return_value=(0, "active")), \
+             patch.object(self.host, "uplinks", return_value=self.links):
+            self.assertTrue(self.host.available())
+        with patch.object(policy, "command", return_value=(0, "inactive")), \
+             patch.object(self.host, "uplinks", return_value=self.links):
+            self.assertFalse(self.host.available())
+        with patch.object(policy, "command", return_value=(0, "active")), \
+             patch.object(self.host, "uplinks", return_value={"native": None, "wifi": None}):
+            self.assertFalse(self.host.available())
+
+    def test_native_refuses_country_before_disconnect(self):
+        with patch.object(self.host, "uplinks", return_value=self.links), \
+             patch.object(policy, "command") as cmd, patch.object(policy, "log"):
+            self.assertIsNone(self.host.connect("DK", {"Test"}))
+        cmd.assert_not_called()
+
+    def test_route_query_requires_intended_interface_source_gateway_and_main_table(self):
+        row = {"dev": "enp1s0", "gateway": "10.49.9.1", "prefsrc": "10.49.9.53"}
+        with patch.object(policy, "command", return_value=(0, json.dumps([row]))) as cmd:
+            self.assertTrue(self.host.route_matches(self.native))
+            self.assertEqual(cmd.call_args.args[0][-1], "82.29.94.2")
+        for change in ({"dev": "wlan0"}, {"prefsrc": "10.113.128.29"},
+                       {"gateway": "10.49.9.2"}, {"table": "10490"}):
+            with patch.object(policy, "command", return_value=(0, json.dumps([{**row, **change}]))):
+                self.assertFalse(self.host.route_matches(self.native))
+
+    def test_stale_pin_after_disconnect_stops_before_connect(self):
+        replies = [(0, ""), (0, "Login state: Logged in\nConnect state: Disconnected")]
+        with patch.object(self.host, "uplinks", return_value=self.links), \
+             patch.object(self.host, "route_matches", return_value=False), \
+             patch.object(policy, "command", side_effect=replies) as cmd, patch.object(policy, "log"):
+            self.assertIsNone(self.host.connect(STATIC_IP, {STATIC_LOCATION}, static=True))
+        self.assertEqual([c.args[0][1] for c in cmd.call_args_list], ["disconnect", "status"])
+
+    def test_native_appearance_after_wifi_disconnect_blocks_country_connect(self):
+        wifi = {"native": None, "wifi": self.wifi, "blocked": False}
+        replies = [(0, ""), (0, "Login state: Logged in\nConnect state: Disconnected")]
+        with patch.object(self.host, "uplinks", side_effect=[wifi, self.links]), \
+             patch.object(policy, "command", side_effect=replies) as cmd:
+            self.assertIsNone(self.host.connect("DK", {"Test"}))
+        self.assertEqual(cmd.call_count, 2)
+
+    def test_native_connection_rechecks_eligibility_before_accepting_success(self):
+        replies = [(0, ""), (0, "Login state: Logged in\nConnect state: Disconnected"), (0, "")]
+        with patch.object(self.host, "uplinks", side_effect=[self.links, self.links, None]), \
+             patch.object(self.host, "route_matches", return_value=True), \
+             patch.object(self.host, "health", return_value=("healthy", STATIC_LOCATION)), \
+             patch.object(policy, "command", side_effect=replies), \
+             patch.object(policy.time, "sleep"), patch.object(policy, "log"):
+            self.assertIsNone(self.host.connect(STATIC_IP, {STATIC_LOCATION}, static=True))
 
 
 if __name__ == "__main__":

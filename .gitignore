@@ -8,7 +8,7 @@
 !.env.example
 credentials/
 secrets/
-# Private inventory; tracked hardware details live in documentation/printing/PRINTERS.md.
+# Private inventory; tracked printer details live in documentation/PRINTING.md.
 *.private.md
 *.key
 *.pem

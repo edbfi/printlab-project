@@ -66,3 +66,24 @@ repos:
         language_version: "3.14"
         pass_filenames: false
         always_run: true
+      - id: native-lease-tests
+        name: Native lease validation tests
+        entry: python3 -B -m unittest discover -s systems/gateway/native-uplink/tests
+        language: python
+        language_version: "3.14"
+        pass_filenames: false
+        always_run: true
+      - id: native-trial-tests
+        name: Native uplink trial recovery tests
+        entry: python3 -B -m unittest discover -s systems/gateway/native-uplink/trial/tests
+        language: python
+        language_version: "3.14"
+        pass_filenames: false
+        always_run: true
+      - id: native-boot-tests
+        name: Native uplink boot recovery tests
+        entry: python3 -B -m unittest discover -s systems/gateway/native-uplink/boot/tests
+        language: python
+        language_version: "3.14"
+        pass_filenames: false
+        always_run: true

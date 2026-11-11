@@ -1,0 +1,10 @@
+[Unit]
+Description=Check native boot deadline independently of agent and boot checker
+
+OnFailure=printing-uplink-boot-fallback.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -IB /usr/local/libexec/printing-station/uplink-boot.py watchdog
+TimeoutStartSec=1min
+TimeoutStopSec=10s

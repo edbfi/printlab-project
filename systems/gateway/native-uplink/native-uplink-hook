@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+helper=/usr/local/libexec/printing-station/native-uplink/native-uplink
+/usr/bin/timeout --kill-after=2s 20s /usr/bin/python3 -IB "$helper" event || {
+    result=$?
+    # dhcpcd ignores hook failures. Request a bounded whole-cgroup stop rather
+    # than relying on that exit code or waiting while holding the operation lock.
+    /usr/bin/timeout --kill-after=2s 8s /usr/bin/python3 -IB "$helper" failed || true
+    exit "$result"
+}

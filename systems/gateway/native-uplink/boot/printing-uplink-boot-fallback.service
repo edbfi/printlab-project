@@ -1,0 +1,12 @@
+[Unit]
+StartLimitIntervalSec=1h
+StartLimitBurst=3
+Description=Restore Wi-Fi after failed native-uplink boot acceptance
+
+[Service]
+Type=oneshot
+Restart=on-failure
+RestartSec=15s
+ExecStart=/usr/bin/python3 -IB /usr/local/libexec/printing-station/uplink-boot.py fallback
+TimeoutStartSec=1min
+TimeoutStopSec=10s

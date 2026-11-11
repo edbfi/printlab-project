@@ -438,7 +438,17 @@ def boot_reset():
 
 def restore_automation():
     # Used only after verified native absence and restoration of baseline files.
+    systemctl('start', *TIMERS)
     (BASE / 'pending').unlink(missing_ok=True)
+
+
+def resume_matching_policy():
+    # Preserve retry admission while allowing the native-aware policy to run.
+    # Never authorize a different/older policy over remaining native resources.
+    if POLICY.read_bytes() != (BASE / 'new-policy.py').read_bytes():
+        (RUNTIME / 'policy-permit').unlink(missing_ok=True)
+        raise RuntimeError('Cannot resume a policy that differs from the native snapshot')
+    write(RUNTIME / 'policy-permit', b'matching policy after rejected rollback\n')
     systemctl('start', *TIMERS)
 
 
@@ -457,13 +467,18 @@ def rollback():
     if not (BASE / 'pending').exists():
         return
     marker('rollback-started')
+    stop_apply()
+    # Drift must reject rollback before it disables working automation. Pending
+    # also gates policy units, so explicitly release only the matching policy.
+    try:
+        hashes()
+    except (RuntimeError, OSError, ValueError):
+        resume_matching_policy()
+        raise
     (RUNTIME / 'trial-permit').unlink(missing_ok=True)
     (RUNTIME / 'policy-permit').unlink(missing_ok=True)
-    stop_apply()
     pause_policy(force=True)
     native = load_native()
-    # Check immutable inputs before voluntarily disrupting the working tunnel.
-    hashes()
     try:
         disconnect()
     except (RuntimeError, OSError, subprocess.SubprocessError):
@@ -487,12 +502,12 @@ def rollback():
     try:
         recover_wifi(native)
         hashes()
-        marker('rollback-complete')
     finally:
         # A transient provider/CLI failure must not permanently suppress the old
         # Wi-Fi policy after native resources and candidate files are gone.
         restore_automation()
         systemctl('stop', 'printing-uplink-rollback.timer', check=False)
+    marker('rollback-complete')
 
 
 def boot_recover():
@@ -506,9 +521,9 @@ def boot_recover():
         raise RuntimeError('Boot baseline files differ')
     try:
         recover_wifi(native)
-        marker('rollback-complete')
     finally:
         restore_automation()
+    marker('rollback-complete')
 
 
 def restore_link():

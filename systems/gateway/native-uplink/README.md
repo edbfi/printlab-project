@@ -72,6 +72,8 @@ Checker failure queues `printing-uplink-boot-fallback.service`. An independent w
 
 Fallback durably revokes boot enablement, serializes rollback and restores the saved readiness/boot-evidence files. It retries preparation at most three times per hour, without repeating an already-submitted rollback. Rollback disconnects Windscribe, stops native DHCP, verifies removal of owned resources, selects the reserved-native profile, restores the saved policy and explicitly reconnects static VPN over Wi-Fi. USB LAN configuration is preserved. See [operator recovery](../../../documentation/OPERATIONS.md#native-uplink-recovery).
 
+Rollback rejects protected-file or networkd inventory drift before pausing automation or withdrawing native resources. On that rejection, it retains retry admission and permits the matching native-aware policy to run; a changed policy is not authorized. Successful recovery restarts policy timers before clearing `pending` and publishing `rollback-complete`. Protected inputs stay frozen while native recovery is required; [operations](../../../documentation/OPERATIONS.md#native-uplink-recovery) owns the change constraints.
+
 ## Tool constraints
 
 `trial/` supplies the controller imported by active recovery; `boot/` supplies persistence and verification. Staging requires Wi-Fi VPN transport and a nonexistent recovery directory, so it cannot run against this active deployment. `trial/build-bundle.py` packages acquisition/trial source only, not boot integration. Redeployment requires a separate reviewed procedure that preserves the active snapshots, protected manifests and helper/policy compatibility.

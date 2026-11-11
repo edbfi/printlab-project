@@ -34,6 +34,8 @@ Render `@GATEWAY_USER@`, `@GATEWAY_GROUP@`, `@GATEWAY_UID@` and `@GATEWAY_HOME@`
 
 The public JSON has an empty `static_ip`. Set the purchased address only in the installed config and preserve it when updating; `/opt/windscribe/windscribe-cli locations static` lists account locations locally. Empty static configuration permits country order only on eligible Wi-Fi; it cannot recover native. The JSON refresh time and timer calendar must agree.
 
+The active native recovery snapshot freezes this JSON and restores its staged Wi-Fi policy during fallback. Return to Wi-Fi before changing protected inputs; follow the [recovery constraints](../../../documentation/OPERATIONS.md#native-uplink-recovery), rather than editing the config while native fallback depends on its hash.
+
 Install the matching native helper before the policy. Verify `status` works as the actual service account under its sandbox and that mutating helper modes are denied. Native's authorized outer endpoint must match the chosen static server; it is distinct from the public static exit.
 
 Pause both timers and wait for both services to be idle before deployment. Back up affected installed files, validate rendered units with `systemd-analyze verify`, install with root-owned non-writable paths and reload systemd for unit changes. Verify dry-run behavior **as the gateway user, not root**, before restoring timers. Do not install an incompatible policy while native resources remain active.

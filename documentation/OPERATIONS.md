@@ -93,6 +93,8 @@ The rollback service allows up to 20 minutes per attempt and at most three start
 
 Do not delete the active snapshot directory, `boot-baseline/`, any `boot-fallback` marker or the `boot-enabled` marker. The installed helpers depend on them. A permanent fallback marker blocks reactivation; a new controlled deployment must verify state before changing it. Never restore a native-printer-LAN snapshot or stop DHCP alone as a substitute for coordinated recovery. See [component contracts](../systems/gateway/native-uplink/README.md).
 
+Recovery requires the frozen networkd input inventory and protected-file hashes, including `/etc/printing-station/vpn-policy.json`. Return to Wi-Fi **before** changing those inputs; fallback restores the staged `old-policy.py`, not a newer repository copy. If inputs already differ, restore the reviewed protected values before retrying. Do not regenerate manifests to bless drift or rerun staging over the active directory. A rejected preflight retains pending recovery and permits only the matching native-aware policy to resume; it does not establish completed Wi-Fi fallback.
+
 ### USB printer link
 
 The AP cable belongs in `enx00e04c5a5518` in the original USB 3 socket; the school cable belongs in `enp1s0`. USB must match `05-printer-lan.network` and own `192.168.77.1/24`. Native normally matches `05-native-uplink.network`; after permanent fallback it matches `05-reserved-builtin.network` without an IPv4 address.

@@ -118,6 +118,69 @@ class TrialTests(IsolatedTrialTestCase):
             self.assertEqual(path.read_bytes(), b'complete')
 
 class RecoveryRegressionTests(IsolatedTrialTestCase):
+    def test_failed_timer_start_preserves_pending_until_retry_succeeds(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            (base / 'pending').touch()
+            with patch.object(trial, 'BASE', base), patch.object(
+                    trial, 'systemctl', side_effect=[TimeoutError('manager busy'), Mock()]):
+                with self.assertRaises(TimeoutError):
+                    trial.restore_automation()
+                self.assertTrue((base / 'pending').exists())
+                trial.restore_automation()
+                self.assertFalse((base / 'pending').exists())
+
+    def test_input_drift_keeps_matching_policy_available_without_withdrawal(self):
+        for matching in (True, False):
+            with self.subTest(matching=matching), tempfile.TemporaryDirectory() as directory:
+                base = Path(directory)
+                (base / 'pending').touch()
+                (base / 'new-policy.py').write_bytes(b'native-aware')
+                policy = base / 'installed-policy.py'
+                policy.write_bytes(b'native-aware' if matching else b'other')
+                (trial.RUNTIME / 'policy-permit').touch()
+                with patch.object(trial, 'BASE', base), patch.object(trial, 'POLICY', policy), \
+                        patch.object(trial, 'safe'), patch.object(trial, 'marker'), \
+                        patch.object(trial, 'stop_apply'), \
+                        patch.object(trial, 'hashes', side_effect=RuntimeError('input drift')), \
+                        patch.object(trial, 'pause_policy') as pause, \
+                        patch.object(trial, 'disconnect') as disconnect, \
+                        patch.object(trial, 'stop_native') as stop, \
+                        patch.object(trial, 'systemctl') as systemctl:
+                    with self.assertRaises(RuntimeError):
+                        trial.rollback()
+                    self.assertTrue((base / 'pending').exists())
+                    pause.assert_not_called()
+                    disconnect.assert_not_called()
+                    stop.assert_not_called()
+                    if matching:
+                        self.assertTrue((trial.RUNTIME / 'policy-permit').exists())
+                        systemctl.assert_called_once_with('start', *trial.TIMERS)
+                        (trial.RUNTIME / 'policy-permit').unlink()
+                    else:
+                        self.assertFalse((trial.RUNTIME / 'policy-permit').exists())
+                        systemctl.assert_not_called()
+
+    def test_timer_failure_does_not_publish_rollback_completion(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            (base / 'pending').touch()
+            with contextlib.ExitStack() as stack:
+                stack.enter_context(patch.object(trial, 'BASE', base))
+                for name in ('stop_apply', 'pause_policy', 'load_native', 'hashes',
+                             'disconnect', 'stop_native', 'cleanup_native', 'restore_files',
+                             'run', 'recover_wifi'):
+                    stack.enter_context(patch.object(trial, name))
+                stack.enter_context(patch.object(trial, 'operation', contextlib.nullcontext))
+                stack.enter_context(patch.object(trial, 'absent', return_value=True))
+                stack.enter_context(patch.object(trial, 'disconnected', return_value=True))
+                marker = stack.enter_context(patch.object(trial, 'marker'))
+                stack.enter_context(patch.object(trial, 'systemctl', side_effect=TimeoutError('manager busy')))
+                with self.assertRaises(TimeoutError):
+                    trial.rollback()
+                self.assertTrue((base / 'pending').exists())
+                self.assertNotIn(unittest.mock.call('rollback-complete'), marker.call_args_list)
+
     def test_unloaded_apply_is_successfully_stopped_without_stop_call(self):
         def systemctl(*args, **kwargs):
             self.assertNotEqual(args[0], 'stop')

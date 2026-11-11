@@ -1,9 +1,9 @@
 [Unit]
-Description=Record previous shutdown cause and Wi-Fi/VPN recovery time for this boot
+Description=Record previous shutdown cause and uplink/VPN readiness for this boot
 After=systemd-journald.service local-fs.target
 
 [Service]
-# exec, not oneshot: the script waits up to 30 min for wlan0 and tun0, and
+# exec, not oneshot: the script waits up to 30 min for uplink/VPN readiness, and
 # must not hold back multi-user.target while it does.
 Type=exec
 ExecStart=/usr/local/libexec/printing-station/boot-evidence

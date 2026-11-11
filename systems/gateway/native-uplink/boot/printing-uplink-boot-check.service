@@ -1,0 +1,19 @@
+[Unit]
+Description=Verify static VPN transport after native-uplink boot
+ConditionPathExists=/var/lib/printing-station/rollback/native-uplink-trial/boot-enabled
+After=network-online.target windscribe-helper.service user@1000.service printing-native-uplink.service
+Wants=network-online.target
+Before=printing-vpn-check.service printing-vpn-refresh.service
+OnFailure=printing-uplink-boot-fallback.service
+
+ConditionPathExists=!/var/lib/printing-station/rollback/native-uplink-trial/boot-fallback
+ConditionPathExists=!/var/lib/printing-station/rollback/native-uplink-trial/pending
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -IB /usr/local/libexec/printing-station/uplink-boot.py check
+TimeoutStartSec=7min
+TimeoutStopSec=10s
+
+[Install]
+WantedBy=multi-user.target

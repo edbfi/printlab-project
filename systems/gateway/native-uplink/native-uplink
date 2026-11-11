@@ -1,0 +1,35 @@
+#!/usr/bin/python3 -IB
+"""Root-owned fixed-path bootstrap; not executable from a repository checkout."""
+import time
+
+ENTERED = time.clock_gettime(time.CLOCK_BOOTTIME)
+
+import os
+from pathlib import Path
+import stat
+import sys
+
+ROOT = Path("/usr/local/libexec/printing-station/native-uplink")
+if (Path(__file__) != ROOT / "native-uplink"
+        or (os.geteuid() != 0 and sys.argv[1:] != ["status"])):
+    raise SystemExit("Native helper requires its reviewed root-owned installation")
+for path in (ROOT, *ROOT.parents):
+    info = path.lstat()
+    if not stat.S_ISDIR(info.st_mode) or info.st_uid != 0 or info.st_mode & 0o022:
+        raise SystemExit("Unsafe native helper directory")
+cache = ROOT / "__pycache__"
+if cache.exists() or cache.is_symlink():
+    raise SystemExit("Native helper installation must contain source only, no bytecode cache")
+for name in ("native-uplink", "native-uplink-hook", "native_service.py", "native_port.py",
+             "native_state.py", "lease_lifecycle.py", "lease_validation.py", "lease_timing.py"):
+    info = (ROOT / name).lstat()
+    if not stat.S_ISREG(info.st_mode) or info.st_uid != 0 or info.st_mode & 0o022:
+        raise SystemExit("Unsafe native helper source")
+    if name in ("native-uplink", "native-uplink-hook") and not info.st_mode & stat.S_IXUSR:
+        raise SystemExit("Native helper entry points must be executable")
+sys.path.insert(0, str(ROOT))
+from native_service import main
+
+if len(sys.argv) != 2:
+    raise SystemExit("Exactly one native helper operation required")
+main(sys.argv[1], ENTERED)

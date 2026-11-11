@@ -1,0 +1,26 @@
+[Unit]
+Description=Guarded native Ethernet DHCP
+After=systemd-networkd.service
+
+[Service]
+Type=simple
+User=root
+UMask=0077
+RuntimeDirectory=printing-native-uplink
+RuntimeDirectoryMode=0755
+RuntimeDirectoryPreserve=yes
+PrivateMounts=yes
+TemporaryFileSystem=/run/dhcpcd:mode=0755 /var/lib/dhcpcd:mode=0755
+ExecStart=/usr/bin/python3 -IB /usr/local/libexec/printing-station/native-uplink/native-uplink run
+ExecStopPost=/usr/bin/timeout --kill-after=2s 65s /usr/bin/python3 -IB /usr/local/libexec/printing-station/native-uplink/native-uplink stop
+KillMode=control-group
+SendSIGKILL=yes
+TimeoutStopSec=70s
+Restart=no
+StandardOutput=journal
+StandardError=journal
+
+# Boot enablement and readiness conditions are supplied by native-persistent.conf.
+# Budget 70s TERM, potentially another 70s KILL wait, and up to 67s cleanup.
+# These timers cannot bound uninterruptible kernel tasks. Rollback must
+# verify resource absence; an aggregate cleanup timeout is not cleanup success.

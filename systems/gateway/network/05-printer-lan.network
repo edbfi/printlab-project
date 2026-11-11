@@ -1,0 +1,12 @@
+[Match]
+Name=enx00e04c5a5518
+MACAddress=00:e0:4c:5a:55:18
+[Link]
+RequiredForOnline=no
+[Network]
+Address=192.168.77.1/24
+DHCP=no
+LinkLocalAddressing=ipv6
+IPv6AcceptRA=no
+IPv6SendRA=no
+ConfigureWithoutCarrier=yes

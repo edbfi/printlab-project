@@ -1,0 +1,15 @@
+[Unit]
+ConditionPathExists=/var/lib/printing-station/rollback/native-uplink-trial/pending
+Description=Restore the static Wi-Fi VPN after an interrupted native uplink trial
+After=printing-uplink-boot-reset.service network-online.target windscribe-helper.service user@1000.service
+Wants=network-online.target
+Before=printing-vpn-check.service printing-vpn-refresh.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -IB /usr/local/libexec/printing-station/uplink-trial.py boot-recover
+TimeoutStartSec=7min
+TimeoutStopSec=10s
+
+[Install]
+WantedBy=multi-user.target

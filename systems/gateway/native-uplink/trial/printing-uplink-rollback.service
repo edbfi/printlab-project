@@ -1,0 +1,14 @@
+[Unit]
+StartLimitIntervalSec=1h
+StartLimitBurst=3
+Description=Local timed rollback of the native uplink trial
+
+[Service]
+Type=oneshot
+Restart=on-failure
+RestartSec=30s
+ExecStart=/usr/bin/python3 -IB /usr/local/libexec/printing-station/uplink-trial.py rollback
+TimeoutStartSec=20min
+TimeoutStopSec=10s
+StandardOutput=journal
+StandardError=journal

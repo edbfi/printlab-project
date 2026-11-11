@@ -1,9 +1,10 @@
 #!/usr/bin/python3 -I
 """Write one evidence line per boot: how the previous boot ended and how long
-the school Wi-Fi login and the VPN tunnel took to come up.
+the school Wi-Fi login and the VPN tunnel took to come up, plus native eligibility.
 
 Runs at every boot from printing-boot-evidence.service. The current boot is
-recorded once wlan0 is authenticated, tun0 is up and the clock is synced, or
+recorded once the VPN boot check passed (or historical WLAN auth and tunnel
+readiness both exist) and the clock is synced, or
 after DEADLINE. Earlier boots that ended before they were recorded are
 backfilled from the persistent journal and marked recorded=late. All timings
 are journal monotonic seconds since kernel start, so they are right even
@@ -72,6 +73,15 @@ def network(boot):
             mono(tunnel) if tunnel else None)
 
 
+def uplink_boot(boot):
+    hits = journal(boot, "-u", "printing-uplink-boot-check.service", "-g",
+                   "^Verified boot transport: (enp1s0|wlan0)$")
+    if not hits:
+        return None, None
+    entry = hits[0]
+    return mono(entry), entry.get("MESSAGE", "").rsplit(": ", 1)[-1]
+
+
 def ending(boot):
     """How the boot ended, judged from its own journal."""
     last = journal(boot, "-n", "1")
@@ -101,11 +111,14 @@ def describe(boots, idx, live):
     boot = boots[idx]["boot_id"]
     start, sync_at = boot_start(boot)
     auth, rejects, tunnel = network(boot)
+    uplink_at, uplink = uplink_boot(boot)
     fields = {
         "boot": stamp(start) if start else "unknown",
         "boot_id": boot[:8],
         "wlan0_auth": f"+{auth}s" if auth is not None else "none",
         "eap_rejects": str(rejects),
+        "uplink_verified": f"+{uplink_at}s" if uplink_at is not None else "none",
+        "uplink": uplink or "unverified",
         "tun0_up": f"+{tunnel}s" if tunnel is not None else "none",
         "clock_sync": f"+{sync_at}s" if sync_at is not None else "none",
     }
@@ -132,11 +145,13 @@ def describe(boots, idx, live):
                 fields["watchdog_bootstatus"] = fh.read().strip()
         except OSError:
             fields["watchdog_bootstatus"] = "n/a"
+        fields["enp1s0"] = addr("enp1s0")
         fields["wlan0"] = addr("wlan0")
         fields["tun0"] = addr("tun0")
     else:
         fields["recorded"] = "late"
-    slow = (auth is None or auth > SLOW_AUTH or tunnel is None or tunnel > SLOW_TUNNEL)
+    slow = ((uplink_at > SLOW_TUNNEL) if uplink_at is not None else
+            (auth is None or auth > SLOW_AUTH or tunnel is None or tunnel > SLOW_TUNNEL))
     return " ".join(f"{k}={v}" for k, v in fields.items()), slow
 
 
@@ -176,7 +191,10 @@ def main():
         uptime = float(open("/proc/uptime").read().split()[0])
         auth, _, tunnel = network(current)
         synced = boot_start(current)[0] is not None
-        if (auth is not None and tunnel is not None and synced) or uptime >= DEADLINE:
+        uplink_at, _ = uplink_boot(current)
+        native_boot = os.path.exists("/var/lib/printing-station/rollback/native-uplink-trial/boot-enabled")
+        ready = uplink_at is not None or (not native_boot and auth is not None and tunnel is not None)
+        if (ready and synced) or uptime >= DEADLINE:
             break
         time.sleep(POLL)
     emit(*describe(boots, len(boots) - 1, live=True))

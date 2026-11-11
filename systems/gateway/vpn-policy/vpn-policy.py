@@ -22,6 +22,7 @@ CONFIG = Path("/etc/printing-station/vpn-policy.json")
 FAILURES_REQUIRED = 3
 COOLDOWN = 900
 ATTEMPT_SECONDS = 90
+UPLINK_READER = "/usr/local/libexec/printing-station/native-uplink/native-uplink"
 
 
 def log(message):
@@ -64,16 +65,72 @@ def parse_status(text):
 
 
 class Host:
+    def uplinks(self):
+        rc, text = command(["/usr/bin/python3", "-IB", UPLINK_READER, "status"], timeout=12)
+        if rc:
+            log("Uplink eligibility reader failed; deferring VPN recovery")
+            return None
+        try:
+            value = json.loads(text)
+            if not isinstance(value, dict) or set(value) != {"native", "wifi", "blocked"}:
+                return None
+            if type(value["blocked"]) is not bool:
+                return None
+            if value["blocked"]:
+                log("Native resources are not eligible; deferring VPN recovery")
+                return None
+            for key, interface in (("native", "enp1s0"), ("wifi", "wlan0")):
+                link = value[key]
+                if link is None:
+                    continue
+                if (not isinstance(link, dict) or set(link) != {"interface", "address", "gateway", "endpoint"}
+                        or link["interface"] != interface):
+                    return None
+                if not isinstance(link["address"], str) or not isinstance(link["gateway"], str):
+                    return None
+                ipaddress.IPv4Address(link["address"])
+                ipaddress.IPv4Address(link["gateway"])
+                if key == "native":
+                    if not isinstance(link["endpoint"], str):
+                        return None
+                    # Keep in step with the separately deployed public_endpoint validator.
+                    endpoint = ipaddress.IPv4Address(link["endpoint"])
+                    if not endpoint.is_global or endpoint.is_multicast:
+                        return None
+                elif link["endpoint"] is not None:
+                    return None
+            return value
+        except (ValueError, TypeError, KeyError):
+            return None
+
+    def native_only(self):
+        links = self.uplinks()
+        # A changing/unreadable snapshot must never loosen country selection.
+        return links is None or links["native"] is not None
+
+    def route_matches(self, link):
+        destination = link["endpoint"] if link["interface"] == "enp1s0" else "1.1.1.1"
+        rc, text = command(["/usr/sbin/ip", "-j", "-4", "route", "get", destination])
+        if rc:
+            return False
+        try:
+            rows = json.loads(text)
+            return (isinstance(rows, list) and len(rows) == 1
+                    and rows[0].get("dev") == link["interface"]
+                    and rows[0].get("gateway") == link["gateway"]
+                    and rows[0].get("prefsrc") == link["address"]
+                    and rows[0].get("table", "main") in ("main", "254", 254))
+        except (ValueError, TypeError, AttributeError):
+            return False
+
     def available(self):
         # Respect stopped services and school-uplink loss; do not fight maintenance.
         for args in (["/usr/bin/systemctl", "--user", "is-active", "windscribe"],
                      ["/usr/bin/systemctl", "is-active", "windscribe-helper"]):
             if command(args)[1] != "active":
                 return False
-        try:
-            return Path("/sys/class/net/wlan0/carrier").read_text().strip() == "1"
-        except OSError:
-            return False
+        links = self.uplinks()
+        return links is not None and (links["native"] is not None or links["wifi"] is not None)
 
     def health(self):
         rc, text = command([CLI, "status"])
@@ -164,6 +221,12 @@ class Host:
     def connect(self, target, allowed_locations, static=False):
         # Explicit disconnect makes a scheduled refresh real, even if a country
         # request happens to choose the same datacenter. No firewall-off command.
+        links = self.uplinks()
+        if links is None or not (links["native"] or links["wifi"]):
+            return None
+        if links["native"] is not None and not static:
+            log("Native uplink authorizes the configured static target only")
+            return None
         command([CLI, "disconnect"], timeout=20)
         disconnect_deadline = time.monotonic() + 10
         while True:
@@ -174,6 +237,15 @@ class Host:
                 log("Disconnected state not confirmed; stopping this recovery pass")
                 return None
             time.sleep(1)
+        # Disconnect must remove the old transport pin. Do not delete routes here:
+        # this policy is unprivileged; the bounded deployment rollback owns repair.
+        links = self.uplinks()
+        selected = None if links is None else links["native"] or links["wifi"]
+        if selected is None or (selected["interface"] == "enp1s0" and not static):
+            return None
+        if not self.route_matches(selected):
+            log("Post-disconnect routing does not select an eligible uplink; stopping")
+            return None
         selection = ["static", target] if static else [target]
         if command([CLI, "connect", "-n", *selection, PROTOCOL], timeout=15)[0] != 0:
             return False
@@ -182,6 +254,12 @@ class Host:
             time.sleep(5)
             state, location = self.health()
             if state == "healthy" and location in allowed_locations:
+                if selected["interface"] == "enp1s0":
+                    latest = self.uplinks()
+                    if (latest is None or latest["native"] != selected
+                            or not self.route_matches(selected)):
+                        log("Native eligibility/endpoint route changed during connection")
+                        return None
                 return self.static_egress_matches(target) if static else True
             if state in ("unknown", "logged-out", "account-blocked"):
                 return None
@@ -242,12 +320,22 @@ def run_policy(host, state, config, mode, now, save, dry_run=False):
     if now < state.get("retry_after", 0):
         log("Recovery cooldown active; leaving native Windscribe recovery available")
         return
-    if dry_run:
-        prefix = "static IP -> " if static_ip else ""
-        log(f"Would try {prefix}DK -> SE -> NL using Stealth/443; dry-run makes no changes")
+    native_only = host.native_only()
+    if native_only and health == "healthy":
+        log("Healthy tunnel kept; native static failback is lazy")
+        if daily:
+            state["last_refresh"] = date
         return
-    locations = host.locations()
+    if dry_run:
+        choices = "configured static target only" if native_only else (("static IP -> " if static_ip else "") + "DK -> SE -> NL")
+        log(f"Would try {choices} using Stealth/443; dry-run makes no changes")
+        return
+    locations = {} if native_only else host.locations()
     static_location = host.static_locations().get(static_ip) if static_ip else None
+    if native_only and not static_location:
+        log("Native recovery requires the configured static location; no country fallback")
+        state["retry_after"] = now + COOLDOWN
+        return
     if static_ip:
         state["static_retry_after"] = now + COOLDOWN
         if health == "healthy" and not static_location:

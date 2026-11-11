@@ -1,62 +1,38 @@
 # printlab-project
 
-Network infrastructure, workstation setup, and planned kiosk tooling for a shared 3D printing environment.
+A shared printing station with two Bambu Lab A1 minis and a Lubuntu Chromebook running Bambu Studio. A Radxa Dragon Q6A provides the school uplink, Windscribe VPN, firewall, DHCP and DNS independently of the Chromebook. Native Ethernet is primary, Wi-Fi is backup, and USB Ethernet connects the printer access point.
 
-The current deployment uses a Radxa Dragon Q6A as a gateway between school Wi-Fi and a dedicated printer network. A TP-Link access point connects two Bambu Lab A1 minis and a Lubuntu Chromebook running Bambu Studio. Printer networking operates independently of the Chromebook.
+Slicing and transfer work through Studio in the existing desktop session. There is no kiosk mode. USB printer-LAN instability and intermittent boot resets remain unresolved; see [current faults](documentation/OPERATIONS.md#current-faults).
 
-The operator confirms that slicing and transfer work. **Kiosk mode is planned and has not been implemented.** See [current status](documentation/overview/STATE.md) for the verified baseline and remaining work.
+## Guides
 
-## Repository layout
+- [Printing](documentation/PRINTING.md): equipment, daily workflow and workstation session.
+- [Network](documentation/NETWORK.md): topology, addressing, hardware, VPN, DNS and isolation.
+- [Operations](documentation/OPERATIONS.md): access, diagnostics, recovery, maintenance and current faults.
+- [Gateway components](systems/gateway/README.md): source, installed-file mappings and component maintenance.
 
-```text
-systems/
-  gateway/
-    dns/                 Printer-LAN resolver, DNS check, and tests
-    fan/                 Gateway fan device tree, GRUB entries and udev rule
-    firewall/            Gateway nftables table
-    vpn-policy/          VPN policy, configuration, systemd templates, and tests
-  printing-station/
-    kiosk/               Placeholder for future kiosk implementation
-documentation/
-  overview/              Scope, current status, and repository conventions
-  network/               Topology and gateway/access-point hardware
-  printing/              Daily workflow and printer inventory
-  workstation/           Workstation hardware and software
-  kiosk/                 Planned requirements and acceptance criteria
-  operations/            Administration, diagnostics, and recovery
-  worklog/               Current verification, limitations, and checkpoints
-```
-
-Implementation folders follow system roles rather than hardware brands. Keep each component's source, configuration, service units, and tests together. Add subfolders when they have actual content; the kiosk placeholder explicitly marks the planned component.
-
-## Start here
-
-- [Project scope and safeguards](documentation/overview/SETUP-BRIEF.md)
-- [Daily printing](documentation/printing/WORKFLOW.md)
-- [Network topology](documentation/network/TOPOLOGY.md)
-- [Administration and recovery](documentation/operations/OPERATIONS.md)
-- [Gateway implementation](systems/gateway/README.md)
-- [Printing station and future kiosk](systems/printing-station/README.md)
-- [Documentation ownership](documentation/overview/REPOSITORY.md)
-- [Validation](documentation/worklog/TESTS.md), [current limitations](documentation/worklog/ISSUES.md), and [verified checkpoints](documentation/worklog/CHANGES.md)
+`systems/gateway/` contains the native uplink, VPN policy, DNS, firewall, network profiles, host hardening and fan configuration. This is a deployment-specific repository, not a complete machine installer. The workstation is documented in the printing guide; no workstation implementation is packaged here.
 
 ## Development
 
-Run the gateway components' deterministic tests from the repository root:
+Run the repository's checks **as an unprivileged user**, from its root:
 
 ```sh
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s systems/gateway/vpn-policy/tests -v
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s systems/gateway/dns/tests -v
+prek run --all-files --hook-stage manual
 ```
 
-CI runs these tests and the repository checks in `.pre-commit-config.yaml` with `prek run --all-files --hook-stage manual`.
+CI runs the same command. It includes formatting/configuration/security checks and all five offline gateway suites: native DHCP, trial recovery, boot recovery, VPN policy and DNS. To run one suite:
 
-Tests simulate VPN and DNS failures and never touch live services or connect or disconnect a real VPN. Editing this checkout does not deploy changes to the gateway. The repository currently contains the VPN policy, fan, DNS and firewall sources; the rest of the installed gateway and workstation configuration is documented, not packaged as a complete installer.
+```sh
+python3 -B -m unittest discover -s systems/gateway/native-uplink/tests
+```
 
-Documentation describes the current local deployment. Account names and passwords are omitted; placeholders identify account-dependent paths, and service templates require local substitution. Review interface names, addresses, and the maintenance window before reuse. Use Conventional Commits.
+These suites use temporary state and simulated dependencies; do not run them as root or use installed recovery tools as test commands. Editing or testing the checkout does not deploy changes.
 
-Keep credentials, private inventory, application sessions, runtime state, generated jobs, and recovery archives outside Git. `.work/` and `*.private.md` are ignored. Review staged files before publishing; ignore rules cannot detect every secret. The public history preserves the earlier development commits with machine-account identifiers redacted. Commits use the `edbfi` GitHub identity. The original unredacted history is retained privately for recovery. Keep superseded documentation in Git rather than an active archive.
+Use Conventional Commits. Keep implementation, configuration, units and tests together by component. Use the guide that owns a subject instead of repeating it across documents. Documentation describes **the current system only**: remove superseded states, migration logs, dated test reports, review transcripts and future-work plans. Git history preserves earlier versions. Keep material operating limits with the current behavior and unresolved faults in operations.
+
+Use account placeholders in tracked examples and render service templates privately. Keep credentials, private inventory, login/session exports, captures, runtime state, jobs and recovery archives outside Git. `.work/` and `*.private.md` are ignored; preserve their contents and review diffs before publication. Installed `/etc/printing-station/`, `/usr/local/libexec/printing-station/` and `/var/lib/printing-station/` paths are independent of repository organization.
 
 ## License
 
-Project material is licensed under GNU AGPL-3.0-only; see [LICENSE](LICENSE). Third-party software retains its own licenses.
+GNU AGPL-3.0-only; see [LICENSE](LICENSE). Third-party software retains its own licenses.

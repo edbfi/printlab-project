@@ -30,17 +30,17 @@ table inet printer_gateway {
   }
   chain forward {
     type filter hook forward priority -5; policy accept;
-    iifname "enp1s0" ct state invalid counter drop
-    oifname "enp1s0" ct state invalid counter drop
-    iifname "enp1s0" jump from_printers
-    oifname "enp1s0" jump to_printers
+    iifname "enx00e04c5a5518" ct state invalid counter drop
+    oifname "enx00e04c5a5518" ct state invalid counter drop
+    iifname "enx00e04c5a5518" jump from_printers
+    oifname "enx00e04c5a5518" jump to_printers
     # Other forwarding remains governed by Docker's own chains/default policy.
   }
   chain management {
     type filter hook input priority -15; policy accept;
-    iifname != { "lo", "enp1s0", "wlan0", "tun0" } tcp dport 22 counter drop
-    iifname != { "lo", "enp1s0" } meta l4proto { tcp, udp } th dport 53 counter drop
-    iifname != "enp1s0" udp dport 67 counter drop
+    iifname != { "lo", "enx00e04c5a5518", "wlan0", "tun0" } tcp dport 22 counter drop
+    iifname != { "lo", "enx00e04c5a5518" } meta l4proto { tcp, udp } th dport 53 counter drop
+    iifname != "enx00e04c5a5518" udp dport 67 counter drop
   }
   chain dns_guard {
     type filter hook output priority -25; policy accept;

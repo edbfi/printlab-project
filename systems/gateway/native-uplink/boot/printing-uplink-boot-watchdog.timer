@@ -1,0 +1,10 @@
+[Unit]
+Description=Native boot recovery deadline
+
+[Timer]
+OnBootSec=12min
+AccuracySec=1s
+Unit=printing-uplink-boot-watchdog.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,12 @@
+[Unit]
+ConditionPathExists=/var/lib/printing-station/rollback/native-uplink-trial/pending
+Description=Restore reserved native uplink before networking after interrupted trial
+DefaultDependencies=no
+After=local-fs.target
+Before=systemd-networkd.service windscribe-helper.service user@1000.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -IB /usr/local/libexec/printing-station/uplink-trial.py boot-reset
+TimeoutStartSec=40s
+RemainAfterExit=yes

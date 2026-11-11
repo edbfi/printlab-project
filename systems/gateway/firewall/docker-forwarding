@@ -1,0 +1,18 @@
+#!/bin/sh
+set -eu
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+# Docker may not be started yet. Its ExecStartPost calls this again.
+iptables -w 5 -S DOCKER-USER >/dev/null 2>&1 || exit 0
+nft list chain inet printer_gateway from_printers >/dev/null
+nft list chain inet printer_gateway to_printers >/dev/null
+# Change only our chain; preserve Docker's policy and all unrelated rules.
+iptables-restore --wait 5 --noflush <<'RULES'
+*filter
+:PRINTING-VPN - [0:0]
+-F PRINTING-VPN
+-A PRINTING-VPN -i enx00e04c5a5518 -o tun0 -s 192.168.77.0/24 -j ACCEPT
+-A PRINTING-VPN -i tun0 -o enx00e04c5a5518 -d 192.168.77.0/24 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A PRINTING-VPN -j RETURN
+COMMIT
+RULES
+iptables -w 5 -C DOCKER-USER -j PRINTING-VPN 2>/dev/null || iptables -w 5 -I DOCKER-USER 1 -j PRINTING-VPN

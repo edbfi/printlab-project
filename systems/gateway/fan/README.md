@@ -1,128 +1,55 @@
 # Gateway fan
 
-A Noctua NF-A8 5V PWM on the Radxa Dragon Q6A's 40-pin header, sped up and slowed down by the kernel's thermal framework. There is no daemon. A device-tree overlay adds a `pwm-fan` device and binds it to the CPU, NSP and DDR thermal zones. Wiring, trip temperatures and fan levels are documented in [`q6a-fan.dts`](q6a-fan.dts).
-
-| File | Installed at | Purpose |
-| --- | --- | --- |
-| `q6a-fan.dts` | `/etc/q6a-fan/q6a-fan.dts` | The overlay: software PWM on GPIO26, tach on GPIO27, trips and fan levels. |
-| `q6a-fan-dtb` | `/usr/local/sbin/q6a-fan-dtb` (0755) | Merges the overlay into the stock DTB of a kernel version. |
-| `armbian-grub-with-dtb-q6a-fan` | `/etc/kernel/postinst.d/` (0755 once live) | Rebuilds the fan DTB after each kernel install, right after Armbian copies the stock one. |
-| `60-q6a-fan-thermal.rules` | `/etc/udev/rules.d/` | Switches the fan's zones to `step_wise`. The default `power_allocator` ignores `pwm-fan`. |
-| `grub/custom.cfg` | `/boot/grub/custom.cfg` while testing | The fallback entry plus a one-shot entry that boots the fan DTB once. |
-| `grub/custom-live.cfg` | `/boot/grub/custom.cfg` once live | Only the fallback entry: the newest kernel with the stock DTB. |
-
-The build needs `cpp` and `device-tree-compiler` (`dtc`, `fdtoverlay`, `fdtget`); the wiring checks use libgpiod v2 (`gpiomon`, `gpioset`, `gpioget` with `-c`). If a build tool is missing, the kernel hook prints one line and keeps the stock DTB, so the fan just runs at full speed.
-
-GRUB boots `/boot/armbian-dtb-<kernel>` (see `/etc/grub.d/09_linux_with_dtb.sh`), so the fan is live once that file contains the overlay. If the overlay fails to build, the stock DTB stays. The fan then runs at full speed, because U48's pull-up holds its PWM input high. The one exception is a failed tach IRQ request at probe: the fan then stops, and only CPU throttling is left. After every kernel upgrade, check that a `pwm-fan` cooling device exists (the `grep` checks after the test boot below).
+A Noctua NF-A8 5V PWM fan is controlled by the kernel thermal framework, without a daemon. The overlay binds `pwm-fan` to CPU, NSP and DDR zones; [q6a-fan.dts](q6a-fan.dts) defines trip temperatures and fan levels. Active cooling begins at 55 °C. Software PWM generates about 50,000 timer interrupts per second while running and consumes CPU time even at low duty.
 
 ## Wiring
 
-Shut the board down **and unplug its power** before touching the header. Pins 2 and 4 carry 5V right next to GPIO pins.
+Shut down and **unplug power** before touching the 40-pin header. With Ethernet/USB ports on the right, pin 1 is at the left end of the inner row by M.2; all four connections use the outer, even-numbered row.
 
-Hold the board with the Ethernet and USB ports on the right, so the header runs along the far edge. Pin 1 is at the left end of the inner row, by the M.2 slot. Every fan wire goes in the outer row (even pins), counted from the left:
+| Fan wire | Header pin | Outer-row position from left |
+|---|---|---|
+| Black, ground | 6 GND | 3rd |
+| Yellow, +5V | 4 5V | 2nd |
+| Green, tach | 18 GPIO27 | 9th |
+| Blue, PWM | 16 GPIO26 | 8th |
 
-| Fan pin (wire) | Header pin | Outer-row position |
-| --- | --- | --- |
-| 1 GND (black) | 6 GND | 3rd |
-| 2 +5V (yellow) | 4 5V | 2nd |
-| 3 tach (green) | 18 GPIO27 | 9th |
-| 4 PWM (blue) | 16 GPIO26 | 8th |
+The fan plug's latch ridge covers pins 1–3; PWM is the hole outside it. GPIO voltage compatibility depends on the circuit described in the overlay. The fan's idle PWM voltage has not been measured; a GPIO pull-low test does not establish it. Do not treat this wiring as an electrically verified general-purpose design.
 
-On the fan plug, the latch ridge covers pins 1-3; pin 4 (PWM) is the hole outside it. Why the PWM wire may go straight to the header is explained in `q6a-fan.dts`. On this gateway it was connected without measuring the fan's PWM voltage (no meter at hand), as an operator decision, accepting the risk described in `q6a-fan.dts`. The `gpioset` gate below only checks that the line can be pulled low; it can't show the idle voltage.
+## Installed files
 
-## Check the wiring with the stock DTB
+| Source | Destination |
+|---|---|
+| `q6a-fan.dts` | `/etc/q6a-fan/q6a-fan.dts` |
+| `q6a-fan-dtb` | `/usr/local/sbin/q6a-fan-dtb` (0755) |
+| `armbian-grub-with-dtb-q6a-fan` | `/etc/kernel/postinst.d/` (0755) |
+| `60-q6a-fan-thermal.rules` | `/etc/udev/rules.d/` |
+| `grub/custom-live.cfg` | `/boot/grub/custom.cfg` |
 
-With the fan wired, boot normally. The fan runs at full speed, because nothing drives its PWM input yet. GPIO26 and GPIO27 are lines 26 and 27 of `gpiochip4` (named `PIN_16` and `PIN_18`):
+Other files are root-owned 0644. The builder needs `cpp` and device-tree-compiler tools (`dtc`, `fdtoverlay`, `fdtget`). The kernel hook merges the overlay into `/boot/armbian-dtb-<kernel>` after Armbian copies the stock DTB. Udev selects `step_wise`; `power_allocator` does not drive this fan.
 
-```sh
-sudo timeout 2 gpiomon -c gpiochip4 -e falling 27 | wc -l   # tach: rpm ≈ count × 15, so ≈ 147 at 2200 rpm
-sudo timeout 5 gpioset -c gpiochip4 26=0                   # PWM low: the fan stops
-sudo gpioget -c gpiochip4 26 >/dev/null                    # back to input: full speed again
-```
+If overlay building fails or tools are absent, the stock DTB remains and the PWM pull-up lets the fan run at full speed. A failed tach IRQ request during driver probe is different: the fan can stop, leaving CPU throttling as protection. Verify cooling after kernel updates. [Unexplained early boot resets](../../../documentation/OPERATIONS.md#current-faults) remain a separate unresolved fault.
 
-Releasing the line after `gpioset` leaves it an output driven low, so the `gpioget` is needed to make it an input again. These are gates for the next step:
+## Inspection and updates
 
-- About 0 tach events: recheck the green wire on pin 18.
-- The fan doesn't stop at `26=0`: U48 can't pull the fan's PWM input low enough. Unplug pin 4 (the fan stays at full speed) and don't install the overlay. The stock DTB drives the pin at 2 mA and the overlay at 8 mA, so passing here is the harder case.
-
-## Test with the one-shot entry
-
-The test boot uses a separate DTB, so a hang or bad behaviour goes away after a power cycle (the hardware watchdog and `kernel.panic = 10` also reboot on their own). GRUB then boots the normal entry again.
+Read fan speed/duty and thermal policy on Radxa:
 
 ```sh
-sudo install -D -m 0644 q6a-fan.dts /etc/q6a-fan/q6a-fan.dts
-sudo install -m 0755 q6a-fan-dtb /usr/local/sbin/q6a-fan-dtb
-sudo install -m 0644 60-q6a-fan-thermal.rules /etc/udev/rules.d/
-sudo install -m 0644 grub/custom.cfg /boot/grub/custom.cfg  # kernel version and args must match /proc/cmdline
-sudo update-grub
-sudo q6a-fan-dtb "$(uname -r)" "/boot/armbian-dtb-$(uname -r)-fan"
-sudo grub-reboot q6a-fan-test && sudo reboot
-```
-
-After the install commands above (skip their last line to do this before the fan test), check that the fallback entry boots: `sudo grub-reboot q6a-fan-fallback && sudo reboot`. Afterwards `/proc/cmdline` should start with `BOOT_IMAGE=/boot/vmlinuz `. It boots the same kernel with the stock DTB.
-
-GRUB keeps Armbian's 0 s menu timeout. A 3 s timeout was tried on 2026-11-09, but boots reset with both 3 s and 0 s (see [the open issue](../../../documentation/worklog/ISSUES.md)), so the timeout isn't the cause. The menu stays off because the board runs headless. The cost: on a boot that fails, the fallback entry can't be picked.
-
-After the test boot, find the fan and its zones. `zones` is an array, so these commands work the same in bash and zsh:
-
-```sh
-H=$(dirname "$(grep -l '^pwmfan$' /sys/class/hwmon/*/name)")
-cat "$H/fan1_input" "$H/pwm1"                     # rpm and duty (0-255)
+fan_hwmon=$(dirname "$(grep -l '^pwmfan$' /sys/class/hwmon/*/name)")
+cat "$fan_hwmon/fan1_input" "$fan_hwmon/pwm1"
 grep -l '^pwm-fan$' /sys/class/thermal/cooling_device*/type
-zones=($(grep -lE '^(cpuss[01]|nspss[01]|ddr)-thermal$' /sys/class/thermal/thermal_zone*/type | xargs -n1 dirname))
-for z in "${zones[@]}"; do grep -H . "$z/policy"; done   # all step_wise
+grep -H . /sys/class/thermal/thermal_zone*/type /sys/class/thermal/thermal_zone*/policy
 ```
 
-1. **Speed sweep.** `step_wise` steps a manually set duty back down whenever a zone's temperature falls, so pause it first. `user_space` never touches the fan, and the zones' hot and critical trips still apply:
+The CPU/NSP/DDR zones should use `step_wise`; a nonzero PWM duty should have a plausible tach reading. The fan is normally stopped below its thermal thresholds.
 
-   ```sh
-   for z in "${zones[@]}"; do echo user_space | sudo tee "$z/policy" >/dev/null; done
-   for d in 0 51 64 102 153 204 255; do echo $d | sudo tee "$H/pwm1" >/dev/null; sleep 6; echo "$d $(cat "$H/fan1_input")"; done
-   echo 0 | sudo tee "$H/pwm1" >/dev/null
-   for z in "${zones[@]}"; do echo step_wise | sudo tee "$z/policy" >/dev/null; done
-   ```
+Overlay edits require `sudo q6a-fan-dtb "$(uname -r)"` and a scoped reboot to take effect. Before reboot, validate the generated DTB, retained stock image and independent recovery access. The kernel hook also rebuilds after package upgrades, which can lead to an unattended reboot. Do not make thermal-trip or GPIO writes as incidental diagnostics.
 
-   Expect 0 rpm at 0, about 400 rpm at 51 (20%), about 2200 rpm at 255, and a steady rise in between. Erratic or too-high readings at middle duties would point to PWM noise on the tach wire.
-2. **Thermal control.** In `cpuss0-thermal`, find the first fan trip: the `active` trip at `55000`. `fdtoverlay` puts the fan trips before the stock ones in reverse order, so it is normally `trip_point_4`; confirm before writing. Set it 5 °C below the current temperature, then add a little load so the temperature moves:
+`grub/custom.cfg` supplies an optional one-shot `q6a-fan-test` entry using a separate `-fan` DTB. It is not the installed live file; its kernel and boot arguments require validation before use. GRUB's zero-second timeout means the fallback cannot be selected interactively during a failed boot.
 
-   ```sh
-   Z=$(dirname "$(grep -l '^cpuss0-thermal$' /sys/class/thermal/thermal_zone*/type)")
-   grep -H . $Z/trip_point_4_type $Z/trip_point_4_temp        # active, 55000
-   echo $(( $(cat $Z/temp) - 5000 )) | sudo tee $Z/trip_point_4_temp
-   timeout 20 sh -c 'yes >/dev/null & yes >/dev/null & wait'
-   cat "$H/pwm1"                                               # 64 (state 1)
-   echo 55000 | sudo tee $Z/trip_point_4_temp
-   ```
+## Recovery
 
-   The fan should go to state 1 within a few seconds of the load starting. After the trip is restored, it stops on a later falling reading. On kernel 6.18.2 this can take a while (see `q6a-fan.dts`). Trip changes made through sysfs last only until reboot.
-3. **Timer load.** At any running fan level, `pwm-gpio` takes 50,000 timer interrupts a second on one CPU. That time counts as `hi` in `top` (press `1` for each CPU), not as a process. On 2026-11-09 this measured about 50,000 interrupts a second and 23% `hi` on one of the 8 CPUs at any running level, and nothing with the fan off. That cost was accepted because the fan only runs above 55 °C (28-43 °C observed with the fan off). The kernel reports only the first slow hrtimer interrupt of each boot: 89 µs in the test boot and 50 µs in the live boot; such a delay only stretches one PWM edge. Check that the gateway still serves the printers while the fan runs.
+While the gateway is running, `sudo grub-reboot q6a-fan-fallback` selects the newest kernel with its stock DTB for the **next** reboot. Arrange the reboot separately; do not repeatedly reboot to diagnose connectivity.
 
-## Go live
+For permanent software removal, disable the fan kernel hook, restore each `/boot/armbian-dtb-<kernel>` from its matching `/usr/lib/linux-image-<kernel>/qcom/qcs6490-radxa-dragon-q6a.dtb`, retain the stock fallback entry and reboot within the recovery window. Preserve the source and snapshots until stock operation is checked. A stock DTB normally leaves the fan running at full speed.
 
-The gateway has reset early in boot several times since the fan was wired; see [the open issue](../../../documentation/worklog/ISSUES.md) before going live elsewhere.
-
-```sh
-sudo install -m 0755 armbian-grub-with-dtb-q6a-fan /etc/kernel/postinst.d/
-sudo q6a-fan-dtb "$(uname -r)"                     # writes /boot/armbian-dtb-<kernel>
-sudo install -m 0644 grub/custom-live.cfg /boot/grub/custom.cfg
-sudo rm "/boot/armbian-dtb-$(uname -r)-fan"
-sudo reboot
-```
-
-Rerun `sudo q6a-fan-dtb "$(uname -r)"` and reboot after you edit the overlay. After a kernel upgrade, run the `grep` checks above and confirm `fan1_input` reads a speed whenever `pwm1` is above 0. The hook builds a fan DTB for each new kernel, and unattended upgrades may reboot into it at 02:00 without anyone checking it first (see operations).
-
-## Rollback
-
-```sh
-sudo chmod -f -x /etc/kernel/postinst.d/armbian-grub-with-dtb-q6a-fan
-sudo install -m 0644 grub/custom-live.cfg /boot/grub/custom.cfg
-sudo find /boot -maxdepth 1 -name 'armbian-dtb-*-fan' -delete   # no glob: zsh aborts on no matches
-for f in /boot/armbian-dtb-*; do
-	k=${f#/boot/armbian-dtb-}
-	[ -f "/usr/lib/linux-image-$k/qcom/qcs6490-radxa-dragon-q6a.dtb" ] &&
-		sudo cp "/usr/lib/linux-image-$k/qcom/qcs6490-radxa-dragon-q6a.dtb" "$f"
-done
-sudo reboot
-```
-
-If the board no longer boots, there is no menu to pick the fallback from (see the timeout note above). Put the NVMe drive in a USB enclosure on another Linux machine, mount its root partition (`nvme0n1p2` on the gateway), and copy `usr/lib/linux-image-<kernel>/qcom/qcs6490-radxa-dragon-q6a.dtb` over `boot/armbian-dtb-<kernel>`. While the system still runs, `sudo grub-reboot q6a-fan-fallback` boots the fallback entry once.
+If the board cannot boot, attach its NVMe to another Linux machine, mount the gateway root partition (`nvme0n1p2` on the gateway), and copy the matching stock DTB over `boot/armbian-dtb-<kernel>`. Verify kernel versions and mount paths before writing. This restores boot configuration; it does not resolve the unknown reset cause.

@@ -1,0 +1,14 @@
+# Active native profile; managed together with the guarded DHCP helper.
+# Sorts before 05-reserved-builtin.network, which stays installed for rollback.
+[Match]
+Name=enp1s0
+MACAddress=00:48:54:21:66:96
+[Link]
+RequiredForOnline=no
+[Network]
+DHCP=no
+LinkLocalAddressing=no
+IPv6AcceptRA=no
+IPv6SendRA=no
+# The guarded external client owns finite-lifetime IPv4 addresses.
+KeepConfiguration=dynamic

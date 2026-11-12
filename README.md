@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/printlab-project.svg" alt="printlab-project logo" width="256" height="256">
+  <img src="assets/printlab-project.svg" alt="printlab-project logo" width="160" height="160">
 </p>
 
 <h1 align="center">printlab-project</h1>
@@ -7,7 +7,7 @@
 <p align="center"><strong>Configuration and operating guides for a shared 3D-printing station.</strong></p>
 
 <p align="center">
-  <a href="https://github.com/edbfi/printlab-project/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0--only-blue?style=flat" alt="License: AGPL-3.0-only"></a>
+  <a href="https://github.com/edbfi/printlab-project/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0--or--later-blue?style=flat" alt="License: AGPL-3.0-or-later"></a>
   <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/" title="Linux kernel source"><img src="https://img.shields.io/badge/Linux-FCC624?style=flat&amp;logo=linux&amp;logoColor=black" alt="Linux"></a>
   <a href="https://github.com/python/cpython" title="Python: CPython implementation source"><img src="https://img.shields.io/badge/Python-3776AB?style=flat&amp;logo=python&amp;logoColor=white" alt="Python"></a>
 </p>
@@ -45,4 +45,4 @@ python3 -B -m unittest discover -s systems/gateway/native-uplink/tests
 
 ## License
 
-GNU AGPL-3.0-only; see [LICENSE](LICENSE). Third-party software keeps its own licenses.
+Original code, configuration, documentation and artwork in this repository are licensed under the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version (`AGPL-3.0-or-later`); see [LICENSE](LICENSE). Third-party software and assets retain their own licenses and copyright notices.

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
-  <!-- SPDX-License-Identifier: AGPL-3.0-only -->
+  <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
   <title id="title">printlab-project</title>
   <desc id="desc">Stacked print layers inside a network gateway outline.</desc>
   <rect x="16" y="16" width="224" height="224" rx="40" fill="#0f2536"/>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <!-- SPDX-License-Identifier: AGPL-3.0-only -->
+  <title id="title">printlab-project</title>
+  <desc id="desc">Stacked print layers inside a network gateway outline.</desc>
+  <rect x="16" y="16" width="224" height="224" rx="40" fill="#0f2536"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="40" y="44" width="176" height="152" rx="16" stroke="#e2f1fa" stroke-width="8"/>
+    <path d="m80 100 48-24 48 24-48 24Z M80 120l48 24 48-24 M80 140l48 24 48-24" stroke="#64d8ce" stroke-width="7"/>
+    <path d="M128 196v20 M88 216h80" stroke="#e2f1fa" stroke-width="8"/>
+  </g>
+  <circle cx="192" cy="176" r="4" fill="#64d8ce"/>
+</svg>

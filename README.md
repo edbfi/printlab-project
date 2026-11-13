@@ -10,6 +10,7 @@
   <a href="https://github.com/edbfi/printlab-project/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0--or--later-blue?style=flat" alt="License: AGPL-3.0-or-later"></a>
   <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/" title="Linux kernel source"><img src="https://img.shields.io/badge/Linux-FCC624?style=flat&amp;logo=linux&amp;logoColor=black" alt="Linux"></a>
   <a href="https://github.com/python/cpython" title="Python: CPython implementation source"><img src="https://img.shields.io/badge/Python-3776AB?style=flat&amp;logo=python&amp;logoColor=white" alt="Python"></a>
+  <a href="https://github.com/edbfi/printlab-project/actions/workflows/ci.yml?query=branch%3Amain"><img src="https://img.shields.io/github/actions/workflow/status/edbfi/printlab-project/ci.yml?branch=main&amp;event=push&amp;label=CI&amp;style=flat" alt="CI"></a>
 </p>
 
 Configuration and documentation for a shared 3D-printing station: two Bambu Lab A1 minis, a Lubuntu Chromebook running Bambu Studio, and a Radxa Dragon Q6A that is the station's network gateway. The repository tracks the gateway's configuration by component; it is not a machine installer, and nothing in it deploys itself.
